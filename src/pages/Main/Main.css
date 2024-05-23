@@ -1,5 +1,17 @@
-
 .container {
-    background-color: '#456';
-    height: '100hv';
+    background-color: #b1c4de;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    flex: 1;
+    justify-content: center;
+}
+
+.card {
+    border-radius: 25px;
+    padding: 20px;
+    background-color: #dbe4f0;
 }
