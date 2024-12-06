@@ -1,7 +1,26 @@
 [![pages-build-deployment](https://github.com/Crare/vocabulary-app/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Crare/vocabulary-app/actions/workflows/pages/pages-build-deployment)
 
 # check the app out at:
+
 https://crare.github.io/vocabulary-app/
+
+Learn any language vocabulary, if you have the words, just add them here and this app tests them from you.
+
+**Input your own words or use existing sets. Any language possible, if you have the words for both languages.**
+
+<img src="https://github.com/Crare/vocabulary-app/blob/master/readme-img/input_words.png" width="1000">
+
+**Writing test, randomly switching between both languages.**
+
+<img src="https://github.com/Crare/vocabulary-app/blob/master/readme-img/write_words.png" width="400">
+
+**Multiselection test, randomly switching between both languages.**
+
+<img src="https://github.com/Crare/vocabulary-app/blob/master/readme-img/select_word.png" width="600">
+
+**Check results after test, see what words you have to improve more.**
+
+<img src="https://github.com/Crare/vocabulary-app/blob/master/readme-img/show_results.png" width="600">
 
 # react-app generated readme-text below:
 
