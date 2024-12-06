@@ -361,6 +361,19 @@ export const SettingsView = (props: SettingsViewProps) => {
           flexDirection={"row"}
           gap={2}
           justifyContent={"space-evenly"}
+          mt={4}
+          mb={2}
+        >
+          <Typography variant="body1">
+            Add words in two languages in same order and they will be mappeed to
+            each other. One word per line.
+          </Typography>
+        </Grid>
+        <Grid
+          container
+          flexDirection={"row"}
+          gap={2}
+          justifyContent={"space-evenly"}
         >
           <Grid item xs={12} sm={5}>
             <Typography variant="h5">Add words in your language</Typography>

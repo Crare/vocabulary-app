@@ -20,3 +20,15 @@ export interface TestWord {
   timesFailed: number;
   timesCheckedAnswer: number;
 }
+
+export enum TestOption {
+  WriteCorrectAnswer,
+  SelectFromMultiple,
+}
+
+export interface TestResults {
+  wordResults: TestWord[];
+  timeTaken: string;
+  date: Date;
+  score: number;
+}

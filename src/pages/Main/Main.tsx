@@ -6,17 +6,23 @@ import { SettingsView } from "../Testing/SettingsView";
 import { useState } from "react";
 import { TestingView } from "../Testing/TestingView";
 import { ResultsView } from "../Testing/ResultsView";
-import { TestSettings } from "../Testing/types";
+import { TestResults, TestSettings } from "../Testing/types";
 
 const Main = () => {
   const [view, setView] = useState<"settings" | "testing" | "results">(
     "settings"
   );
   const [settings, setSettings] = useState<TestSettings | undefined>(undefined);
+  const [results, setResults] = useState<TestResults | undefined>(undefined);
 
   const startTest = (testSettings: TestSettings) => {
     setSettings(testSettings);
     setView("testing");
+  };
+
+  const endTesting = (testResults: TestResults) => {
+    setResults(results);
+    setView("results");
   };
 
   return (
@@ -34,9 +40,11 @@ const Main = () => {
 
         {view === "settings" ? <SettingsView onStartTest={startTest} /> : null}
         {view === "testing" && settings ? (
-          <TestingView settings={settings} />
+          <TestingView settings={settings} onEndTesting={endTesting} />
         ) : null}
-        {view === "results" ? <ResultsView /> : null}
+        {view === "results" && results ? (
+          <ResultsView results={results} />
+        ) : null}
       </Grid>
     </Grid>
   );

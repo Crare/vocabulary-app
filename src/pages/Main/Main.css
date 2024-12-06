@@ -1,16 +1,4 @@
 .container {
-  background-color: #b1c4de;
   display: flex;
   flex-direction: column;
-}
-
-.header {
-  flex: 1;
-  justify-content: center;
-}
-
-.card {
-  border-radius: 25px;
-  padding: 20px;
-  background-color: #dbe4f0;
 }
