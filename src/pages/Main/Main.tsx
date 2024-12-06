@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./Main.css";
 import {
+  Button,
   Card,
   Checkbox,
   FormControlLabel,
@@ -13,6 +14,12 @@ import {
   Typography,
 } from "@mui/material";
 import { Header } from "./Header";
+
+import fi_set1 from "../../wordsets/set1/fi.json";
+import sv_set1 from "../../wordsets/set1/sv.json";
+
+const placeholderYourLang = fi_set1.join("\n");
+const placeholderOtherLang = sv_set1.join("\n");
 
 const Main = () => {
   const [wordNeedsToGetCorrectTimes, setWordNeedsToGetCorrectTimes] =
@@ -29,6 +36,16 @@ const Main = () => {
   const [language2Words, setLanguage2Words] = useState<string>("");
 
   const [testType, setTestType] = useState<string>("both"); // "both" | "multi-select" | "writing"
+
+  const useExample = () => {
+    setLanguage1Words(placeholderYourLang);
+    setLanguage2Words(placeholderOtherLang);
+  };
+
+  const clear = () => {
+    setLanguage1Words("");
+    setLanguage2Words("");
+  };
 
   return (
     <Grid className="container" justifyContent={"center"}>
@@ -60,6 +77,20 @@ const Main = () => {
               gap={2}
               justifyContent={"space-evenly"}
             >
+              <Grid item xs={12} ml={6}>
+                <Button type="button" variant="contained" onClick={useExample}>
+                  Use example
+                </Button>
+                <Button
+                  style={{ marginLeft: 10 }}
+                  type="button"
+                  variant="contained"
+                  onClick={clear}
+                >
+                  clear
+                </Button>
+              </Grid>
+
               <Grid item xs={12} sm={5}>
                 <Typography variant="h5">Add words in your language</Typography>
                 <TextareaAutosize
@@ -67,6 +98,7 @@ const Main = () => {
                   minRows={10}
                   value={language1Words}
                   onChange={(e) => setLanguage1Words(e.target.value)}
+                  placeholder={placeholderYourLang}
                 />
               </Grid>
               <Grid item xs={12} sm={5}>
@@ -78,6 +110,7 @@ const Main = () => {
                   minRows={10}
                   value={language2Words}
                   onChange={(e) => setLanguage2Words(e.target.value)}
+                  placeholder={placeholderOtherLang}
                 />
               </Grid>
             </Grid>
@@ -185,4 +218,3 @@ const Main = () => {
 };
 
 export default Main;
-
