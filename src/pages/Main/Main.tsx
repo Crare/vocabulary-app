@@ -21,7 +21,7 @@ const Main = () => {
   };
 
   const endTesting = (testResults: TestResults) => {
-    setResults(results);
+    setResults(testResults);
     setView("results");
   };
 

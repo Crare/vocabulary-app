@@ -64,6 +64,7 @@ export const TestingView = (props: TestingViewProps) => {
     // console.log("wordsLeft", wordsLeft);
     var words = settings.languageSet.language1Words.map((lang1Word, index) => {
       return {
+        id: index,
         lang1Word: lang1Word,
         lang2Word: settings.languageSet.language2Words[index],
         timesCorrect: 0,
@@ -155,13 +156,22 @@ export const TestingView = (props: TestingViewProps) => {
     checkAnswer(option);
   };
 
+  const [success, setSuccess] = useState<boolean>(false);
+  const [failed, setFailed] = useState<boolean>(false);
   const checkAnswer = (guess: string) => {
+    if (!guessWord) {
+      return;
+    }
     if (guess === guessWord?.lang2Word) {
       // success
       console.log("correct answer!");
+      guessWord.timesCorrect += 1;
+      setSuccess(true);
     } else {
       // failed
       console.log("wrong answer!");
+      guessWord.timesFailed += 1;
+      setFailed(true);
     }
     setGuessAnswer("");
   };
@@ -196,6 +206,7 @@ export const TestingView = (props: TestingViewProps) => {
       score: 0,
       wordResults: testWords,
     };
+    console.log("results", results);
     onEndTesting(results);
   };
 

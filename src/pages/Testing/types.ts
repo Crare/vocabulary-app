@@ -14,6 +14,7 @@ export interface LanguageSet {
 }
 
 export interface TestWord {
+  id: number;
   lang1Word: string;
   lang2Word: string;
   timesCorrect: number;
