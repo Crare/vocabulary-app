@@ -1,3 +1,8 @@
+# check the app out at:
+https://crare.github.io/vocabulary-app/
+
+# react-app generated readme-text below:
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
