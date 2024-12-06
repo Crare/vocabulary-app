@@ -1,6 +1,6 @@
-import { Timer } from "@mui/icons-material";
 import { Card, Grid, Typography } from "@mui/material";
 import { TestSettings } from "./types";
+import { TimeTaken } from "../../components/TimeTaken";
 
 interface TestingStatsCardProps {
   settings: TestSettings;
@@ -27,7 +27,7 @@ export const TestingStatsCard = (props: TestingStatsCardProps) => {
           </Typography>
           <Typography>words left to get correct: {wordsLeft}</Typography>
           <Typography>
-            Time taken: <Timer />
+            Time taken: <TimeTaken />
           </Typography>
         </Grid>
       </Grid>

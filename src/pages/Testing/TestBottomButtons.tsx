@@ -1,10 +1,9 @@
 import { Button, Card, Grid, Typography } from "@mui/material";
+import { TestState } from "./types";
 
 interface TestBottomButtonsProps {
+  testState: TestState | undefined;
   correctAnswerValue: string | undefined;
-  success: boolean;
-  failed: boolean;
-  checkedAnswer: boolean;
   onCheckCorrectAnswer: () => void;
   onNext: () => void;
   onSkip: () => void;
@@ -13,10 +12,8 @@ interface TestBottomButtonsProps {
 
 export const TestBottomButtons = (props: TestBottomButtonsProps) => {
   const {
-    checkedAnswer,
+    testState,
     correctAnswerValue,
-    failed,
-    success,
     onCheckCorrectAnswer,
     onEndTesting,
     onNext,
@@ -43,12 +40,12 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
             variant="outlined"
             style={{ marginRight: 10 }}
             onClick={onCheckCorrectAnswer}
-            disabled={success || failed || checkedAnswer}
+            disabled={testState !== undefined}
           >
             See right answer
           </Button>
         )}
-        {checkedAnswer ? (
+        {testState === TestState.CheckedAnswer ? (
           <Button
             variant="contained"
             style={{ marginRight: 10 }}
@@ -62,7 +59,7 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
           variant="outlined"
           style={{ marginRight: 10 }}
           onClick={onSkip}
-          disabled={success || failed || checkedAnswer}
+          disabled={testState !== undefined}
         >
           New word (skip)
         </Button>

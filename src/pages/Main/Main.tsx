@@ -25,6 +25,11 @@ const Main = () => {
     setView("results");
   };
 
+  const backToStart = () => {
+    setView("settings");
+    setResults(undefined);
+  };
+
   return (
     <Grid className="container" justifyContent={"center"}>
       <Grid
@@ -43,7 +48,7 @@ const Main = () => {
           <TestingView settings={settings} onEndTesting={endTesting} />
         ) : null}
         {view === "results" && results ? (
-          <ResultsView results={results} />
+          <ResultsView results={results} onBackToStart={backToStart} />
         ) : null}
       </Grid>
     </Grid>

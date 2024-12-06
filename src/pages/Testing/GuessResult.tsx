@@ -1,23 +1,22 @@
 import { Typography } from "@mui/material";
-import { TestWord } from "./types";
+import { TestState, TestWord } from "./types";
 
 interface GuessResultProps {
-  success: boolean;
-  failed: boolean;
+  testState: TestState | undefined;
   guessWord: TestWord | undefined;
 }
 
 export const GuessResult = (props: GuessResultProps) => {
-  const { success, failed, guessWord } = props;
+  const { testState, guessWord } = props;
   return (
     <>
-      {success ? (
+      {testState === TestState.Success ? (
         <Typography color="green" variant="h6" style={{ textAlign: "center" }}>
           Correct! Answer was: "{guessWord?.lang2Word}". Continuing to next
           word...
         </Typography>
       ) : null}
-      {failed ? (
+      {testState === TestState.Failed ? (
         <Typography color="red" variant="h6" style={{ textAlign: "center" }}>
           Incorrect! Answer was: "{guessWord?.lang2Word}". Continuing to next
           word...

@@ -1,28 +1,19 @@
 import { Button, Card, Input } from "@mui/material";
 import { GuessWordTitle } from "./GuessWordTitle";
-import { TestOption, TestWord } from "./types";
-import { useState } from "react";
+import { TestOption, TestState, TestWord } from "./types";
+import { useEffect, useState } from "react";
 
 interface WriteTestCardProps {
+  testState: TestState | undefined;
   guessWord: TestWord;
   testOption: TestOption;
-  checkedAnswer: boolean;
-  success: boolean;
-  failed: boolean;
   onSendAnswer: (value: string) => void;
 }
 
 export const WriteTestCard = (props: WriteTestCardProps) => {
-  const {
-    guessWord,
-    testOption,
-    checkedAnswer,
-    success,
-    failed,
-    onSendAnswer,
-  } = props;
+  const { guessWord, testOption, testState, onSendAnswer } = props;
 
-  const [guessAnswer, setGuessAnswer] = useState<string>();
+  const [guessAnswer, setGuessAnswer] = useState<string>("");
 
   const checkEnterForSendAnswer = (e: any) => {
     if (e.code === "Enter" && guessAnswer) {
@@ -31,6 +22,12 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
   };
 
   const sendAnswer = () => (guessAnswer ? onSendAnswer(guessAnswer) : null);
+
+  useEffect(() => {
+    if (testState === TestState.Success || testState === TestState.Failed) {
+      setGuessAnswer("");
+    }
+  }, [testState]);
 
   return (
     <Card style={{ padding: 20 }}>
@@ -48,13 +45,13 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
           value={guessAnswer}
           onChange={(e) => setGuessAnswer(e.target.value)}
           placeholder="write your answer..."
-          disabled={checkedAnswer}
+          disabled={testState === TestState.CheckedAnswer}
           onKeyUp={(e) => checkEnterForSendAnswer(e)}
         />
         <Button
           variant="contained"
           onClick={sendAnswer}
-          disabled={success || failed || checkedAnswer}
+          disabled={testState !== undefined}
         >
           Send answer
         </Button>

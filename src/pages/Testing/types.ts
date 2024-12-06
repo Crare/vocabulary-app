@@ -33,3 +33,9 @@ export interface TestResults {
   date: Date;
   score: number;
 }
+
+export enum TestState {
+  Success,
+  Failed,
+  CheckedAnswer,
+}

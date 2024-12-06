@@ -1,5 +1,11 @@
 import { Grid } from "@mui/material";
-import { TestOption, TestResults, TestSettings, TestWord } from "./types";
+import {
+  TestOption,
+  TestResults,
+  TestSettings,
+  TestState,
+  TestWord,
+} from "./types";
 import { useEffect, useState } from "react";
 import { calcTimeTakenText } from "../../hooks/useDate";
 import { GuessResult } from "./GuessResult";
@@ -7,28 +13,7 @@ import { WriteTestCard } from "./WriteTestCard";
 import { SelectAnswerCard } from "./SelectAnswerCard";
 import { TestingStatsCard } from "./TestingStatsCard";
 import { TestBottomButtons } from "./TestBottomButtons";
-
-function shuffle(array: any[]) {
-  let currentIndex = array.length;
-
-  // While there remain elements to shuffle...
-  while (currentIndex !== 0) {
-    // Pick a remaining element...
-    let randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-}
-
-function randomIntFromInterval(min: number, max: number) {
-  // min and max included
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
+import { randomIntFromInterval } from "../../util/helpers";
 
 interface TestingViewProps {
   settings: TestSettings;
@@ -37,25 +22,17 @@ interface TestingViewProps {
 
 export const TestingView = (props: TestingViewProps) => {
   const { settings, onEndTesting } = props;
-
   const [startTime] = useState<Date>(new Date());
-
   const [testOption, setTestOption] = useState<TestOption>(
     TestOption.WriteCorrectAnswer
   );
-
   const [testWords, setTestWords] = useState<TestWord[] | undefined>(undefined);
   const [wordsLeft, setWordsLeft] = useState<number>(-1);
-
-  // console.log("settings", settings);
-  // console.log("testWords", testWords);
-  console.log("wordsLeft", wordsLeft);
-
   const [guessWord, setGuessWord] = useState<TestWord | undefined>(undefined);
-  const [multiSelectGuessOptions, setMultiSelectGuessOptions] = useState<
-    string[]
-  >([]);
-  const [guessAnswer, setGuessAnswer] = useState<string>("");
+  // const [success, setSuccess] = useState<boolean>(false);
+  // const [failed, setFailed] = useState<boolean>(false);
+  // const [checkedAnswer, setCheckedAnswer] = useState<boolean>(false);
+  const [testState, setTestState] = useState<TestState | undefined>(undefined);
 
   const setupWords = () => {
     if (!settings) {
@@ -98,7 +75,10 @@ export const TestingView = (props: TestingViewProps) => {
     }
     let index = randomIntFromInterval(0, testWords!.length - 1);
     let gWord = testWords![index];
-    while (gWord.timesCorrect === settings.wordNeedsToGetCorrectTimes) {
+    while (
+      gWord.timesCorrect === settings.wordNeedsToGetCorrectTimes &&
+      guessWord !== gWord
+    ) {
       index = randomIntFromInterval(0, testWords!.length - 1);
       gWord = testWords![index];
     }
@@ -108,34 +88,6 @@ export const TestingView = (props: TestingViewProps) => {
   useEffect(() => {
     chooseWordForGuessing();
   }, [testWords]);
-
-  const chooseMultiselectGuessOptions = () => {
-    if (wordsLeft === 0) {
-      return;
-    }
-    // console.log("chooseMultiselectGuessOptions()");
-    var guessOptions: string[] = [];
-    guessOptions.push(guessWord?.lang2Word!);
-
-    for (var i = 0; i < settings.multiSelectChoicesAmount - 1; i++) {
-      let index = randomIntFromInterval(0, testWords!.length - 1);
-      let gWord = testWords![index];
-      while (gWord === guessWord) {
-        index = randomIntFromInterval(0, testWords!.length - 1);
-        gWord = testWords![index];
-      }
-      guessOptions.push(gWord.lang2Word);
-    }
-
-    shuffle(guessOptions);
-    setMultiSelectGuessOptions(guessOptions);
-  };
-  useEffect(() => {
-    if (testWords && testWords?.length > 0 && guessWord) {
-      chooseMultiselectGuessOptions();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [testWords, guessWord]);
 
   // console.log("guessWord", guessWord);
   // console.log("multiSelectGuessOptions", multiSelectGuessOptions);
@@ -158,8 +110,8 @@ export const TestingView = (props: TestingViewProps) => {
     chooseTestOption();
   }, [testWords]);
 
-  const sendAnswer = () => {
-    answer(guessAnswer);
+  const sendAnswer = (value: string) => {
+    answer(value);
   };
 
   const chooseOption = (option: string) => {
@@ -167,11 +119,14 @@ export const TestingView = (props: TestingViewProps) => {
   };
 
   const checkHowManyWordsLeft = () => {
+    console.log("checkHowManyWordsLeft");
     if (!testWords) {
+      console.log("here! checkHowManyWordsLeft, testWords", testWords);
       return;
     }
+    console.log("here2! checkHowManyWordsLeft");
     const doneWords = testWords?.filter(
-      (w) => w.timesCheckedAnswer >= settings.wordNeedsToGetCorrectTimes
+      (w) => w.timesCorrect >= settings.wordNeedsToGetCorrectTimes
     );
     console.log("testWords", testWords);
     console.log("settings", settings);
@@ -180,10 +135,12 @@ export const TestingView = (props: TestingViewProps) => {
     console.log("wordsleftToDo", wordsleftToDo);
     setWordsLeft(wordsleftToDo);
   };
+  useEffect(() => {
+    if (wordsLeft === 0) {
+      endTesting();
+    }
+  }, [wordsLeft]);
 
-  const [success, setSuccess] = useState<boolean>(false);
-  const [failed, setFailed] = useState<boolean>(false);
-  const [checkedAnswer, setCheckedAnswer] = useState<boolean>(false);
   const answer = (guess: string) => {
     if (!guessWord) {
       return;
@@ -192,32 +149,27 @@ export const TestingView = (props: TestingViewProps) => {
       // success
       // console.log("correct answer!");
       guessWord.timesCorrect += 1;
-      setSuccess(true);
+      setTestState(TestState.Success);
     } else {
       // failed
       // console.log("wrong answer!");
       guessWord.timesFailed += 1;
-      setFailed(true);
+      setTestState(TestState.Failed);
     }
   };
   useEffect(() => {
-    if (success === true || failed === true) {
-      if (success) {
-        checkHowManyWordsLeft();
-      }
+    if (testState === TestState.Success || testState === TestState.Failed) {
       setTimeout(() => {
         next();
       }, 1500);
     }
-  }, [failed, success]);
+  }, [testState]);
 
   const next = () => {
-    setSuccess(false);
-    setFailed(false);
-    setCheckedAnswer(false);
-    setGuessAnswer("");
+    setTestState(undefined);
     chooseWordForGuessing();
     setCorrectAnswerValue(undefined);
+    checkHowManyWordsLeft();
   };
 
   const skip = () => {
@@ -233,7 +185,7 @@ export const TestingView = (props: TestingViewProps) => {
       return;
     }
     guessWord!.timesCheckedAnswer += 1;
-    setCheckedAnswer(true);
+    setTestState(TestState.CheckedAnswer);
     setCorrectAnswerValue(guessWord?.lang2Word!);
   };
 
@@ -261,37 +213,33 @@ export const TestingView = (props: TestingViewProps) => {
     >
       <TestingStatsCard settings={settings} wordsLeft={wordsLeft} />
 
-      <GuessResult success={success} failed={failed} guessWord={guessWord} />
+      <GuessResult testState={testState} guessWord={guessWord} />
 
-      {/* {testOption === TestOption.WriteCorrectAnswer && guessWord ? ( */}
-      {true && guessWord ? (
+      {testOption === TestOption.WriteCorrectAnswer && guessWord ? (
+        // {true && guessWord ? (
         <WriteTestCard
-          checkedAnswer={checkedAnswer}
-          failed={failed}
-          success={success}
+          testState={testState}
           guessWord={guessWord}
           onSendAnswer={sendAnswer}
           testOption={TestOption.WriteCorrectAnswer}
         />
       ) : null}
 
-      {/* {testOption === TestOption.SelectFromMultiple ? ( */}
-      {true && guessWord ? (
+      {testOption === TestOption.SelectFromMultiple && guessWord ? (
+        // {true && guessWord ? (
         <SelectAnswerCard
-          checkedAnswer={checkedAnswer}
-          failed={failed}
-          success={success}
+          testState={testState}
           guessWord={guessWord}
-          multiSelectGuessOptions={multiSelectGuessOptions}
           onChooseOption={chooseOption}
           testOption={TestOption.SelectFromMultiple}
+          settings={settings}
+          testWords={testWords}
+          wordsLeft={wordsLeft}
         />
       ) : null}
 
       <TestBottomButtons
-        checkedAnswer={checkedAnswer}
-        failed={failed}
-        success={success}
+        testState={testState}
         correctAnswerValue={correctAnswerValue}
         onCheckCorrectAnswer={checkCorrectAnswer}
         onEndTesting={endTesting}

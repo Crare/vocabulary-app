@@ -1,4 +1,4 @@
-import { Card, Grid, Typography } from "@mui/material";
+import { Button, Card, Grid, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { TestResults, TestWord } from "../Testing/types";
 
@@ -26,29 +26,15 @@ const columns: GridColDef[] = [
       return <Typography>{params.value}</Typography>;
     },
   },
-  // { field: 'lastName', headerName: 'score' },
-  // {
-  //   field: 'age',
-  //   headerName: 'Age',
-  //   type: 'number',
-  //   width: 90,
-  // },
-  // {
-  //   field: 'fullName',
-  //   headerName: 'Full name',
-  //   description: 'This column has a value getter and is not sortable.',
-  //   sortable: false,
-  //   width: 160,
-  //   valueGetter: (value, row) => `${row.firstName || ''} ${row.lastName || ''}`,
-  // },
 ];
 
 interface ResultsViewProps {
   results: TestResults;
+  onBackToStart: () => void;
 }
 
 export const ResultsView = (props: ResultsViewProps) => {
-  const { results } = props;
+  const { results, onBackToStart } = props;
 
   const paginationModel = { page: 0, pageSize: 20 };
 
@@ -87,34 +73,25 @@ export const ResultsView = (props: ResultsViewProps) => {
               checkboxSelection
               sx={{ border: 0 }}
             />
-
-            {/* <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>word in lang 1</TableCell>
-                  <TableCell>word in lang 2</TableCell>
-                  <TableCell>correct</TableCell>
-                  <TableCell>wrong</TableCell>
-                  <TableCell>checked answer</TableCell>
-                  <TableCell>score</TableCell>
-                </TableRow>
-              </TableHead>
-              {results.wordResults.map((word, index) => {
-                return (
-                  <TableBody key={index}>
-                    <TableRow>
-                      <TableCell>{word.lang1Word}</TableCell>
-                      <TableCell>{word.lang2Word}</TableCell>
-                      <TableCell>{word.timesCorrect}</TableCell>
-                      <TableCell>{word.timesFailed}</TableCell>
-                      <TableCell>{word.timesCheckedAnswer}</TableCell>
-                      <TableCell>-</TableCell>
-                    </TableRow>
-                  </TableBody>
-                );
-              })}
-            </Table> */}
           </Grid>
+        </Grid>
+      </Card>
+
+      <Card style={{ padding: 20 }}>
+        <Grid
+          container
+          flexDirection={"row"}
+          gap={2}
+          justifyContent={"space-evenly"}
+        >
+          <Button
+            color="success"
+            variant="contained"
+            style={{ marginRight: 10 }}
+            onClick={onBackToStart}
+          >
+            Back to start
+          </Button>
         </Grid>
       </Card>
     </Grid>
