@@ -5,6 +5,10 @@ import { Timer } from "../../components/Timer";
 import { calcTimeTakenText } from "../../hooks/useDate";
 import { GuessResult } from "./GuessResult";
 import { GuessWordTitle } from "./GuessWordTitle";
+import { WriteTestCard } from "./WriteTestCard";
+import { SelectAnswerCard } from "./SelectAnswerCard";
+import { TestingStatsCard } from "./TestingStatsCard";
+import { TestBottomButtons } from "./TestBottomButtons";
 
 function shuffle(array: any[]) {
   let currentIndex = array.length;
@@ -249,12 +253,6 @@ export const TestingView = (props: TestingViewProps) => {
     onEndTesting(results);
   };
 
-  const checkEnterForSendAnswer = (e: any) => {
-    if (e.code === "Enter") {
-      sendAnswer();
-    }
-  };
-
   return (
     <Grid
       container
@@ -263,143 +261,45 @@ export const TestingView = (props: TestingViewProps) => {
       gap={2}
       flexDirection={"column"}
     >
-      <Card style={{ padding: 20 }}>
-        <Typography variant="h3" m={2} textAlign={"center"}>
-          Testing
-        </Typography>
-
-        <Grid
-          container
-          flexDirection={"row"}
-          gap={2}
-          justifyContent={"space-evenly"}
-        >
-          <Grid item xs={12} ml={6}>
-            <Typography>
-              words: {settings.languageSet.language1Words.length}
-            </Typography>
-            <Typography>words left to get correct: {wordsLeft}</Typography>
-            <Typography>
-              Time taken: <Timer />
-            </Typography>
-          </Grid>
-        </Grid>
-      </Card>
+      <TestingStatsCard settings={settings} wordsLeft={wordsLeft} />
 
       <GuessResult success={success} failed={failed} guessWord={guessWord} />
 
-      {testOption === TestOption.WriteCorrectAnswer ? (
-        // {true ? (
-        <Card style={{ padding: 20 }}>
-          <GuessWordTitle guessWord={guessWord} testOption={testOption} />
-          <div
-            style={{
-              flexDirection: "row",
-              display: "flex",
-              gap: 10,
-              flex: 1,
-              justifyContent: "center",
-            }}
-          >
-            <Input
-              value={guessAnswer}
-              onChange={(e) => setGuessAnswer(e.target.value)}
-              placeholder="write your answer..."
-              disabled={checkedAnswer}
-              onKeyUp={(e) => checkEnterForSendAnswer(e)}
-            />
-            <Button
-              variant="contained"
-              onClick={sendAnswer}
-              disabled={success || failed || checkedAnswer}
-            >
-              Send answer
-            </Button>
-          </div>
-        </Card>
+      {/* {testOption === TestOption.WriteCorrectAnswer && guessWord ? ( */}
+      {true && guessWord ? (
+        <WriteTestCard
+          checkedAnswer={checkedAnswer}
+          failed={failed}
+          success={success}
+          guessWord={guessWord}
+          onSendAnswer={sendAnswer}
+          testOption={TestOption.WriteCorrectAnswer}
+        />
       ) : null}
 
-      {testOption === TestOption.SelectFromMultiple ? (
-        // {true ? (
-        <Card style={{ padding: 20 }}>
-          <GuessWordTitle guessWord={guessWord} testOption={testOption} />
-          <Grid
-            container
-            flexDirection={"row"}
-            gap={2}
-            justifyContent={"space-evenly"}
-          >
-            {multiSelectGuessOptions.map((option, index) => {
-              return (
-                <div key={index} style={{ margin: 8 }}>
-                  <Button
-                    variant="contained"
-                    onClick={() => chooseOption(option)}
-                    style={{ fontSize: 20 }}
-                    disabled={success || failed || checkedAnswer}
-                  >
-                    {option}
-                  </Button>
-                </div>
-              );
-            })}
-          </Grid>
-        </Card>
+      {/* {testOption === TestOption.SelectFromMultiple ? ( */}
+      {true && guessWord ? (
+        <SelectAnswerCard
+          checkedAnswer={checkedAnswer}
+          failed={failed}
+          success={success}
+          guessWord={guessWord}
+          multiSelectGuessOptions={multiSelectGuessOptions}
+          onChooseOption={chooseOption}
+          testOption={TestOption.SelectFromMultiple}
+        />
       ) : null}
 
-      <Card style={{ padding: 20 }}>
-        <Grid
-          container
-          flexDirection={"row"}
-          gap={2}
-          justifyContent={"space-evenly"}
-        >
-          {correctAnswerValue ? (
-            <div>
-              <Typography>Correct answer is:</Typography>
-              <Typography style={{ fontWeight: "bold" }}>
-                {correctAnswerValue}
-              </Typography>
-            </div>
-          ) : (
-            <Button
-              color="error"
-              variant="outlined"
-              style={{ marginRight: 10 }}
-              onClick={checkCorrectAnswer}
-              disabled={success || failed || checkedAnswer}
-            >
-              See right answer
-            </Button>
-          )}
-          {checkedAnswer ? (
-            <Button
-              variant="contained"
-              style={{ marginRight: 10 }}
-              onClick={next}
-            >
-              Continue
-            </Button>
-          ) : null}
-
-          <Button
-            variant="outlined"
-            style={{ marginRight: 10 }}
-            onClick={skip}
-            disabled={success || failed || checkedAnswer}
-          >
-            New word (skip)
-          </Button>
-          <Button
-            color="success"
-            variant="contained"
-            style={{ marginRight: 10 }}
-            onClick={endTesting}
-          >
-            See results (end testing)
-          </Button>
-        </Grid>
-      </Card>
+      <TestBottomButtons
+        checkedAnswer={checkedAnswer}
+        failed={failed}
+        success={success}
+        correctAnswerValue={correctAnswerValue}
+        onCheckCorrectAnswer={checkCorrectAnswer}
+        onEndTesting={endTesting}
+        onNext={next}
+        onSkip={skip}
+      />
     </Grid>
   );
 };
