@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "oderwat.indent-rainbow",
+    "esbenp.prettier-vscode",
+    "rvest.vs-code-prettier-eslint",
+    "vscode-icons-team.vscode-icons",
+    "ms-vscode.vscode-typescript-next",
+    "naumovs.color-highlight",
+    "visualstudioexptteam.vscodeintellicode"
+  ]
+}
