@@ -1,9 +1,13 @@
 import { Card, Grid, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { TestResults } from "./types";
+import { TestResults, TestWord } from "../Testing/types";
+
+const calculateScore = (word: TestWord): string => {
+  var score = word.timesCorrect - word.timesFailed - word.timesCheckedAnswer;
+  return score.toString();
+};
 
 const columns: GridColDef[] = [
-  { field: "id", headerName: "ID" },
   { field: "lang1Word", headerName: "language 1", flex: 1 },
   { field: "lang2Word", headerName: "language 2", flex: 1 },
   { field: "timesCorrect", headerName: "correct", flex: 1 },
@@ -12,6 +16,15 @@ const columns: GridColDef[] = [
     field: "timesCheckedAnswer",
     headerName: "checked answer",
     flex: 1,
+  },
+  {
+    field: "score",
+    headerName: "score",
+    flex: 1,
+    valueGetter: (_value, row) => calculateScore(row),
+    renderCell(params) {
+      return <Typography>{params.value}</Typography>;
+    },
   },
   // { field: 'lastName', headerName: 'score' },
   // {

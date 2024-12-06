@@ -6,7 +6,6 @@ import {
   FormControlLabel,
   FormGroup,
   Grid,
-  Icon,
   IconButton,
   Input,
   Modal,
@@ -16,7 +15,7 @@ import {
   TextareaAutosize,
   Typography,
 } from "@mui/material";
-import { LanguageSet, TestSettings } from "./types";
+import { LanguageSet, TestSettings } from "../Testing/types";
 import { useEffect, useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
@@ -60,7 +59,7 @@ export const SettingsView = (props: SettingsViewProps) => {
   const [wordNeedsToGetCorrectTimes, setWordNeedsToGetCorrectTimes] =
     useState<number>(3);
   const [multiSelectChoicesAmount, setMultiSelectChoicesAmount] =
-    useState<number>(3);
+    useState<number>(4);
 
   const [onlySecondLanguageWordsTested, setOnlySecondLanguageWordsTested] =
     useState<boolean>(false);
@@ -222,31 +221,26 @@ export const SettingsView = (props: SettingsViewProps) => {
                         width={"100%"}
                         justifyContent={"space-between"}
                       >
-                        <div>
+                        <Button
+                          variant="text"
+                          style={{ flex: 1 }}
+                          onClick={() => selectLanguageSet(index)}
+                        >
                           <Typography style={{ fontWeight: "bold" }}>
                             {set.name}
                           </Typography>
-                          <Typography>
-                            (words: {set.language1Words.length})
+                          <Typography style={{ color: "black" }}>
+                            {" : "} (words: {set.language1Words.length})
                           </Typography>
-                        </div>
+                        </Button>
                         <div>
-                          <Button
-                            variant="outlined"
+                          <IconButton
                             style={{ marginRight: 12 }}
                             color="error"
-                            startIcon={<DeleteIcon />}
                             onClick={() => deleteLanguageSet(index)}
                           >
-                            Delete
-                          </Button>
-                          <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={() => selectLanguageSet(index)}
-                          >
-                            Select
-                          </Button>
+                            <DeleteIcon />
+                          </IconButton>
                         </div>
                       </Grid>
                     </Grid>
@@ -453,7 +447,7 @@ export const SettingsView = (props: SettingsViewProps) => {
               {multiSelectChoicesAmount}
             </Typography>
             <Slider
-              min={1}
+              min={2}
               max={10}
               value={multiSelectChoicesAmount}
               onChange={(e: Event, newValue: number | number[]) =>

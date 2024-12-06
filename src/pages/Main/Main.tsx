@@ -2,10 +2,10 @@ import "./Main.css";
 import { Grid } from "@mui/material";
 import { Header } from "./Header";
 
-import { SettingsView } from "../Testing/SettingsView";
+import { SettingsView } from "../Settings/SettingsView";
 import { useState } from "react";
 import { TestingView } from "../Testing/TestingView";
-import { ResultsView } from "../Testing/ResultsView";
+import { ResultsView } from "../Results/ResultsView";
 import { TestResults, TestSettings } from "../Testing/types";
 
 const Main = () => {

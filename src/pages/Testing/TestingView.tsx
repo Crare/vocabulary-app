@@ -3,6 +3,8 @@ import { TestOption, TestResults, TestSettings, TestWord } from "./types";
 import { useEffect, useState } from "react";
 import { Timer } from "../../components/Timer";
 import { calcTimeTakenText } from "../../hooks/useDate";
+import { GuessResult } from "./GuessResult";
+import { GuessWordTitle } from "./GuessWordTitle";
 
 function shuffle(array: any[]) {
   let currentIndex = array.length;
@@ -45,7 +47,7 @@ export const TestingView = (props: TestingViewProps) => {
 
   // console.log("settings", settings);
   // console.log("testWords", testWords);
-  // console.log("wordsLeft", wordsLeft);
+  console.log("wordsLeft", wordsLeft);
 
   const [guessWord, setGuessWord] = useState<TestWord | undefined>(undefined);
   const [multiSelectGuessOptions, setMultiSelectGuessOptions] = useState<
@@ -84,6 +86,9 @@ export const TestingView = (props: TestingViewProps) => {
   }, []);
 
   const chooseWordForGuessing = () => {
+    if (wordsLeft === 0) {
+      endTesting();
+    }
     // console.log("chooseWordForGuessing()");
     if (!testWords) {
       // console.log("HERE! testWords", testWords);
@@ -103,6 +108,9 @@ export const TestingView = (props: TestingViewProps) => {
   }, [testWords]);
 
   const chooseMultiselectGuessOptions = () => {
+    if (wordsLeft === 0) {
+      return;
+    }
     // console.log("chooseMultiselectGuessOptions()");
     var guessOptions: string[] = [];
     guessOptions.push(guessWord?.lang2Word!);
@@ -149,39 +157,69 @@ export const TestingView = (props: TestingViewProps) => {
   }, [testWords]);
 
   const sendAnswer = () => {
-    checkAnswer(guessAnswer);
+    answer(guessAnswer);
   };
 
   const chooseOption = (option: string) => {
-    checkAnswer(option);
+    answer(option);
+  };
+
+  const checkHowManyWordsLeft = () => {
+    if (!testWords) {
+      return;
+    }
+    const doneWords = testWords?.filter(
+      (w) => w.timesCheckedAnswer >= settings.wordNeedsToGetCorrectTimes
+    );
+    console.log("testWords", testWords);
+    console.log("settings", settings);
+    console.log("doneWords", doneWords);
+    const wordsleftToDo = testWords?.length - doneWords?.length;
+    console.log("wordsleftToDo", wordsleftToDo);
+    setWordsLeft(wordsleftToDo);
   };
 
   const [success, setSuccess] = useState<boolean>(false);
   const [failed, setFailed] = useState<boolean>(false);
-  const checkAnswer = (guess: string) => {
+  const [checkedAnswer, setCheckedAnswer] = useState<boolean>(false);
+  const answer = (guess: string) => {
     if (!guessWord) {
       return;
     }
     if (guess === guessWord?.lang2Word) {
       // success
-      console.log("correct answer!");
+      // console.log("correct answer!");
       guessWord.timesCorrect += 1;
       setSuccess(true);
     } else {
       // failed
-      console.log("wrong answer!");
+      // console.log("wrong answer!");
       guessWord.timesFailed += 1;
       setFailed(true);
     }
-    setGuessAnswer("");
   };
+  useEffect(() => {
+    if (success === true || failed === true) {
+      if (success) {
+        checkHowManyWordsLeft();
+      }
+      setTimeout(() => {
+        next();
+      }, 1500);
+    }
+  }, [failed, success]);
 
   const next = () => {
+    setSuccess(false);
+    setFailed(false);
+    setCheckedAnswer(false);
+    setGuessAnswer("");
     chooseWordForGuessing();
     setCorrectAnswerValue(undefined);
   };
 
   const skip = () => {
+    guessWord!.timesFailed += 1;
     next();
   };
 
@@ -193,6 +231,7 @@ export const TestingView = (props: TestingViewProps) => {
       return;
     }
     guessWord!.timesCheckedAnswer += 1;
+    setCheckedAnswer(true);
     setCorrectAnswerValue(guessWord?.lang2Word!);
   };
 
@@ -208,6 +247,12 @@ export const TestingView = (props: TestingViewProps) => {
     };
     console.log("results", results);
     onEndTesting(results);
+  };
+
+  const checkEnterForSendAnswer = (e: any) => {
+    if (e.code === "Enter") {
+      sendAnswer();
+    }
   };
 
   return (
@@ -241,26 +286,12 @@ export const TestingView = (props: TestingViewProps) => {
         </Grid>
       </Card>
 
+      <GuessResult success={success} failed={failed} guessWord={guessWord} />
+
       {testOption === TestOption.WriteCorrectAnswer ? (
         // {true ? (
         <Card style={{ padding: 20 }}>
-          <Grid
-            container
-            flexDirection={"row"}
-            gap={2}
-            justifyContent={"center"}
-            mb={2}
-          >
-            <div style={{ textAlign: "center" }}>
-              <Typography variant="body1">Write right answer:</Typography>
-              <Typography
-                variant="h5"
-                style={{ marginTop: 20, fontWeight: "bold" }}
-              >
-                {guessWord?.lang1Word}
-              </Typography>
-            </div>
-          </Grid>
+          <GuessWordTitle guessWord={guessWord} testOption={testOption} />
           <div
             style={{
               flexDirection: "row",
@@ -274,8 +305,14 @@ export const TestingView = (props: TestingViewProps) => {
               value={guessAnswer}
               onChange={(e) => setGuessAnswer(e.target.value)}
               placeholder="write your answer..."
+              disabled={checkedAnswer}
+              onKeyUp={(e) => checkEnterForSendAnswer(e)}
             />
-            <Button variant="contained" onClick={sendAnswer}>
+            <Button
+              variant="contained"
+              onClick={sendAnswer}
+              disabled={success || failed || checkedAnswer}
+            >
               Send answer
             </Button>
           </div>
@@ -285,23 +322,7 @@ export const TestingView = (props: TestingViewProps) => {
       {testOption === TestOption.SelectFromMultiple ? (
         // {true ? (
         <Card style={{ padding: 20 }}>
-          <Grid
-            container
-            flexDirection={"row"}
-            gap={2}
-            justifyContent={"space-evenly"}
-            mb={2}
-          >
-            <div style={{ textAlign: "center" }}>
-              <Typography variant="body1">Select right answer:</Typography>
-              <Typography
-                variant="h5"
-                style={{ marginTop: 20, fontWeight: "bold" }}
-              >
-                {guessWord?.lang1Word}
-              </Typography>
-            </div>
-          </Grid>
+          <GuessWordTitle guessWord={guessWord} testOption={testOption} />
           <Grid
             container
             flexDirection={"row"}
@@ -315,6 +336,7 @@ export const TestingView = (props: TestingViewProps) => {
                     variant="contained"
                     onClick={() => chooseOption(option)}
                     style={{ fontSize: 20 }}
+                    disabled={success || failed || checkedAnswer}
                   >
                     {option}
                   </Button>
@@ -333,17 +355,39 @@ export const TestingView = (props: TestingViewProps) => {
           justifyContent={"space-evenly"}
         >
           {correctAnswerValue ? (
-            <Typography>Correct answer is: {correctAnswerValue}</Typography>
+            <div>
+              <Typography>Correct answer is:</Typography>
+              <Typography style={{ fontWeight: "bold" }}>
+                {correctAnswerValue}
+              </Typography>
+            </div>
+          ) : (
+            <Button
+              color="error"
+              variant="outlined"
+              style={{ marginRight: 10 }}
+              onClick={checkCorrectAnswer}
+              disabled={success || failed || checkedAnswer}
+            >
+              See right answer
+            </Button>
+          )}
+          {checkedAnswer ? (
+            <Button
+              variant="contained"
+              style={{ marginRight: 10 }}
+              onClick={next}
+            >
+              Continue
+            </Button>
           ) : null}
+
           <Button
-            color="error"
             variant="outlined"
             style={{ marginRight: 10 }}
-            onClick={checkCorrectAnswer}
+            onClick={skip}
+            disabled={success || failed || checkedAnswer}
           >
-            See right answer
-          </Button>
-          <Button variant="outlined" style={{ marginRight: 10 }} onClick={skip}>
             New word (skip)
           </Button>
           <Button
