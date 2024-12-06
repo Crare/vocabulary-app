@@ -1,10 +1,8 @@
-import { Button, Card, Grid, Input, Typography } from "@mui/material";
+import { Grid } from "@mui/material";
 import { TestOption, TestResults, TestSettings, TestWord } from "./types";
 import { useEffect, useState } from "react";
-import { Timer } from "../../components/Timer";
 import { calcTimeTakenText } from "../../hooks/useDate";
 import { GuessResult } from "./GuessResult";
-import { GuessWordTitle } from "./GuessWordTitle";
 import { WriteTestCard } from "./WriteTestCard";
 import { SelectAnswerCard } from "./SelectAnswerCard";
 import { TestingStatsCard } from "./TestingStatsCard";
