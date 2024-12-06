@@ -1,3 +1,5 @@
+[![pages-build-deployment](https://github.com/Crare/vocabulary-app/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Crare/vocabulary-app/actions/workflows/pages/pages-build-deployment)
+
 # check the app out at:
 https://crare.github.io/vocabulary-app/
 
