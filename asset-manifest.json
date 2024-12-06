@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/vocabulary-app/static/css/main.f7248955.css",
-    "main.js": "/vocabulary-app/static/js/main.bc90756a.js",
+    "main.js": "/vocabulary-app/static/js/main.611cfef1.js",
     "static/js/453.998735b6.chunk.js": "/vocabulary-app/static/js/453.998735b6.chunk.js",
     "index.html": "/vocabulary-app/index.html",
     "main.f7248955.css.map": "/vocabulary-app/static/css/main.f7248955.css.map",
-    "main.bc90756a.js.map": "/vocabulary-app/static/js/main.bc90756a.js.map",
+    "main.611cfef1.js.map": "/vocabulary-app/static/js/main.611cfef1.js.map",
     "453.998735b6.chunk.js.map": "/vocabulary-app/static/js/453.998735b6.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f7248955.css",
-    "static/js/main.bc90756a.js"
+    "static/js/main.611cfef1.js"
   ]
 }
