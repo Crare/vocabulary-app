@@ -1,9 +1,14 @@
 export interface TestSettings {
-  language1Words: string[];
-  language2Words: string[];
+  languageSet: LanguageSet;
   wordNeedsToGetCorrectTimes: number;
   multiSelectChoicesAmount: number;
   onlySecondLanguageWordsTested: boolean;
   everySecondTestIsMultiOrWriting: boolean;
   testType: "both" | "multi-select" | "writing";
+}
+
+export interface LanguageSet {
+  name: string;
+  language1Words: string[];
+  language2Words: string[];
 }
