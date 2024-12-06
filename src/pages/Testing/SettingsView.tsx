@@ -158,20 +158,16 @@ export const SettingsView = (props: SettingsViewProps) => {
   const checkLanguageSetIsValid = () => {
     let valid = true;
     if (language1Words.length === 0) {
-      console.log("here1");
       valid = false;
     }
     if (language1Words.length === 0) {
-      console.log("here2");
       valid = false;
     }
     if (
       language1Words.split("\n").length !== language2Words.split("\n").length
     ) {
-      console.log("here3");
       valid = false;
     }
-    console.log("checkLanguageSetIsValid, valid: ", valid);
     setLanguageSetIsValid(valid);
   };
   useEffect(() => {
