@@ -24,7 +24,6 @@ import SaveIcon from "@mui/icons-material/Save";
 import LoopIcon from "@mui/icons-material/Loop";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
 
 import fi_set1 from "../../wordsets/set1/fi.json";
 import sv_set1 from "../../wordsets/set1/sv.json";
@@ -117,6 +116,7 @@ export const SettingsView = (props: SettingsViewProps) => {
     };
     var langSets = [...languageSets, languageSet];
     setLanguageSets([...languageSets, languageSet]);
+    setLangSetName("");
     localStorage.setItem(storage_keys.LANGUAGE_SETS, JSON.stringify(langSets));
   };
 
