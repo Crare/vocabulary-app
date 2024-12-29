@@ -25,18 +25,30 @@ import LoopIcon from "@mui/icons-material/Loop";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+import { WordSet } from "../../wordsets/types";
 import set1 from "../../wordsets/words1.json";
 import set2 from "../../wordsets/words2.json";
 import set3 from "../../wordsets/words3.json";
 import set4 from "../../wordsets/words4.json";
 import set5 from "../../wordsets/words5.json";
 import set6 from "../../wordsets/words6.json";
-import { WordSet } from "../../wordsets/types";
+import set7 from "../../wordsets/words7.json";
+import set8 from "../../wordsets/words8.json";
+import set9 from "../../wordsets/words9.json";
+const templates: WordSet[] = [
+  set1,
+  set2,
+  set3,
+  set4,
+  set5,
+  set6,
+  set7,
+  set8,
+  set9,
+];
 
 const placeholderYourLang = set1.words.map((w) => w.lang1).join("\n");
 const placeholderOtherLang = set1.words.map((w) => w.lang2).join("\n");
-
-const templates: WordSet[] = [set1, set2, set3, set4, set5, set6];
 
 interface SettingsViewProps {
   onStartTest: (settings: TestSettings) => void;
@@ -47,8 +59,8 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "75%",
-  maxWidth: 500,
+  width: "60%",
+  maxWidth: 600,
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -199,7 +211,7 @@ export const SettingsView = (props: SettingsViewProps) => {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={modalStyle}>
+        <Box sx={modalStyle} maxHeight={"60%"} overflow={"scroll"}>
           <Button
             onClick={handleLoadSetModalClose}
             endIcon={<ClearIcon />}
@@ -231,27 +243,28 @@ export const SettingsView = (props: SettingsViewProps) => {
                         flex={1}
                         width={"100%"}
                         justifyContent={"space-between"}
+                        gap={2}
                       >
-                        <Button
-                          variant="text"
-                          style={{ flex: 1 }}
-                          onClick={() => selectLanguageSet(index)}
-                        >
-                          <Typography style={{ fontWeight: "bold" }}>
-                            {set.name}
-                          </Typography>
-                          <Typography style={{ color: "black" }}>
-                            {" : "} (words: {set.language1Words.length})
-                          </Typography>
-                        </Button>
-                        <div>
-                          <IconButton
-                            style={{ marginRight: 12 }}
+                        <Typography style={{ fontWeight: "bold" }}>
+                          {set.name}
+                        </Typography>
+                        <Typography style={{ color: "black" }}>
+                          (words: {set.language1Words.length})
+                        </Typography>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <Button
+                            variant="contained"
+                            onClick={() => selectLanguageSet(index)}
+                          >
+                            Select
+                          </Button>
+                          <Button
+                            variant="contained"
                             color="error"
                             onClick={() => deleteLanguageSet(index)}
                           >
-                            <DeleteIcon />
-                          </IconButton>
+                            Delete
+                          </Button>
                         </div>
                       </Grid>
                     </Grid>
@@ -269,9 +282,9 @@ export const SettingsView = (props: SettingsViewProps) => {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={modalStyle}>
+        <Box sx={modalStyle} maxHeight={"60%"} overflow={"scroll"}>
           <Button
-            onClick={handleLoadSetModalClose}
+            onClick={handleTemplateListModalClose}
             endIcon={<ClearIcon />}
             style={{ float: "right" }}
           >
@@ -281,7 +294,7 @@ export const SettingsView = (props: SettingsViewProps) => {
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Templates:
           </Typography>
-          <Grid container flexDirection={"column"} flex={1} width={"100%"}>
+          <Grid container flexDirection={"column"} width={"100%"}>
             {templates.map((template, index) => {
               return (
                 <Grid
@@ -299,18 +312,17 @@ export const SettingsView = (props: SettingsViewProps) => {
                     width={"100%"}
                     justifyContent={"space-between"}
                   >
+                    <Typography style={{ fontWeight: "bold" }}>
+                      {template.name}
+                    </Typography>
+                    <Typography style={{ color: "black" }}>
+                      (words: {template.words.map((w) => w.lang1).length})
+                    </Typography>
                     <Button
-                      variant="text"
-                      style={{ flex: 1 }}
+                      variant="contained"
                       onClick={() => selectLanguageSetFromTemplate(index)}
                     >
-                      <Typography style={{ fontWeight: "bold" }}>
-                        {template.name}
-                      </Typography>
-                      <Typography style={{ color: "black" }}>
-                        {" : "} (words:{" "}
-                        {template.words.map((w) => w.lang1).length})
-                      </Typography>
+                      Select
                     </Button>
                   </Grid>
                 </Grid>
