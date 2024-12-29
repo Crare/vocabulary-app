@@ -19,6 +19,7 @@ export interface TestWord {
   lang2Word: string;
   timesCorrect: number;
   timesFailed: number;
+  timesSkipped: number;
   timesCheckedAnswer: number;
 }
 

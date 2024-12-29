@@ -1,10 +1,25 @@
 import { Button, Card, Grid, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { TestResults, TestWord } from "../Testing/types";
+import MoodIcon from "@mui/icons-material/Mood";
+import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
+import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
 
 const calculateScore = (word: TestWord): string => {
-  var score = word.timesCorrect - word.timesFailed - word.timesCheckedAnswer;
+  var score =
+    word.timesCorrect -
+    word.timesFailed -
+    word.timesSkipped -
+    word.timesCheckedAnswer;
   return score.toString();
+};
+
+const calculatePercentage = (word: TestWord): number => {
+  var wrongTimes =
+    word.timesCheckedAnswer + word.timesFailed + word.timesSkipped;
+  var rightTimes = word.timesCorrect;
+  var total = wrongTimes + rightTimes;
+  return (rightTimes / total) * 100;
 };
 
 const columns: GridColDef[] = [
@@ -18,12 +33,40 @@ const columns: GridColDef[] = [
     flex: 1,
   },
   {
+    field: "timesSkipped",
+    headerName: "times skipped",
+    flex: 1,
+  },
+  {
     field: "score",
     headerName: "score",
     flex: 1,
     valueGetter: (_value, row) => calculateScore(row),
     renderCell(params) {
       return <Typography>{params.value}</Typography>;
+    },
+  },
+  {
+    field: "percentage",
+    headerName: "percentage",
+    flex: 1,
+    valueGetter: (_value, row) => calculatePercentage(row),
+    renderCell(params) {
+      return (
+        <Grid
+          container
+          style={{ justifyContent: "center", alignItems: "center", gap: 10 }}
+        >
+          <Typography>{params.value}%</Typography>
+          {params.value > 85 ? (
+            <MoodIcon htmlColor="green" />
+          ) : params.value > 60 ? (
+            <SentimentSatisfiedIcon htmlColor="orange" />
+          ) : (
+            <SentimentVeryDissatisfiedIcon htmlColor="red" />
+          )}
+        </Grid>
+      );
     },
   },
 ];

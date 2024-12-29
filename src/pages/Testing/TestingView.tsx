@@ -50,6 +50,7 @@ export const TestingView = (props: TestingViewProps) => {
         lang2Word: settings.languageSet.language2Words[index],
         timesCorrect: 0,
         timesFailed: 0,
+        timesSkipped: 0,
         timesCheckedAnswer: 0,
       };
     });
@@ -173,7 +174,7 @@ export const TestingView = (props: TestingViewProps) => {
   };
 
   const skip = () => {
-    guessWord!.timesFailed += 1;
+    guessWord!.timesSkipped += 1;
     next();
   };
 
