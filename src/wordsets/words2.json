@@ -1,0 +1,37 @@
+{
+  "name": "finnish - swedish: IT-vocabulary set 2",
+  "words": [
+    { "lang1": "toimiala", "lang2": "bransch" },
+    { "lang1": "ammatillinen", "lang2": "yrkesmässig" },
+    { "lang1": "ammattikorkeakoulututkinto", "lang2": "yrkeshögskoleexamen" },
+    { "lang1": "haastattelu", "lang2": "intervju" },
+    { "lang1": "hakemus", "lang2": "ansökan" },
+    { "lang1": "heikkous", "lang2": "svaghet" },
+    {
+      "lang1": "henkilökohtaiset ominaisuudet",
+      "lang2": "personliga egenskaper"
+    },
+    { "lang1": "kesäsijainen", "lang2": "sommarvikarie" },
+    { "lang1": "kesätyö", "lang2": "sommarjobb" },
+    { "lang1": "koeaika", "lang2": "provtid" },
+    { "lang1": "kouluttautua", "lang2": "utbilda sig" },
+    { "lang1": "oppia", "lang2": "lära sig" },
+    { "lang1": "osaaminen", "lang2": "kunnande" },
+    { "lang1": "palkata", "lang2": "anställa" },
+    { "lang1": "rekrytointi", "lang2": "rekrytering" },
+    { "lang1": "suositukset", "lang2": "referenser" },
+    { "lang1": "työskennellä", "lang2": "arbeta" },
+    { "lang1": "tiedot", "lang2": "kunskaper" },
+    { "lang1": "tradenomi", "lang2": "tradenom" },
+    { "lang1": "työmarkkinat", "lang2": "arbetsmarknad" },
+    { "lang1": "työnantaja", "lang2": "arbetsgivare" },
+    { "lang1": "työntekijä", "lang2": "medarbetare" },
+    { "lang1": "työpaikka", "lang2": "arbetsplats" },
+    { "lang1": "työtehtävä", "lang2": "befattning" },
+    { "lang1": "ura", "lang2": "karriär" },
+    { "lang1": "vahvuus", "lang2": "stark sida" },
+    { "lang1": "vakituinen työsuhde", "lang2": "fast anställning" },
+    { "lang1": "valmiudet", "lang2": "färdigheter" },
+    { "lang1": "vastavalmistunut", "lang2": "nyutexaminerad" }
+  ]
+}

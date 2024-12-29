@@ -25,11 +25,18 @@ import LoopIcon from "@mui/icons-material/Loop";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import fi_set1 from "../../wordsets/set1/fi.json";
-import sv_set1 from "../../wordsets/set1/sv.json";
+import set1 from "../../wordsets/words1.json";
+import set2 from "../../wordsets/words2.json";
+import set3 from "../../wordsets/words3.json";
+import set4 from "../../wordsets/words4.json";
+import set5 from "../../wordsets/words5.json";
+import set6 from "../../wordsets/words6.json";
+import { WordSet } from "../../wordsets/types";
 
-const placeholderYourLang = fi_set1.join("\n");
-const placeholderOtherLang = sv_set1.join("\n");
+const placeholderYourLang = set1.words.map((w) => w.lang1).join("\n");
+const placeholderOtherLang = set1.words.map((w) => w.lang2).join("\n");
+
+const templates: WordSet[] = [set1, set2, set3, set4, set5, set6];
 
 interface SettingsViewProps {
   onStartTest: (settings: TestSettings) => void;
@@ -71,11 +78,6 @@ export const SettingsView = (props: SettingsViewProps) => {
   const [testType, setTestType] = useState<"both" | "multi-select" | "writing">(
     "both"
   );
-
-  const useExample = () => {
-    setLanguage1Words(placeholderYourLang);
-    setLanguage2Words(placeholderOtherLang);
-  };
 
   const clear = () => {
     setLanguage1Words("");
@@ -120,13 +122,22 @@ export const SettingsView = (props: SettingsViewProps) => {
     localStorage.setItem(storage_keys.LANGUAGE_SETS, JSON.stringify(langSets));
   };
 
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isLoadSetModalOpen, setLoadSetIsModalOpen] = useState<boolean>(false);
   const openLoadSetModal = () => {
     loadSetsFromStorage();
-    setIsModalOpen(true);
+    setLoadSetIsModalOpen(true);
   };
-  const handleModalClose = () => {
-    setIsModalOpen(false);
+  const handleLoadSetModalClose = () => {
+    setLoadSetIsModalOpen(false);
+  };
+
+  const [isTemplateListModalOpen, setIsTemplateListModalOpen] =
+    useState<boolean>(false);
+  const openTemplateListModal = () => {
+    setIsTemplateListModalOpen(true);
+  };
+  const handleTemplateListModalClose = () => {
+    setIsTemplateListModalOpen(false);
   };
 
   const [languageSets, setLanguageSets] = useState<LanguageSet[]>([]);
@@ -150,7 +161,13 @@ export const SettingsView = (props: SettingsViewProps) => {
   const selectLanguageSet = (index: number) => {
     setLanguage1Words(languageSets[index].language1Words.join("\n"));
     setLanguage2Words(languageSets[index].language2Words.join("\n"));
-    handleModalClose();
+    handleLoadSetModalClose();
+  };
+
+  const selectLanguageSetFromTemplate = (index: number) => {
+    setLanguage1Words(templates[index].words.map((w) => w.lang1).join("\n"));
+    setLanguage2Words(templates[index].words.map((w) => w.lang2).join("\n"));
+    handleTemplateListModalClose();
   };
 
   const [languageSetIsValid, setLanguageSetIsValid] = useState<boolean>(false);
@@ -177,14 +194,14 @@ export const SettingsView = (props: SettingsViewProps) => {
   return (
     <Grid container className="content" gap={2} flexDirection={"column"}>
       <Modal
-        open={isModalOpen}
-        onClose={handleModalClose}
+        open={isLoadSetModalOpen}
+        onClose={handleLoadSetModalClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
         <Box sx={modalStyle}>
           <Button
-            onClick={handleModalClose}
+            onClick={handleLoadSetModalClose}
             endIcon={<ClearIcon />}
             style={{ float: "right" }}
           >
@@ -246,6 +263,63 @@ export const SettingsView = (props: SettingsViewProps) => {
         </Box>
       </Modal>
 
+      <Modal
+        open={isTemplateListModalOpen}
+        onClose={handleTemplateListModalClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={modalStyle}>
+          <Button
+            onClick={handleLoadSetModalClose}
+            endIcon={<ClearIcon />}
+            style={{ float: "right" }}
+          >
+            Close
+          </Button>
+
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Templates:
+          </Typography>
+          <Grid container flexDirection={"column"} flex={1} width={"100%"}>
+            {templates.map((template, index) => {
+              return (
+                <Grid
+                  item
+                  key={index}
+                  m={1}
+                  style={{ border: "1px solid gray" }}
+                  borderRadius={4}
+                  padding={1}
+                >
+                  <Grid
+                    container
+                    flexDirection={"row"}
+                    flex={1}
+                    width={"100%"}
+                    justifyContent={"space-between"}
+                  >
+                    <Button
+                      variant="text"
+                      style={{ flex: 1 }}
+                      onClick={() => selectLanguageSetFromTemplate(index)}
+                    >
+                      <Typography style={{ fontWeight: "bold" }}>
+                        {template.name}
+                      </Typography>
+                      <Typography style={{ color: "black" }}>
+                        {" : "} (words:{" "}
+                        {template.words.map((w) => w.lang1).length})
+                      </Typography>
+                    </Button>
+                  </Grid>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Box>
+      </Modal>
+
       <Card style={{ padding: 20 }}>
         <Typography variant="h3" m={2} textAlign={"center"}>
           Values
@@ -271,11 +345,11 @@ export const SettingsView = (props: SettingsViewProps) => {
               <Button
                 type="button"
                 variant="outlined"
-                onClick={useExample}
+                onClick={openTemplateListModal}
                 endIcon={<PlaylistAddIcon />}
                 style={{ marginRight: 8, marginBottom: 8 }}
               >
-                Use example
+                Use template
               </Button>
               <Button
                 type="button"
