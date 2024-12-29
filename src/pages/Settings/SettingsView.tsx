@@ -175,13 +175,7 @@ export const SettingsView = (props: SettingsViewProps) => {
   }, [language1Words, language2Words]);
 
   return (
-    <Grid
-      container
-      className="content"
-      xs={12}
-      gap={2}
-      flexDirection={"column"}
-    >
+    <Grid container className="content" gap={2} flexDirection={"column"}>
       <Modal
         open={isModalOpen}
         onClose={handleModalClose}

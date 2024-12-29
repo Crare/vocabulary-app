@@ -39,13 +39,7 @@ export const ResultsView = (props: ResultsViewProps) => {
   const paginationModel = { page: 0, pageSize: 20 };
 
   return (
-    <Grid
-      container
-      className="content"
-      xs={12}
-      gap={2}
-      flexDirection={"column"}
-    >
+    <Grid container className="content" gap={2} flexDirection={"column"}>
       <Card style={{ padding: 20 }}>
         <Typography variant="h3" m={2} textAlign={"center"}>
           Results

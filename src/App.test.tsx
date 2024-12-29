@@ -1,9 +1,13 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import App from './App';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import App from "./App";
 
-test('renders learn react link', () => {
+test("renders title and subtitle", () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  const titleElement = screen.getByText(/Vocabulary-app/i);
+  expect(titleElement).toBeInTheDocument();
+  const subtitleElement = screen.getByText(
+    /Memorize any vocabulary by repetition./i
+  );
+  expect(subtitleElement).toBeInTheDocument();
 });

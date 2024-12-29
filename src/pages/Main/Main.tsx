@@ -31,9 +31,9 @@ const Main = () => {
   };
 
   return (
-    <Grid className="container" justifyContent={"center"}>
+    <Grid container className="container" justifyContent={"center"}>
       <Grid
-        container
+        item
         p={2}
         flexDirection={"row"}
         xs={12}

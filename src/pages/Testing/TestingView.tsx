@@ -204,13 +204,7 @@ export const TestingView = (props: TestingViewProps) => {
   };
 
   return (
-    <Grid
-      container
-      className="content"
-      xs={12}
-      gap={2}
-      flexDirection={"column"}
-    >
+    <Grid container className="content" gap={2} flexDirection={"column"}>
       <TestingStatsCard settings={settings} wordsLeft={wordsLeft} />
 
       <GuessResult testState={testState} guessWord={guessWord} />
