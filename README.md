@@ -22,6 +22,26 @@ Learn any language vocabulary, if you have the words, just add them here and thi
 
 <img src="https://raw.githubusercontent.com/Crare/vocabulary-app/refs/heads/main/readme-img/show_results.png" width="600">
 
+# install:
+
+    yarn install
+
+# run:
+
+    yarn start
+
+# deploy:
+
+build first:
+
+    yarn build
+
+then deploy:
+
+    yarn deploy
+
+# ------------------------------------
+
 # react-app generated readme-text below:
 
 # Getting Started with Create React App
