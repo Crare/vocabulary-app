@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-    getTimeBetweenDates,
-    calcTimeTakenText,
-} from "../src/hooks/useDate";
+import { getTimeBetweenDates, calcTimeTakenText } from "../src/hooks/useDate";
 
 const makeDate = (secondsOffset: number): Date =>
     new Date(secondsOffset * 1000);
@@ -22,7 +19,12 @@ describe("useDate", () => {
 
         it("should return correct seconds for a 5-second difference", () => {
             const result = getTimeBetweenDates(start, makeDate(5));
-            expect(result).toEqual({ seconds: 5, minutes: 0, hours: 0, days: 0 });
+            expect(result).toEqual({
+                seconds: 5,
+                minutes: 0,
+                hours: 0,
+                days: 0,
+            });
         });
 
         it("should return total seconds and minutes for a 90-second difference", () => {
