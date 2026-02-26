@@ -1,17 +1,19 @@
 {
-  "name": "english - finnish: persona-pronomins",
-  "words": [
-    { "lang1": "I", "lang2": "minä" },
-    { "lang1": "you", "lang2": "sinä" },
-    { "lang1": "he/she", "lang2": "hän" },
-    { "lang1": "we", "lang2": "me" },
-    { "lang1": "they", "lang2": "te" },
-    { "lang1": "them", "lang2": "he" },
-    { "lang1": "mine", "lang2": "minun" },
-    { "lang1": "yours", "lang2": "sinun" },
-    { "lang1": "him/hers", "lang2": "hänen" },
-    { "lang1": "ours", "lang2": "meidän" },
-    { "lang1": "yours", "lang2": "teidän" },
-    { "lang1": "theirs", "lang2": "heidän" }
-  ]
+    "name": "english - finnish: persona-pronomins",
+    "language1": "🇬🇧 English",
+    "language2": "🇫🇮 Finnish",
+    "words": [
+        { "lang1": "I", "lang2": "minä" },
+        { "lang1": "you", "lang2": "sinä" },
+        { "lang1": "he/she", "lang2": "hän" },
+        { "lang1": "we", "lang2": "me" },
+        { "lang1": "they", "lang2": "te" },
+        { "lang1": "them", "lang2": "he" },
+        { "lang1": "mine", "lang2": "minun" },
+        { "lang1": "yours", "lang2": "sinun" },
+        { "lang1": "him/hers", "lang2": "hänen" },
+        { "lang1": "ours", "lang2": "meidän" },
+        { "lang1": "yours", "lang2": "teidän" },
+        { "lang1": "theirs", "lang2": "heidän" }
+    ]
 }

@@ -8,10 +8,16 @@ interface GuessWordTitleProps {
     guessWord: TestWord | undefined;
     testOption: TestOption;
     guessDirection?: GuessDirection;
+    targetLanguageName?: string;
 }
 
 export const GuessWordTitle = (props: GuessWordTitleProps) => {
-    const { guessWord, testOption, guessDirection = "lang1to2" } = props;
+    const {
+        guessWord,
+        testOption,
+        guessDirection = "lang1to2",
+        targetLanguageName,
+    } = props;
     const displayWord = guessWord
         ? getDisplayWord(guessWord, guessDirection)
         : "";
@@ -32,8 +38,20 @@ export const GuessWordTitle = (props: GuessWordTitleProps) => {
                 }
                 variant="outlined"
                 size="small"
-                sx={{ mb: 2, color: "text.secondary" }}
+                sx={{ mb: 1, color: "text.secondary" }}
             />
+            {targetLanguageName && (
+                <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mb: 1.5, fontSize: "0.8rem" }}
+                >
+                    Answer in:{" "}
+                    <strong style={{ fontWeight: 600 }}>
+                        {targetLanguageName}
+                    </strong>
+                </Typography>
+            )}
             <Typography
                 variant="h4"
                 sx={{

@@ -19,6 +19,7 @@ interface SelectAnswerCardProps {
     testWords: TestWord[] | undefined;
     onChooseOption: (value: string) => void;
     guessDirection?: GuessDirection;
+    targetLanguageName?: string;
 }
 
 export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
@@ -31,6 +32,7 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
         testWords,
         onChooseOption,
         guessDirection = "lang1to2",
+        targetLanguageName,
     } = props;
 
     const [multiSelectGuessOptions, setMultiSelectGuessOptions] = useState<
@@ -77,6 +79,7 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
                 guessWord={guessWord}
                 testOption={testOption}
                 guessDirection={guessDirection}
+                targetLanguageName={targetLanguageName}
             />
             <Grid container gap={1.5} justifyContent={"center"}>
                 {multiSelectGuessOptions.map((option, index) => (

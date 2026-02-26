@@ -1,4 +1,5 @@
 import {
+    Autocomplete,
     Box,
     Button,
     Card,
@@ -12,6 +13,7 @@ import {
     RadioGroup,
     Slider,
     TextareaAutosize,
+    TextField,
     Typography,
 } from "@mui/material";
 import { LanguageSet, TestSettings } from "../Testing/types";
@@ -26,6 +28,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
 import { WordSet } from "../../wordsets/types";
+import { LANGUAGE_OPTIONS } from "../../wordsets/languages";
 import set1 from "../../wordsets/words1.json";
 import set2 from "../../wordsets/words2.json";
 import set3 from "../../wordsets/words3.json";
@@ -89,6 +92,8 @@ export const SettingsView = (props: SettingsViewProps) => {
 
     const [language1Words, setLanguage1Words] = useState<string>("");
     const [language2Words, setLanguage2Words] = useState<string>("");
+    const [lang1Name, setLang1Name] = useState<string>("");
+    const [lang2Name, setLang2Name] = useState<string>("");
 
     const [testType, setTestType] = useState<
         "both" | "multi-select" | "writing"
@@ -104,6 +109,8 @@ export const SettingsView = (props: SettingsViewProps) => {
             name: langSetName.length > 0 ? langSetName : "unnamed language set",
             language1Words: language1Words.split("\n"),
             language2Words: language2Words.split("\n"),
+            language1Name: lang1Name || undefined,
+            language2Name: lang2Name || undefined,
         };
         const settings: TestSettings = {
             languageSet: languageSet,
@@ -121,15 +128,22 @@ export const SettingsView = (props: SettingsViewProps) => {
         const tempLang2 = language2Words;
         setLanguage1Words(tempLang2);
         setLanguage2Words(tempLang1);
+        const tempName1 = lang1Name;
+        setLang1Name(lang2Name);
+        setLang2Name(tempName1);
     };
 
     const downloadWordSet = (
         name: string,
         lang1: string[],
         lang2: string[],
+        language1?: string,
+        language2?: string,
     ) => {
         const wordSet: WordSet = {
             name,
+            language1: language1 || undefined,
+            language2: language2 || undefined,
             words: lang1.map((l1, i) => ({ lang1: l1, lang2: lang2[i] ?? "" })),
         };
         const blob = new Blob([JSON.stringify(wordSet, null, 2)], {
@@ -144,6 +158,16 @@ export const SettingsView = (props: SettingsViewProps) => {
     };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const textarea1Ref = useRef<HTMLTextAreaElement>(null);
+    const textarea2Ref = useRef<HTMLTextAreaElement>(null);
+
+    const syncScroll = (source: "lang1" | "lang2") => {
+        const from =
+            source === "lang1" ? textarea1Ref.current : textarea2Ref.current;
+        const to =
+            source === "lang1" ? textarea2Ref.current : textarea1Ref.current;
+        if (from && to) to.scrollTop = from.scrollTop;
+    };
     const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -160,6 +184,8 @@ export const SettingsView = (props: SettingsViewProps) => {
                 setLangSetName(parsed.name);
                 setLanguage1Words(parsed.words.map((w) => w.lang1).join("\n"));
                 setLanguage2Words(parsed.words.map((w) => w.lang2).join("\n"));
+                setLang1Name(parsed.language1 ?? "");
+                setLang2Name(parsed.language2 ?? "");
             } catch {
                 alert(
                     "Could not parse file. Make sure it is a valid JSON word set.",
@@ -178,6 +204,8 @@ export const SettingsView = (props: SettingsViewProps) => {
             name: langSetName.length > 0 ? langSetName : "unnamed language set",
             language1Words: language1Words.split("\n"),
             language2Words: language2Words.split("\n"),
+            language1Name: lang1Name || undefined,
+            language2Name: lang2Name || undefined,
         };
         var langSets = [...languageSets, languageSet];
         setLanguageSets([...languageSets, languageSet]);
@@ -228,6 +256,8 @@ export const SettingsView = (props: SettingsViewProps) => {
     const selectLanguageSet = (index: number) => {
         setLanguage1Words(languageSets[index].language1Words.join("\n"));
         setLanguage2Words(languageSets[index].language2Words.join("\n"));
+        setLang1Name(languageSets[index].language1Name ?? "");
+        setLang2Name(languageSets[index].language2Name ?? "");
         handleLoadSetModalClose();
     };
 
@@ -238,6 +268,8 @@ export const SettingsView = (props: SettingsViewProps) => {
         setLanguage2Words(
             templates[index].words.map((w) => w.lang2).join("\n"),
         );
+        setLang1Name(templates[index].language1 ?? "");
+        setLang2Name(templates[index].language2 ?? "");
         handleTemplateListModalClose();
     };
 
@@ -351,6 +383,8 @@ export const SettingsView = (props: SettingsViewProps) => {
                                                     set.name,
                                                     set.language1Words,
                                                     set.language2Words,
+                                                    set.language1Name,
+                                                    set.language2Name,
                                                 )
                                             }
                                         >
@@ -454,6 +488,8 @@ export const SettingsView = (props: SettingsViewProps) => {
                                                 template.words.map(
                                                     (w) => w.lang2,
                                                 ),
+                                                template.language1,
+                                                template.language2,
                                             )
                                         }
                                     >
@@ -543,13 +579,32 @@ export const SettingsView = (props: SettingsViewProps) => {
                     container
                     flexDirection={"row"}
                     gap={2}
-                    justifyContent={"space-evenly"}
+                    justifyContent={"center"}
                 >
                     <Grid size={{ xs: 12, sm: 5 }}>
-                        <Typography variant="h5" mb={1}>
-                            Your language
-                        </Typography>
+                        <Autocomplete
+                            freeSolo
+                            options={LANGUAGE_OPTIONS}
+                            value={lang1Name}
+                            onInputChange={(_e, val) => setLang1Name(val)}
+                            onChange={(_e, val) => setLang1Name(val ?? "")}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Your language"
+                                    size="small"
+                                    placeholder="e.g. 🇫🇮 Finnish"
+                                    sx={{ mb: 1 }}
+                                    inputProps={{
+                                        ...params.inputProps,
+                                        style: { textAlign: "right" },
+                                    }}
+                                />
+                            )}
+                        />
                         <TextareaAutosize
+                            ref={textarea1Ref}
+                            onScroll={() => syncScroll("lang1")}
                             style={{
                                 width: "100%",
                                 fontFamily: "'Inter', sans-serif",
@@ -561,18 +616,35 @@ export const SettingsView = (props: SettingsViewProps) => {
                                 resize: "vertical",
                                 transition: "border-color 0.2s",
                                 lineHeight: 1.6,
+                                textAlign: "right",
                             }}
                             minRows={8}
+                            maxRows={10}
                             value={language1Words}
                             onChange={(e) => setLanguage1Words(e.target.value)}
                             placeholder={placeholderYourLang}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 5 }}>
-                        <Typography variant="h5" mb={1}>
-                            Other language
-                        </Typography>
+                        <Autocomplete
+                            freeSolo
+                            options={LANGUAGE_OPTIONS}
+                            value={lang2Name}
+                            onInputChange={(_e, val) => setLang2Name(val)}
+                            onChange={(_e, val) => setLang2Name(val ?? "")}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Other language"
+                                    size="small"
+                                    placeholder="e.g. 🇸🇪 Swedish"
+                                    sx={{ mb: 1 }}
+                                />
+                            )}
+                        />
                         <TextareaAutosize
+                            ref={textarea2Ref}
+                            onScroll={() => syncScroll("lang2")}
                             style={{
                                 width: "100%",
                                 fontFamily: "'Inter', sans-serif",
@@ -586,6 +658,7 @@ export const SettingsView = (props: SettingsViewProps) => {
                                 lineHeight: 1.6,
                             }}
                             minRows={8}
+                            maxRows={10}
                             value={language2Words}
                             onChange={(e) => setLanguage2Words(e.target.value)}
                             placeholder={placeholderOtherLang}
@@ -620,6 +693,8 @@ export const SettingsView = (props: SettingsViewProps) => {
                                     langSetName || "word-set",
                                     language1Words.split("\n"),
                                     language2Words.split("\n"),
+                                    lang1Name,
+                                    lang2Name,
                                 )
                             }
                             endIcon={<DownloadIcon />}

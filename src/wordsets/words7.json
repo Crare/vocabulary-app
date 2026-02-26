@@ -1,17 +1,19 @@
 {
-  "name": "english - finnish: common phrases",
-  "words": [
-    { "lang1": "hello", "lang2": "terve" },
-    { "lang1": "hi", "lang2": "hei" },
-    { "lang1": "good morning", "lang2": "hyvää huomenta" },
-    { "lang1": "good afternoon", "lang2": "hyvää päivää" },
-    { "lang1": "good evening", "lang2": "hyvää iltaa" },
-    { "lang1": "good night", "lang2": "hyvää yötä" },
-    { "lang1": "good bye", "lang2": "näkemiin" },
-    { "lang1": "thank you", "lang2": "kiitos" },
-    { "lang1": "excuse me", "lang2": "anteeksi" },
-    { "lang1": "my name is", "lang2": "minun nimeni on" },
-    { "lang1": "welcome", "lang2": "tervetuloa" },
-    { "lang1": "home", "lang2": "koti" }
-  ]
+    "name": "english - finnish: common phrases",
+    "language1": "🇬🇧 English",
+    "language2": "🇫🇮 Finnish",
+    "words": [
+        { "lang1": "hello", "lang2": "terve" },
+        { "lang1": "hi", "lang2": "hei" },
+        { "lang1": "good morning", "lang2": "hyvää huomenta" },
+        { "lang1": "good afternoon", "lang2": "hyvää päivää" },
+        { "lang1": "good evening", "lang2": "hyvää iltaa" },
+        { "lang1": "good night", "lang2": "hyvää yötä" },
+        { "lang1": "good bye", "lang2": "näkemiin" },
+        { "lang1": "thank you", "lang2": "kiitos" },
+        { "lang1": "excuse me", "lang2": "anteeksi" },
+        { "lang1": "my name is", "lang2": "minun nimeni on" },
+        { "lang1": "welcome", "lang2": "tervetuloa" },
+        { "lang1": "home", "lang2": "koti" }
+    ]
 }

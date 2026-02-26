@@ -211,6 +211,11 @@ export const TestingView = (props: TestingViewProps) => {
                     onSendAnswer={sendAnswer}
                     testOption={TestOption.WriteCorrectAnswer}
                     guessDirection={guessDirection}
+                    targetLanguageName={
+                        guessDirection === "lang1to2"
+                            ? settings.languageSet.language2Name
+                            : settings.languageSet.language1Name
+                    }
                 />
             ) : null}
 
@@ -224,6 +229,11 @@ export const TestingView = (props: TestingViewProps) => {
                     testWords={testWords}
                     wordsLeft={wordsLeft}
                     guessDirection={guessDirection}
+                    targetLanguageName={
+                        guessDirection === "lang1to2"
+                            ? settings.languageSet.language2Name
+                            : settings.languageSet.language1Name
+                    }
                 />
             ) : null}
 

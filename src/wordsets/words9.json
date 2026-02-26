@@ -1,12 +1,14 @@
 {
-  "name": "english - finnish: relative-pronomins",
-  "words": [
-    { "lang1": "who", "lang2": "kuka" },
-    { "lang1": "what", "lang2": "mitä" },
-    { "lang1": "where", "lang2": "missä" },
-    { "lang1": "when", "lang2": "milloin" },
-    { "lang1": "why", "lang2": "miksi" },
-    { "lang1": "how", "lang2": "miten" },
-    { "lang1": "whose", "lang2": "kenen" }
-  ]
+    "name": "english - finnish: relative-pronomins",
+    "language1": "🇬🇧 English",
+    "language2": "🇫🇮 Finnish",
+    "words": [
+        { "lang1": "who", "lang2": "kuka" },
+        { "lang1": "what", "lang2": "mitä" },
+        { "lang1": "where", "lang2": "missä" },
+        { "lang1": "when", "lang2": "milloin" },
+        { "lang1": "why", "lang2": "miksi" },
+        { "lang1": "how", "lang2": "miten" },
+        { "lang1": "whose", "lang2": "kenen" }
+    ]
 }

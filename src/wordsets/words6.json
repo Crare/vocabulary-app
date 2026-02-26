@@ -1,18 +1,20 @@
 {
-  "name": "finnish - swedish: IT-vocabulary set 6",
-  "words": [
-    { "lang1": "aktiivisuusranneke", "lang2": "aktivitetsarmband" },
-    { "lang1": "avoin lähdekoodi", "lang2": "öppen källkod" },
-    { "lang1": "haittaohjelma", "lang2": "sabotageprogram" },
-    { "lang1": "kosketusnäyttö", "lang2": "pekskärm" },
-    { "lang1": "liikkuva laajakaista", "lang2": "mobilt bredband" },
-    { "lang1": "muistitikku", "lang2": "minnespinne" },
-    { "lang1": "nettitikku", "lang2": "nätpinne" },
-    { "lang1": "pilvipalvelu", "lang2": "molntjänst" },
-    { "lang1": "sormenjälkitunnistin", "lang2": "fingeravtrycksläsare" },
-    { "lang1": "taulutietokone", "lang2": "pekplatta" },
-    { "lang1": "tavaroiden internet", "lang2": "sakernas internet" },
-    { "lang1": "teollinen internet", "lang2": "industriellt internet" },
-    { "lang1": "älykello", "lang2": "smartklocka" }
-  ]
+    "name": "finnish - swedish: IT-vocabulary set 6",
+    "language1": "🇫🇮 Finnish",
+    "language2": "🇸🇪 Swedish",
+    "words": [
+        { "lang1": "aktiivisuusranneke", "lang2": "aktivitetsarmband" },
+        { "lang1": "avoin lähdekoodi", "lang2": "öppen källkod" },
+        { "lang1": "haittaohjelma", "lang2": "sabotageprogram" },
+        { "lang1": "kosketusnäyttö", "lang2": "pekskärm" },
+        { "lang1": "liikkuva laajakaista", "lang2": "mobilt bredband" },
+        { "lang1": "muistitikku", "lang2": "minnespinne" },
+        { "lang1": "nettitikku", "lang2": "nätpinne" },
+        { "lang1": "pilvipalvelu", "lang2": "molntjänst" },
+        { "lang1": "sormenjälkitunnistin", "lang2": "fingeravtrycksläsare" },
+        { "lang1": "taulutietokone", "lang2": "pekplatta" },
+        { "lang1": "tavaroiden internet", "lang2": "sakernas internet" },
+        { "lang1": "teollinen internet", "lang2": "industriellt internet" },
+        { "lang1": "älykello", "lang2": "smartklocka" }
+    ]
 }

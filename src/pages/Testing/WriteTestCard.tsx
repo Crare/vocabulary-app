@@ -11,6 +11,7 @@ interface WriteTestCardProps {
     testOption: TestOption;
     onSendAnswer: (value: string) => void;
     guessDirection?: GuessDirection;
+    targetLanguageName?: string;
 }
 
 export const WriteTestCard = (props: WriteTestCardProps) => {
@@ -20,6 +21,7 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
         testState,
         onSendAnswer,
         guessDirection = "lang1to2",
+        targetLanguageName,
     } = props;
 
     const [guessAnswer, setGuessAnswer] = useState<string>("");
@@ -44,6 +46,7 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
                 guessWord={guessWord}
                 testOption={testOption}
                 guessDirection={guessDirection}
+                targetLanguageName={targetLanguageName}
             />
             <Box
                 sx={{
