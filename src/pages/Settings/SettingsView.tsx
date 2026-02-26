@@ -373,7 +373,9 @@ export const SettingsView = (props: SettingsViewProps) => {
     const [languageSetIsValid, setLanguageSetIsValid] =
         useState<boolean>(false);
     const [hasTestType, setHasTestType] = useState<boolean>(true);
-    const checkLanguageSetIsValid = () => {
+
+    // Validate word counts whenever the word fields change
+    useEffect(() => {
         let valid = true;
         if (language1Words.length === 0) {
             valid = false;
@@ -388,8 +390,11 @@ export const SettingsView = (props: SettingsViewProps) => {
             valid = false;
         }
         setLanguageSetIsValid(valid);
+    }, [language1Words, language2Words]);
 
-        // Check that at least one test type is enabled
+    // Re-check test type validity periodically and on focus
+    // (test config changes are persisted to localStorage by TestConfigView)
+    const checkTestTypeValidity = () => {
         const persisted = loadPersistedSettings();
         const tt = persisted.testType;
         if (tt && typeof tt === "object") {
@@ -404,16 +409,10 @@ export const SettingsView = (props: SettingsViewProps) => {
         }
     };
     useEffect(() => {
-        checkLanguageSetIsValid();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [language1Words, language2Words]);
-
-    // Re-check test type validity when the settings tab becomes visible
-    // (test config changes are persisted to localStorage by TestConfigView)
-    useEffect(() => {
-        const onFocus = () => checkLanguageSetIsValid();
+        checkTestTypeValidity();
+        const onFocus = () => checkTestTypeValidity();
         window.addEventListener("focus", onFocus);
-        const interval = setInterval(checkLanguageSetIsValid, 1000);
+        const interval = setInterval(checkTestTypeValidity, 1000);
         return () => {
             window.removeEventListener("focus", onFocus);
             clearInterval(interval);
