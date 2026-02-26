@@ -7,20 +7,17 @@
 
 ## todos
 
-basicly MVP of what was done in the angular version of the app: https://github.com/Crare/VocabularyTeacher
+basically MVP of what was done in the angular version of the app: https://github.com/Crare/VocabularyTeacher
 
-- finish main page, missing buttons
-- add multi-select test
-- add writing test
-- add results view
-- make settings do stuff they say they do
 - add option to select in the results-page what words to test again.
 
 # ideas-list
 
+- add language titles which language you need to answer. maybe use flag-icons.
 - add templates to use for testing
+- audio test, text to speech. user listens audio of the text and writes it.
+- image test, allow user add images and text answer for them.
+- sentence test. add sentence and the test will remove one word of it randomly and test it, by letting user write it.
+- in templates, group templates by languages, like "english to finnish", "finnish to swedish", etc. make collapsible by group.
 
-# good to do
-
-- style sleek ui
-- testing
+# bugs:
