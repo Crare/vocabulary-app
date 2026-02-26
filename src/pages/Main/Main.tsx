@@ -8,6 +8,7 @@ import { useState } from "react";
 import { TestingView } from "../Testing/TestingView";
 import { ResultsView } from "../Results/ResultsView";
 import { HistoryView } from "../History/HistoryView";
+import { CreditsView } from "../Credits/CreditsView";
 import { TestResults, TestSettings, TestWord } from "../Testing/types";
 import { saveTestResult } from "../../util/historyStorage";
 import { createLogger } from "../../util/logger";
@@ -18,7 +19,7 @@ const log = createLogger("main");
 const Main = () => {
     const { onStart } = useSound();
     const [view, setView] = useState<
-        "wordlists" | "settings" | "testing" | "results" | "history"
+        "wordlists" | "settings" | "testing" | "results" | "history" | "credits"
     >("wordlists");
     const [settings, setSettings] = useState<TestSettings | undefined>(
         undefined,
@@ -87,7 +88,10 @@ const Main = () => {
     };
 
     const activeTab: NavView | null =
-        view === "wordlists" || view === "settings" || view === "history"
+        view === "wordlists" ||
+        view === "settings" ||
+        view === "history" ||
+        view === "credits"
             ? view
             : null;
 
@@ -128,6 +132,7 @@ const Main = () => {
                     />
                 ) : null}
                 {view === "history" ? <HistoryView /> : null}
+                {view === "credits" ? <CreditsView /> : null}
             </Grid>
         </Grid>
     );

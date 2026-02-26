@@ -16,6 +16,7 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
@@ -25,7 +26,7 @@ import { useSound } from "../../SoundContext";
 import { colors, alpha, gradients } from "../../colors";
 import { playCorrect } from "../../util/sounds";
 
-export type NavView = "wordlists" | "settings" | "history";
+export type NavView = "wordlists" | "settings" | "history" | "credits";
 
 interface HeaderProps {
     activeTab: NavView | null;
@@ -123,6 +124,13 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                         />
                     </Tabs>
                 </Box>
+                <IconButton
+                    onClick={() => onNavigate("credits")}
+                    sx={{ color: alpha.white85, ml: 0.5 }}
+                    aria-label="Credits"
+                >
+                    <InfoOutlinedIcon />
+                </IconButton>
                 <IconButton
                     onClick={(e) => setVolumeAnchor(e.currentTarget)}
                     sx={{ color: alpha.white85, ml: 0.5 }}
