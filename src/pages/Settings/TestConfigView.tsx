@@ -69,11 +69,15 @@ export const TestConfigView = () => {
     );
     const defaultTestType = { writing: true, multiSelect: true };
     const loadedTestType = loadPersistedSettings().testType;
-    const [writingEnabled, setWritingEnabled] = useState<boolean>(
-        () => (loadedTestType && typeof loadedTestType === "object" ? loadedTestType.writing : true),
+    const [writingEnabled, setWritingEnabled] = useState<boolean>(() =>
+        loadedTestType && typeof loadedTestType === "object"
+            ? loadedTestType.writing
+            : true,
     );
-    const [multiSelectEnabled, setMultiSelectEnabled] = useState<boolean>(
-        () => (loadedTestType && typeof loadedTestType === "object" ? loadedTestType.multiSelect : true),
+    const [multiSelectEnabled, setMultiSelectEnabled] = useState<boolean>(() =>
+        loadedTestType && typeof loadedTestType === "object"
+            ? loadedTestType.multiSelect
+            : true,
     );
 
     useEffect(() => {
@@ -82,7 +86,10 @@ export const TestConfigView = () => {
             multiSelectChoicesAmount,
             onlySecondLanguageWordsTested,
             everySecondTestIsMultiOrWriting,
-            testType: { writing: writingEnabled, multiSelect: multiSelectEnabled },
+            testType: {
+                writing: writingEnabled,
+                multiSelect: multiSelectEnabled,
+            },
         });
     }, [
         wordNeedsToGetCorrectTimes,
@@ -182,9 +189,7 @@ export const TestConfigView = () => {
                                     <Checkbox
                                         checked={writingEnabled}
                                         onChange={(e) =>
-                                            setWritingEnabled(
-                                                e.target.checked,
-                                            )
+                                            setWritingEnabled(e.target.checked)
                                         }
                                     />
                                 }

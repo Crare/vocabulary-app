@@ -64,7 +64,10 @@ describe("testLogic", () => {
 
     describe("chooseTestOption", () => {
         it("should return WriteCorrectAnswer when only writing is enabled", () => {
-            const settings = { ...mockSettings, testType: { writing: true, multiSelect: false } };
+            const settings = {
+                ...mockSettings,
+                testType: { writing: true, multiSelect: false },
+            };
             expect(chooseTestOption(settings, 0)).toBe(
                 TestOption.WriteCorrectAnswer,
             );
