@@ -1,30 +1,13 @@
 import { Box, Button, Card, Chip, Grid, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { TestResults, TestWord } from "../Testing/types";
+import { TestResults } from "../Testing/types";
+import { calculateScore, calculatePercentage } from "./resultUtils";
 import MoodIcon from "@mui/icons-material/Mood";
 import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
 import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
 import ReplayIcon from "@mui/icons-material/Replay";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
-
-const calculateScore = (word: TestWord): string => {
-    var score =
-        word.timesCorrect -
-        word.timesFailed -
-        word.timesSkipped -
-        word.timesCheckedAnswer;
-    return score.toString();
-};
-
-const calculatePercentage = (word: TestWord): number => {
-    var wrongTimes =
-        word.timesCheckedAnswer + word.timesFailed + word.timesSkipped;
-    var rightTimes = word.timesCorrect;
-    var total = wrongTimes + rightTimes;
-    if (total === 0) return 0;
-    return Math.round((rightTimes / total) * 100);
-};
 
 const columns: GridColDef[] = [
     { field: "lang1Word", headerName: "Language 1", flex: 1 },
