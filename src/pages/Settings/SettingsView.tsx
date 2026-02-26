@@ -15,13 +15,15 @@ import {
     Typography,
 } from "@mui/material";
 import { LanguageSet, TestSettings } from "../Testing/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import SaveIcon from "@mui/icons-material/Save";
 import LoopIcon from "@mui/icons-material/Loop";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import DownloadIcon from "@mui/icons-material/Download";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 
 import { WordSet } from "../../wordsets/types";
 import set1 from "../../wordsets/words1.json";
@@ -119,6 +121,54 @@ export const SettingsView = (props: SettingsViewProps) => {
         const tempLang2 = language2Words;
         setLanguage1Words(tempLang2);
         setLanguage2Words(tempLang1);
+    };
+
+    const downloadWordSet = (
+        name: string,
+        lang1: string[],
+        lang2: string[],
+    ) => {
+        const wordSet: WordSet = {
+            name,
+            words: lang1.map((l1, i) => ({ lang1: l1, lang2: lang2[i] ?? "" })),
+        };
+        const blob = new Blob([JSON.stringify(wordSet, null, 2)], {
+            type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${name.replace(/[^a-z0-9]/gi, "_")}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const parsed = JSON.parse(
+                    event.target?.result as string,
+                ) as WordSet;
+                if (!parsed.name || !Array.isArray(parsed.words)) {
+                    alert("Invalid file format.");
+                    return;
+                }
+                setLangSetName(parsed.name);
+                setLanguage1Words(parsed.words.map((w) => w.lang1).join("\n"));
+                setLanguage2Words(parsed.words.map((w) => w.lang2).join("\n"));
+            } catch {
+                alert(
+                    "Could not parse file. Make sure it is a valid JSON word set.",
+                );
+            }
+        };
+        reader.readAsText(file);
+        // reset so the same file can be re-imported
+        e.target.value = "";
     };
 
     // const [langSetCount, setLangSetCount] = useState<number>(0);
@@ -280,6 +330,7 @@ export const SettingsView = (props: SettingsViewProps) => {
                                         sx={{
                                             display: "flex",
                                             gap: 1,
+                                            flexWrap: "wrap",
                                         }}
                                     >
                                         <Button
@@ -290,6 +341,20 @@ export const SettingsView = (props: SettingsViewProps) => {
                                             }
                                         >
                                             Select
+                                        </Button>
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            startIcon={<DownloadIcon />}
+                                            onClick={() =>
+                                                downloadWordSet(
+                                                    set.name,
+                                                    set.language1Words,
+                                                    set.language2Words,
+                                                )
+                                            }
+                                        >
+                                            Download
                                         </Button>
                                         <Button
                                             variant="outlined"
@@ -360,15 +425,41 @@ export const SettingsView = (props: SettingsViewProps) => {
                                         {template.words.length} words
                                     </Typography>
                                 </Box>
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() =>
-                                        selectLanguageSetFromTemplate(index)
-                                    }
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        gap: 1,
+                                        flexWrap: "wrap",
+                                    }}
                                 >
-                                    Select
-                                </Button>
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        onClick={() =>
+                                            selectLanguageSetFromTemplate(index)
+                                        }
+                                    >
+                                        Select
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        startIcon={<DownloadIcon />}
+                                        onClick={() =>
+                                            downloadWordSet(
+                                                template.name,
+                                                template.words.map(
+                                                    (w) => w.lang1,
+                                                ),
+                                                template.words.map(
+                                                    (w) => w.lang2,
+                                                ),
+                                            )
+                                        }
+                                    >
+                                        Download
+                                    </Button>
+                                </Box>
                             </Box>
                         ))}
                     </Grid>
@@ -420,6 +511,21 @@ export const SettingsView = (props: SettingsViewProps) => {
                         size="small"
                     >
                         Clear
+                    </Button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".json"
+                        style={{ display: "none" }}
+                        onChange={handleImportFile}
+                    />
+                    <Button
+                        variant="outlined"
+                        onClick={() => fileInputRef.current?.click()}
+                        endIcon={<UploadFileIcon />}
+                        size="small"
+                    >
+                        Import file
                     </Button>
                 </Box>
 
@@ -506,6 +612,21 @@ export const SettingsView = (props: SettingsViewProps) => {
                             size="small"
                         >
                             Save set
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={() =>
+                                downloadWordSet(
+                                    langSetName || "word-set",
+                                    language1Words.split("\n"),
+                                    language2Words.split("\n"),
+                                )
+                            }
+                            endIcon={<DownloadIcon />}
+                            size="small"
+                            disabled={!languageSetIsValid}
+                        >
+                            Download
                         </Button>
                     </Grid>
                 </Grid>
