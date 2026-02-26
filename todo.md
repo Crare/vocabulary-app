@@ -1,5 +1,12 @@
 # TODO-list
 
+## do now
+
+- update look
+- add templates
+
+## todos
+
 basicly MVP of what was done in the angular version of the app: https://github.com/Crare/VocabularyTeacher
 
 - finish main page, missing buttons
@@ -7,6 +14,7 @@ basicly MVP of what was done in the angular version of the app: https://github.c
 - add writing test
 - add results view
 - make settings do stuff they say they do
+- add option to select in the results-page what words to test again.
 
 # ideas-list
 
@@ -16,4 +24,3 @@ basicly MVP of what was done in the angular version of the app: https://github.c
 
 - style sleek ui
 - testing
-
