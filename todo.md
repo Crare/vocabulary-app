@@ -10,7 +10,19 @@
 
 - image test, allow user add images and text answer for them.
 
-- sentence test. add sentence and the test will remove one word of it randomly and test it, by letting user write it. add this as extra testing option with name "sentence training". the current one is "word training". with sentence training ad it at bottom of the textareas. it needs two languages as well. so two textareas. in the testing phase. so the other language without one word that user has to input.
+- add option to increase and decrease text size in the navbar
+
+- add accessibility features
+
+- add instructions and helper tooltips.
+
+- add wordsets
+
+- update readme
+
+- add spec files for AI agents guidance
+
+- allow small typos if some words are not exact. but tell them they wrote it incorrect. add this in the settings as option and enable by default.
 
 ## BUGS:
 

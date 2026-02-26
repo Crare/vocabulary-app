@@ -62,11 +62,15 @@ export const alpha = {
     slate30: "rgba(148, 163, 184, 0.3)",
 
     // Success (emerald 500 = rgb(16, 185, 129))
+    success05: "rgba(16, 185, 129, 0.05)",
     success10: "rgba(16, 185, 129, 0.1)",
+    success20: "rgba(16, 185, 129, 0.2)",
     success30: "rgba(16, 185, 129, 0.3)",
 
     // Error (red 500 = rgb(239, 68, 68))
+    error05: "rgba(239, 68, 68, 0.05)",
     error10: "rgba(239, 68, 68, 0.1)",
+    error20: "rgba(239, 68, 68, 0.2)",
     error30: "rgba(239, 68, 68, 0.3)",
 
     // Black

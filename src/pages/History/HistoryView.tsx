@@ -11,59 +11,23 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { useEffect, useMemo, useState } from "react";
-import { HistoryEntry, TestWord } from "../Testing/types";
+import { HistoryEntry } from "../Testing/types";
 import {
     clearHistory,
     deleteHistoryEntry,
     loadHistory,
 } from "../../util/historyStorage";
-import {
-    calculateScore,
-    calculatePercentage,
-    calculateAvgAnswerTime,
-    formatSeconds,
-    calculateOverallAvgTime,
-    calculateTotalScore,
-} from "../Results/resultUtils";
+import { calculateTotalScore } from "../Results/resultUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import AvTimerIcon from "@mui/icons-material/AvTimer";
-import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import { WordScoreChart } from "../../components/WordScoreChart";
 import { ProgressChart } from "../../components/ProgressChart";
+import { WordResultsTable } from "../../components/WordResultsTable";
+import { TestSummaryChips } from "../../components/TestSummaryChips";
+import { SentenceTrainingResults } from "../../components/SentenceTrainingResults";
 import { alpha } from "../../colors";
-
-const wordColumns: GridColDef[] = [
-    { field: "lang1Word", headerName: "Language 1", flex: 1 },
-    { field: "lang2Word", headerName: "Language 2", flex: 1 },
-    { field: "timesCorrect", headerName: "Correct", flex: 0.6 },
-    { field: "timesFailed", headerName: "Wrong", flex: 0.6 },
-    {
-        field: "score",
-        headerName: "Score",
-        flex: 0.6,
-        valueGetter: (_value, row: TestWord) => calculateScore(row),
-    },
-    {
-        field: "percentage",
-        headerName: "Accuracy",
-        flex: 0.7,
-        valueGetter: (_value, row: TestWord) => `${calculatePercentage(row)}%`,
-    },
-    {
-        field: "avgTime",
-        headerName: "Avg Time",
-        flex: 0.7,
-        valueGetter: (_value, row: TestWord) => calculateAvgAnswerTime(row),
-        valueFormatter: (value: number) =>
-            value > 0 ? formatSeconds(value) : "-",
-    },
-];
 
 /** Group entries by languageSetName, preserving insertion order. */
 const groupBySet = (entries: HistoryEntry[]): Map<string, HistoryEntry[]> => {
@@ -269,49 +233,17 @@ export const HistoryView = () => {
                                                     >
                                                         {formatDate(entry.date)}
                                                     </Typography>
-                                                    <Box
-                                                        sx={{
-                                                            display: "flex",
-                                                            gap: 1,
-                                                            flexWrap: "wrap",
-                                                        }}
-                                                    >
-                                                        <Chip
-                                                            icon={
-                                                                <FormatListNumberedIcon />
-                                                            }
-                                                            label={`${entry.wordCount} words`}
-                                                            size="small"
-                                                            variant="outlined"
-                                                        />
-                                                        <Chip
-                                                            icon={
-                                                                <AccessTimeIcon />
-                                                            }
-                                                            label={
-                                                                entry.timeTaken
-                                                            }
-                                                            size="small"
-                                                            variant="outlined"
-                                                        />
-                                                        <Chip
-                                                            icon={
-                                                                <AvTimerIcon />
-                                                            }
-                                                            label={`Avg ${formatSeconds(calculateOverallAvgTime(entry.wordResults))}/answer`}
-                                                            size="small"
-                                                            variant="outlined"
-                                                        />
-                                                        <Chip
-                                                            icon={
-                                                                <EmojiEventsIcon />
-                                                            }
-                                                            label={`${calculateTotalScore(entry.wordResults).correct}/${calculateTotalScore(entry.wordResults).total}`}
-                                                            size="small"
-                                                            color="primary"
-                                                            variant="outlined"
-                                                        />
-                                                    </Box>
+                                                    <TestSummaryChips
+                                                        wordResults={
+                                                            entry.wordResults
+                                                        }
+                                                        timeTaken={
+                                                            entry.timeTaken
+                                                        }
+                                                        score={calculateTotalScore(
+                                                            entry.wordResults,
+                                                        )}
+                                                    />
                                                 </Box>
                                             </AccordionSummary>
                                             <AccordionDetails>
@@ -320,30 +252,17 @@ export const HistoryView = () => {
                                                         entry.wordResults
                                                     }
                                                 />
-                                                <DataGrid
-                                                    rows={entry.wordResults}
-                                                    columns={wordColumns}
-                                                    initialState={{
-                                                        pagination: {
-                                                            paginationModel: {
-                                                                page: 0,
-                                                                pageSize: 10,
-                                                            },
-                                                        },
-                                                    }}
-                                                    pageSizeOptions={[10, 20]}
-                                                    sx={{
-                                                        border: `1px solid ${alpha.slate15}`,
-                                                        borderRadius: 2,
-                                                        mb: 1.5,
-                                                        "& .MuiDataGrid-columnHeaders":
-                                                            {
-                                                                bgcolor:
-                                                                    alpha.primary04,
-                                                            },
-                                                    }}
-                                                    density="compact"
-                                                    hideFooterSelectedRowCount
+                                                <WordResultsTable
+                                                    wordResults={
+                                                        entry.wordResults
+                                                    }
+                                                    variant="history"
+                                                />
+                                                <SentenceTrainingResults
+                                                    wordResults={
+                                                        entry.wordResults
+                                                    }
+                                                    compact
                                                 />
                                                 <Button
                                                     size="small"

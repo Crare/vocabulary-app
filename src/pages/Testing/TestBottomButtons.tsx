@@ -5,7 +5,6 @@ import DoneAllIcon from "@mui/icons-material/DoneAll";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { TestState } from "./types";
-import { alpha } from "../../colors";
 
 interface TestBottomButtonsProps {
     testState: TestState | undefined;
@@ -51,26 +50,16 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
                     </Button>
                 )}
                 {correctAnswerValue ? (
-                    <Box
-                        sx={{
-                            px: 2.5,
-                            py: 1,
-                            borderRadius: 2,
-                            bgcolor: alpha.primary08,
-                            border: `1px solid ${alpha.primary20}`,
-                        }}
-                    >
+                    <Typography variant="body2" color="text.secondary">
+                        Answer:{" "}
                         <Typography
-                            variant="body2"
-                            color="text.secondary"
                             component="span"
+                            fontWeight={700}
+                            color="text.primary"
                         >
-                            Answer:{" "}
-                        </Typography>
-                        <Typography fontWeight={700} component="span">
                             {correctAnswerValue}
                         </Typography>
-                    </Box>
+                    </Typography>
                 ) : (
                     <Button
                         color="error"

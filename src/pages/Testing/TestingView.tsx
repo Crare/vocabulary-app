@@ -8,10 +8,10 @@ import {
 } from "./types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { calcTimeTakenText } from "../../hooks/useDate";
-import { GuessResult } from "./GuessResult";
 import { WriteTestCard } from "./WriteTestCard";
 import { SelectAnswerCard } from "./SelectAnswerCard";
 import { DragDropTestCard, DRAG_DROP_BATCH_SIZE } from "./DragDropTestCard";
+import { SentenceTestCard } from "./SentenceTestCard";
 import { TestingStatsCard } from "./TestingStatsCard";
 import { TestBottomButtons } from "./TestBottomButtons";
 import { randomIntFromInterval, shuffle } from "../../util/helpers";
@@ -113,6 +113,21 @@ export const TestingView = (props: TestingViewProps) => {
                 : TestOption.SelectFromMultiple;
         }
 
+        // Fall back if sentence fill-blank chosen but word has no sentences
+        const candidateWord =
+            remaining[randomIntFromInterval(0, remaining.length - 1)];
+        if (option === TestOption.SentenceFillBlank) {
+            const hasSentence =
+                direction === "lang1to2"
+                    ? !!candidateWord.lang2Sentence
+                    : !!candidateWord.lang1Sentence;
+            if (!hasSentence) {
+                option = s.testType.writing
+                    ? TestOption.WriteCorrectAnswer
+                    : TestOption.SelectFromMultiple;
+            }
+        }
+
         if (option === TestOption.DragAndDrop) {
             const shuffled = [...remaining];
             shuffle(shuffled);
@@ -120,9 +135,7 @@ export const TestingView = (props: TestingViewProps) => {
             setDragDropBatch(batch);
             setGuessWord(undefined);
         } else {
-            const next =
-                remaining[randomIntFromInterval(0, remaining.length - 1)];
-            setGuessWord(next);
+            setGuessWord(candidateWord);
             setDragDropBatch([]);
         }
 
@@ -154,6 +167,8 @@ export const TestingView = (props: TestingViewProps) => {
                 id: index,
                 lang1Word,
                 lang2Word: s.languageSet.language2Words[index],
+                lang1Sentence: s.languageSet.language1Sentences?.[index],
+                lang2Sentence: s.languageSet.language2Sentences?.[index],
                 timesCorrect: 0,
                 timesFailed: 0,
                 timesSkipped: 0,
@@ -190,14 +205,27 @@ export const TestingView = (props: TestingViewProps) => {
                 : TestOption.SelectFromMultiple;
         }
 
+        // Fall back if sentence fill-blank chosen but first word has no sentences
+        const firstCandidate =
+            remaining[randomIntFromInterval(0, remaining.length - 1)];
+        if (firstOption === TestOption.SentenceFillBlank) {
+            const hasSentence =
+                firstDirection === "lang1to2"
+                    ? !!firstCandidate.lang2Sentence
+                    : !!firstCandidate.lang1Sentence;
+            if (!hasSentence) {
+                firstOption = s.testType.writing
+                    ? TestOption.WriteCorrectAnswer
+                    : TestOption.SelectFromMultiple;
+            }
+        }
+
         if (firstOption === TestOption.DragAndDrop) {
             const shuffled = [...remaining];
             shuffle(shuffled);
             setDragDropBatch(shuffled.slice(0, DRAG_DROP_BATCH_SIZE));
         } else {
-            const firstWord =
-                remaining[randomIntFromInterval(0, remaining.length - 1)];
-            setGuessWord(firstWord);
+            setGuessWord(firstCandidate);
         }
 
         setWordsLeft(remaining.length);
@@ -252,6 +280,38 @@ export const TestingView = (props: TestingViewProps) => {
     };
 
     const next = () => advanceToNext();
+
+    const sentenceAnswer = (
+        correct: boolean,
+        testedWord: string,
+        sentence: string,
+    ) => {
+        if (isAnsweringRef.current || !guessWord || testState !== undefined) {
+            return;
+        }
+        isAnsweringRef.current = true;
+        setHasInteracted(true);
+
+        const elapsed = Date.now() - wordStartTimeRef.current;
+        guessWord.totalAnswerTimeMs += elapsed;
+        guessWord.answerAttempts += 1;
+
+        // Track sentence test result
+        if (!guessWord.sentenceResults) {
+            guessWord.sentenceResults = [];
+        }
+        guessWord.sentenceResults.push({ testedWord, correct, sentence });
+
+        if (correct) {
+            guessWord.timesCorrect += 1;
+            setTestState(TestState.Success);
+            onCorrect();
+        } else {
+            guessWord.timesFailed += 1;
+            setTestState(TestState.Failed);
+            onWrong();
+        }
+    };
 
     const skip = () => {
         setHasInteracted(true);
@@ -334,12 +394,6 @@ export const TestingView = (props: TestingViewProps) => {
                 />
             ) : (
                 <>
-                    <GuessResult
-                        testState={testState}
-                        guessWord={guessWord}
-                        guessDirection={guessDirection}
-                    />
-
                     {testOption === TestOption.WriteCorrectAnswer &&
                     guessWord ? (
                         <WriteTestCard
@@ -364,6 +418,24 @@ export const TestingView = (props: TestingViewProps) => {
                             wordsLeft={wordsLeft}
                             guessDirection={guessDirection}
                             targetLanguageName={targetLangName}
+                        />
+                    ) : null}
+
+                    {testOption === TestOption.SentenceFillBlank &&
+                    guessWord ? (
+                        <SentenceTestCard
+                            key={`sentence-${questionIndexRef.current}`}
+                            testState={testState}
+                            guessWord={guessWord}
+                            guessDirection={guessDirection}
+                            targetLanguageName={targetLangName}
+                            testAllWords={settings.sentenceTestAllWords}
+                            alreadyTestedWords={
+                                guessWord.sentenceResults?.map(
+                                    (r) => r.testedWord,
+                                ) ?? []
+                            }
+                            onSendAnswer={sentenceAnswer}
                         />
                     ) : null}
 

@@ -18,6 +18,8 @@ const makeWord = (
     timesFailed,
     timesSkipped,
     timesCheckedAnswer,
+    totalAnswerTimeMs: 0,
+    answerAttempts: 0,
 });
 
 describe("resultUtils", () => {

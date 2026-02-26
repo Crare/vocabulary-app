@@ -30,7 +30,7 @@ export const GuessResult = (props: GuessResultProps) => {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 1.5,
-                py: 2,
+                py: 1.5,
                 px: 3,
                 borderRadius: 3,
                 bgcolor: isSuccess ? alpha.success10 : alpha.error10,
@@ -44,21 +44,28 @@ export const GuessResult = (props: GuessResultProps) => {
         >
             {isSuccess ? (
                 <CheckCircleOutlineIcon
-                    sx={{ color: "success.main", fontSize: 28 }}
+                    sx={{ color: "success.main", fontSize: 24 }}
                 />
             ) : (
-                <HighlightOffIcon sx={{ color: "error.main", fontSize: 28 }} />
+                <HighlightOffIcon sx={{ color: "error.main", fontSize: 24 }} />
             )}
             <Typography
-                variant="h6"
+                variant="body1"
                 sx={{
                     color: isSuccess ? "success.dark" : "error.dark",
                     fontWeight: 600,
-                    fontSize: "1rem",
                 }}
             >
-                {isSuccess ? "Correct!" : "Incorrect!"} Answer:{" "}
-                <strong>"{answer}"</strong>
+                {isSuccess ? "Correct!" : "Incorrect!"}
+                {!isSuccess && answer && (
+                    <Typography
+                        component="span"
+                        variant="body2"
+                        sx={{ ml: 1, fontWeight: 400 }}
+                    >
+                        Correct answer: <strong>{answer}</strong>
+                    </Typography>
+                )}
             </Typography>
         </Box>
     );

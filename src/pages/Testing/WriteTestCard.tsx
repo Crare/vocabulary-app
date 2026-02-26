@@ -1,8 +1,8 @@
-import { Box, Button, Card, TextField } from "@mui/material";
+import { Box, Button, Card, TextField, Typography } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { GuessWordTitle } from "./GuessWordTitle";
 import { TestOption, TestState, TestWord } from "./types";
-import { GuessDirection } from "./testLogic";
+import { GuessDirection, getExpectedAnswer } from "./testLogic";
 import { useEffect, useRef, useState } from "react";
 
 interface WriteTestCardProps {
@@ -86,6 +86,26 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
                     Send
                 </Button>
             </Box>
+
+            {(testState === TestState.Success ||
+                testState === TestState.Failed) && (
+                <Typography
+                    variant="body2"
+                    sx={{
+                        textAlign: "center",
+                        mt: 2,
+                        fontWeight: 600,
+                        color:
+                            testState === TestState.Success
+                                ? "success.main"
+                                : "error.main",
+                    }}
+                >
+                    {testState === TestState.Success
+                        ? "\u2713 Correct!"
+                        : `\u2717 Incorrect! Correct answer: ${getExpectedAnswer(guessWord, guessDirection)}`}
+                </Typography>
+            )}
         </Card>
     );
 };

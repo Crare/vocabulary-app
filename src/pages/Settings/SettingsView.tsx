@@ -1,4 +1,7 @@
 import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
     Autocomplete,
     Box,
     Button,
@@ -9,6 +12,7 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { LanguageSet, TestSettings } from "../Testing/types";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@mui/material/styles";
@@ -67,12 +71,15 @@ interface PersistedSettings {
     multiSelectChoicesAmount: number;
     onlySecondLanguageWordsTested: boolean;
     everySecondTestIsMultiOrWriting: boolean;
+    sentenceTestAllWords: boolean;
     language1Words: string;
     language2Words: string;
     lang1Name: string;
     lang2Name: string;
     langSetName: string;
     testType: "both" | "multi-select" | "writing";
+    language1Sentences: string;
+    language2Sentences: string;
 }
 
 const loadPersistedSettings = (): Partial<PersistedSettings> => {
@@ -107,10 +114,18 @@ export const SettingsView = (props: SettingsViewProps) => {
     const [lang2Name, setLang2Name] = useState<string>(
         () => loadPersistedSettings().lang2Name ?? "",
     );
+    const [language1Sentences, setLanguage1Sentences] = useState<string>(
+        () => loadPersistedSettings().language1Sentences ?? "",
+    );
+    const [language2Sentences, setLanguage2Sentences] = useState<string>(
+        () => loadPersistedSettings().language2Sentences ?? "",
+    );
 
     const clear = () => {
         setLanguage1Words("");
         setLanguage2Words("");
+        setLanguage1Sentences("");
+        setLanguage2Sentences("");
     };
 
     const startTest = () => {
@@ -121,6 +136,12 @@ export const SettingsView = (props: SettingsViewProps) => {
             language2Words: language2Words.split("\n"),
             language1Name: lang1Name || undefined,
             language2Name: lang2Name || undefined,
+            language1Sentences: language1Sentences
+                ? language1Sentences.split("\n")
+                : undefined,
+            language2Sentences: language2Sentences
+                ? language2Sentences.split("\n")
+                : undefined,
         };
         const settings: TestSettings = {
             languageSet: languageSet,
@@ -131,6 +152,7 @@ export const SettingsView = (props: SettingsViewProps) => {
                 persisted.onlySecondLanguageWordsTested ?? false,
             everySecondTestIsMultiOrWriting:
                 persisted.everySecondTestIsMultiOrWriting ?? false,
+            sentenceTestAllWords: persisted.sentenceTestAllWords ?? true,
             testType:
                 persisted.testType && typeof persisted.testType === "object"
                     ? {
@@ -139,8 +161,16 @@ export const SettingsView = (props: SettingsViewProps) => {
                               (persisted.testType as any).multiSelect ?? true,
                           dragDrop:
                               (persisted.testType as any).dragDrop ?? true,
+                          sentenceFillBlank:
+                              (persisted.testType as any).sentenceFillBlank ??
+                              true,
                       }
-                    : { writing: true, multiSelect: true, dragDrop: true },
+                    : {
+                          writing: true,
+                          multiSelect: true,
+                          dragDrop: true,
+                          sentenceFillBlank: true,
+                      },
         };
         onStartTest(settings);
     };
@@ -227,6 +257,7 @@ export const SettingsView = (props: SettingsViewProps) => {
     const [langSetName, setLangSetName] = useState<string>(
         () => loadPersistedSettings().langSetName ?? "",
     );
+    const [savedIndicator, setSavedIndicator] = useState(false);
     const saveSet = () => {
         const languageSet: LanguageSet = {
             name: langSetName.length > 0 ? langSetName : "unnamed language set",
@@ -234,10 +265,15 @@ export const SettingsView = (props: SettingsViewProps) => {
             language2Words: language2Words.split("\n"),
             language1Name: lang1Name || undefined,
             language2Name: lang2Name || undefined,
+            language1Sentences: language1Sentences
+                ? language1Sentences.split("\n")
+                : undefined,
+            language2Sentences: language2Sentences
+                ? language2Sentences.split("\n")
+                : undefined,
         };
         var langSets = [...languageSets, languageSet];
         setLanguageSets([...languageSets, languageSet]);
-        setLangSetName("");
         localStorage.setItem(
             storage_keys.LANGUAGE_SETS,
             JSON.stringify(langSets),
@@ -247,6 +283,8 @@ export const SettingsView = (props: SettingsViewProps) => {
             wordCount: languageSet.language1Words.length,
             totalSets: langSets.length,
         });
+        setSavedIndicator(true);
+        setTimeout(() => setSavedIndicator(false), 2000);
     };
 
     const [isLoadSetModalOpen, setLoadSetIsModalOpen] =
@@ -297,6 +335,12 @@ export const SettingsView = (props: SettingsViewProps) => {
         setLang1Name(languageSets[index].language1Name ?? "");
         setLang2Name(languageSets[index].language2Name ?? "");
         setLangSetName(languageSets[index].name);
+        setLanguage1Sentences(
+            languageSets[index].language1Sentences?.join("\n") ?? "",
+        );
+        setLanguage2Sentences(
+            languageSets[index].language2Sentences?.join("\n") ?? "",
+        );
         handleLoadSetModalClose();
     };
 
@@ -315,6 +359,7 @@ export const SettingsView = (props: SettingsViewProps) => {
 
     const [languageSetIsValid, setLanguageSetIsValid] =
         useState<boolean>(false);
+    const [hasTestType, setHasTestType] = useState<boolean>(true);
     const checkLanguageSetIsValid = () => {
         let valid = true;
         if (language1Words.length === 0) {
@@ -330,11 +375,38 @@ export const SettingsView = (props: SettingsViewProps) => {
             valid = false;
         }
         setLanguageSetIsValid(valid);
+
+        // Check that at least one test type is enabled
+        const persisted = loadPersistedSettings();
+        const tt = persisted.testType;
+        if (tt && typeof tt === "object") {
+            const anyEnabled =
+                (tt as any).writing ||
+                (tt as any).multiSelect ||
+                (tt as any).dragDrop ||
+                (tt as any).sentenceFillBlank;
+            setHasTestType(!!anyEnabled);
+        } else {
+            setHasTestType(true);
+        }
     };
     useEffect(() => {
         checkLanguageSetIsValid();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [language1Words, language2Words]);
+
+    // Re-check test type validity when the settings tab becomes visible
+    // (test config changes are persisted to localStorage by TestConfigView)
+    useEffect(() => {
+        const onFocus = () => checkLanguageSetIsValid();
+        window.addEventListener("focus", onFocus);
+        const interval = setInterval(checkLanguageSetIsValid, 1000);
+        return () => {
+            window.removeEventListener("focus", onFocus);
+            clearInterval(interval);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         try {
@@ -346,12 +418,22 @@ export const SettingsView = (props: SettingsViewProps) => {
                 lang1Name,
                 lang2Name,
                 langSetName,
+                language1Sentences,
+                language2Sentences,
             };
             localStorage.setItem(storage_keys.SETTINGS, JSON.stringify(merged));
         } catch {
             // ignore
         }
-    }, [language1Words, language2Words, lang1Name, lang2Name, langSetName]);
+    }, [
+        language1Words,
+        language2Words,
+        lang1Name,
+        lang2Name,
+        langSetName,
+        language1Sentences,
+        language2Sentences,
+    ]);
 
     return (
         <Grid container className="content" gap={2} flexDirection={"column"}>
@@ -539,6 +621,132 @@ export const SettingsView = (props: SettingsViewProps) => {
                             placeholder={placeholderOtherLang}
                         />
                     </Grid>
+
+                    {/* Sentence Training Section */}
+                    <Grid size={12}>
+                        <Accordion
+                            defaultExpanded={
+                                !!(language1Sentences.trim() || language2Sentences.trim())
+                            }
+                            disableGutters
+                            sx={{
+                                backgroundColor: "transparent",
+                                boxShadow: "none",
+                                "&::before": { display: "none" },
+                            }}
+                        >
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                sx={{
+                                    px: 1,
+                                    minHeight: 36,
+                                    "& .MuiAccordionSummary-content": {
+                                        my: 0.5,
+                                        justifyContent: "center",
+                                    },
+                                }}
+                            >
+                                <Typography
+                                    variant="body1"
+                                    color="text.secondary"
+                                    fontSize="0.85rem"
+                                >
+                                    <strong>Sentence training (optional)</strong>
+                                </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ px: 0, pt: 0 }}>
+                                <Typography
+                                    variant="body2"
+                                    textAlign="center"
+                                    mb={1}
+                                    color="text.secondary"
+                                    fontSize="0.8rem"
+                                >
+                                    Add sentences containing each word. One
+                                    sentence per line, matching the word order
+                                    above.
+                                </Typography>
+                                <Grid
+                                    container
+                                    spacing={2}
+                                    justifyContent="center"
+                                >
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{ mb: 0.5, display: "block" }}
+                                        >
+                                            Sentences ({lang1Name || "Language 1"})
+                                        </Typography>
+                                        <TextareaAutosize
+                                            style={{
+                                                width: "100%",
+                                                fontFamily: "'Inter', sans-serif",
+                                                fontSize: "0.9rem",
+                                                padding: 12,
+                                                borderRadius: 10,
+                                                border: `1.5px solid ${alpha.slate30}`,
+                                                backgroundColor:
+                                                    muiTheme.palette.background.paper,
+                                                color: muiTheme.palette.text.primary,
+                                                outline: "none",
+                                                resize: "vertical",
+                                                transition: "border-color 0.2s",
+                                                lineHeight: 1.6,
+                                                textAlign: "right",
+                                            }}
+                                            minRows={4}
+                                            maxRows={8}
+                                            value={language1Sentences}
+                                            onChange={(e) =>
+                                                setLanguage1Sentences(e.target.value)
+                                            }
+                                            placeholder={
+                                                "e.g. Minä menen kouluun\nHän lukee kirjaa"
+                                            }
+                                        />
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{ mb: 0.5, display: "block" }}
+                                        >
+                                            Sentences ({lang2Name || "Language 2"})
+                                        </Typography>
+                                        <TextareaAutosize
+                                            style={{
+                                                width: "100%",
+                                                fontFamily: "'Inter', sans-serif",
+                                                fontSize: "0.9rem",
+                                                padding: 12,
+                                                borderRadius: 10,
+                                                border: `1.5px solid ${alpha.slate30}`,
+                                                backgroundColor:
+                                                    muiTheme.palette.background.paper,
+                                                color: muiTheme.palette.text.primary,
+                                                outline: "none",
+                                                resize: "vertical",
+                                                transition: "border-color 0.2s",
+                                                lineHeight: 1.6,
+                                            }}
+                                            minRows={4}
+                                            maxRows={8}
+                                            value={language2Sentences}
+                                            onChange={(e) =>
+                                                setLanguage2Sentences(e.target.value)
+                                            }
+                                            placeholder={
+                                                "e.g. Jag går till skolan\nHan läser en bok"
+                                            }
+                                        />
+                                    </Grid>
+                                </Grid>
+                            </AccordionDetails>
+                        </Accordion>
+                    </Grid>
+
                     <Grid
                         size={12}
                         gap={1.5}
@@ -561,6 +769,16 @@ export const SettingsView = (props: SettingsViewProps) => {
                         >
                             Save set
                         </Button>
+                        {savedIndicator && (
+                            <Typography
+                                variant="body2"
+                                color="success.main"
+                                fontWeight={600}
+                                sx={{ ml: 0.5 }}
+                            >
+                                ✓ Set saved!
+                            </Typography>
+                        )}
                         <Button
                             variant="outlined"
                             onClick={() =>
@@ -607,10 +825,21 @@ export const SettingsView = (props: SettingsViewProps) => {
                         Add the same number of words in both fields to start.
                     </Typography>
                 )}
+                {!hasTestType && (
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: alpha.white80,
+                            mb: 2,
+                        }}
+                    >
+                        Select at least one testing type in settings.
+                    </Typography>
+                )}
                 <Button
                     variant="contained"
                     onClick={startTest}
-                    disabled={!languageSetIsValid}
+                    disabled={!languageSetIsValid || !hasTestType}
                     endIcon={<PlayArrowIcon />}
                     size="large"
                     sx={{

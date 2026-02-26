@@ -28,7 +28,13 @@ describe("testLogic", () => {
         multiSelectChoicesAmount: 4,
         onlySecondLanguageWordsTested: false,
         everySecondTestIsMultiOrWriting: false,
-        testType: { writing: true, multiSelect: true, dragDrop: false },
+        sentenceTestAllWords: true,
+        testType: {
+            writing: true,
+            multiSelect: true,
+            dragDrop: false,
+            sentenceFillBlank: false,
+        },
     };
 
     const mockWord: TestWord = {
@@ -39,6 +45,8 @@ describe("testLogic", () => {
         timesFailed: 0,
         timesSkipped: 0,
         timesCheckedAnswer: 0,
+        totalAnswerTimeMs: 0,
+        answerAttempts: 0,
     };
 
     const mockWords: TestWord[] = [
@@ -51,6 +59,8 @@ describe("testLogic", () => {
             timesFailed: 0,
             timesSkipped: 0,
             timesCheckedAnswer: 0,
+            totalAnswerTimeMs: 0,
+            answerAttempts: 0,
         },
     ];
 
@@ -70,6 +80,7 @@ describe("testLogic", () => {
                     writing: true,
                     multiSelect: false,
                     dragDrop: false,
+                    sentenceFillBlank: false,
                 },
             };
             expect(chooseTestOption(settings, 0)).toBe(
@@ -87,6 +98,7 @@ describe("testLogic", () => {
                     writing: false,
                     multiSelect: true,
                     dragDrop: false,
+                    sentenceFillBlank: false,
                 },
             };
             expect(chooseTestOption(settings, 0)).toBe(
@@ -100,7 +112,12 @@ describe("testLogic", () => {
         it("should alternate strictly when both enabled and everySecondTestIsMultiOrWriting is true", () => {
             const settings = {
                 ...mockSettings,
-                testType: { writing: true, multiSelect: true, dragDrop: false },
+                testType: {
+                    writing: true,
+                    multiSelect: true,
+                    dragDrop: false,
+                    sentenceFillBlank: false,
+                },
                 everySecondTestIsMultiOrWriting: true,
             };
 
@@ -130,7 +147,12 @@ describe("testLogic", () => {
         it("should choose randomly when both enabled and everySecondTestIsMultiOrWriting is false", () => {
             const settings = {
                 ...mockSettings,
-                testType: { writing: true, multiSelect: true, dragDrop: false },
+                testType: {
+                    writing: true,
+                    multiSelect: true,
+                    dragDrop: false,
+                    sentenceFillBlank: false,
+                },
                 everySecondTestIsMultiOrWriting: false,
             };
 

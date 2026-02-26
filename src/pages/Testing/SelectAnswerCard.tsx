@@ -1,4 +1,4 @@
-import { Box, Button, Card, Grid } from "@mui/material";
+import { Box, Button, Card, Grid, Typography } from "@mui/material";
 import { GuessWordTitle } from "./GuessWordTitle";
 import { TestOption, TestSettings, TestState, TestWord } from "./types";
 import {
@@ -105,6 +105,26 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
                     </Box>
                 ))}
             </Grid>
+
+            {(testState === TestState.Success ||
+                testState === TestState.Failed) && (
+                <Typography
+                    variant="body2"
+                    sx={{
+                        textAlign: "center",
+                        mt: 2,
+                        fontWeight: 600,
+                        color:
+                            testState === TestState.Success
+                                ? "success.main"
+                                : "error.main",
+                    }}
+                >
+                    {testState === TestState.Success
+                        ? "\u2713 Correct!"
+                        : `\u2717 Incorrect! Correct answer: ${getExpectedAnswer(guessWord, guessDirection)}`}
+                </Typography>
+            )}
         </Card>
     );
 };

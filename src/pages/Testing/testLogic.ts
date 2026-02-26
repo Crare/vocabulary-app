@@ -13,12 +13,14 @@ export function chooseTestOption(
     settings: TestSettings,
     questionIndex: number,
 ): TestOption {
-    const { writing, multiSelect, dragDrop } = settings.testType;
+    const { writing, multiSelect, dragDrop, sentenceFillBlank } =
+        settings.testType;
 
     const enabled: TestOption[] = [];
     if (writing) enabled.push(TestOption.WriteCorrectAnswer);
     if (multiSelect) enabled.push(TestOption.SelectFromMultiple);
     if (dragDrop) enabled.push(TestOption.DragAndDrop);
+    if (sentenceFillBlank) enabled.push(TestOption.SentenceFillBlank);
 
     // If none enabled, default to writing + multi-select
     if (enabled.length === 0) {

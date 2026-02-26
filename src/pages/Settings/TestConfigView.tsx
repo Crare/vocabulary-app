@@ -19,7 +19,13 @@ interface PersistedSettings {
     multiSelectChoicesAmount: number;
     onlySecondLanguageWordsTested: boolean;
     everySecondTestIsMultiOrWriting: boolean;
-    testType: { writing: boolean; multiSelect: boolean; dragDrop: boolean };
+    sentenceTestAllWords: boolean;
+    testType: {
+        writing: boolean;
+        multiSelect: boolean;
+        dragDrop: boolean;
+        sentenceFillBlank: boolean;
+    };
     [key: string]: unknown;
 }
 
@@ -84,6 +90,15 @@ export const TestConfigView = () => {
             ? (loadedTestType.dragDrop ?? true)
             : true,
     );
+    const [sentenceFillBlankEnabled, setSentenceFillBlankEnabled] =
+        useState<boolean>(() =>
+            loadedTestType && typeof loadedTestType === "object"
+                ? (loadedTestType.sentenceFillBlank ?? true)
+                : true,
+        );
+    const [sentenceTestAllWords, setSentenceTestAllWords] = useState<boolean>(
+        () => loadPersistedSettings().sentenceTestAllWords ?? true,
+    );
 
     useEffect(() => {
         savePersistedSettings({
@@ -91,10 +106,12 @@ export const TestConfigView = () => {
             multiSelectChoicesAmount,
             onlySecondLanguageWordsTested,
             everySecondTestIsMultiOrWriting,
+            sentenceTestAllWords,
             testType: {
                 writing: writingEnabled,
                 multiSelect: multiSelectEnabled,
                 dragDrop: dragDropEnabled,
+                sentenceFillBlank: sentenceFillBlankEnabled,
             },
         });
     }, [
@@ -102,9 +119,11 @@ export const TestConfigView = () => {
         multiSelectChoicesAmount,
         onlySecondLanguageWordsTested,
         everySecondTestIsMultiOrWriting,
+        sentenceTestAllWords,
         writingEnabled,
         multiSelectEnabled,
         dragDropEnabled,
+        sentenceFillBlankEnabled,
     ]);
 
     return (
@@ -191,6 +210,21 @@ export const TestConfigView = () => {
                         </Grid>
 
                         <FormGroup>
+                            <Typography variant="subtitle2" mb={0.5}>
+                                Testing types
+                            </Typography>
+                            {!writingEnabled &&
+                                !multiSelectEnabled &&
+                                !dragDropEnabled &&
+                                !sentenceFillBlankEnabled && (
+                                    <Typography
+                                        variant="body2"
+                                        color="error.main"
+                                        mb={0.5}
+                                    >
+                                        Please select at least one testing type.
+                                    </Typography>
+                                )}
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -226,6 +260,35 @@ export const TestConfigView = () => {
                                 }
                                 label="Drag and drop matching test"
                             />
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={sentenceFillBlankEnabled}
+                                        onChange={(e) =>
+                                            setSentenceFillBlankEnabled(
+                                                e.target.checked,
+                                            )
+                                        }
+                                    />
+                                }
+                                label="Sentence fill-in-the-blank test"
+                            />
+                            {sentenceFillBlankEnabled && (
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={sentenceTestAllWords}
+                                            onChange={(e) =>
+                                                setSentenceTestAllWords(
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                    }
+                                    label="Test every word in the sentence at least once"
+                                    sx={{ ml: 2 }}
+                                />
+                            )}
                         </FormGroup>
                     </Grid>
                 </Grid>
