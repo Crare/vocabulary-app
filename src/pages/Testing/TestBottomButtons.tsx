@@ -15,6 +15,8 @@ interface TestBottomButtonsProps {
     onEndTesting: () => void;
     onBackToStart: () => void;
     hasInteracted: boolean;
+    /** When true, show a Continue button after success/failure instead of auto-advancing */
+    manualAdvance?: boolean;
 }
 
 export const TestBottomButtons = (props: TestBottomButtonsProps) => {
@@ -27,6 +29,7 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
         onSkip,
         onBackToStart,
         hasInteracted,
+        manualAdvance,
     } = props;
     return (
         <Card sx={{ p: 3 }}>
@@ -81,6 +84,17 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
                         Continue
                     </Button>
                 )}
+                {manualAdvance &&
+                    (testState === TestState.Success ||
+                        testState === TestState.Failed) && (
+                        <Button
+                            variant="contained"
+                            onClick={onNext}
+                            startIcon={<NavigateNextIcon />}
+                        >
+                            Continue
+                        </Button>
+                    )}
 
                 <Button
                     variant="outlined"

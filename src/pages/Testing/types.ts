@@ -5,6 +5,8 @@ export interface TestSettings {
     onlySecondLanguageWordsTested: boolean;
     everySecondTestIsMultiOrWriting: boolean;
     sentenceTestAllWords: boolean;
+    /** Delay in ms before auto-advancing after an answer. -1 = manual (press button). */
+    answerDelayMs: number;
     testType: {
         writing: boolean;
         multiSelect: boolean;

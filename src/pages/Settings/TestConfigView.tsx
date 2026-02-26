@@ -20,6 +20,7 @@ interface PersistedSettings {
     onlySecondLanguageWordsTested: boolean;
     everySecondTestIsMultiOrWriting: boolean;
     sentenceTestAllWords: boolean;
+    answerDelayMs: number;
     testType: {
         writing: boolean;
         multiSelect: boolean;
@@ -99,6 +100,9 @@ export const TestConfigView = () => {
     const [sentenceTestAllWords, setSentenceTestAllWords] = useState<boolean>(
         () => loadPersistedSettings().sentenceTestAllWords ?? true,
     );
+    const [answerDelayMs, setAnswerDelayMs] = useState<number>(
+        () => loadPersistedSettings().answerDelayMs ?? 1500,
+    );
 
     useEffect(() => {
         savePersistedSettings({
@@ -107,6 +111,7 @@ export const TestConfigView = () => {
             onlySecondLanguageWordsTested,
             everySecondTestIsMultiOrWriting,
             sentenceTestAllWords,
+            answerDelayMs,
             testType: {
                 writing: writingEnabled,
                 multiSelect: multiSelectEnabled,
@@ -120,6 +125,7 @@ export const TestConfigView = () => {
         onlySecondLanguageWordsTested,
         everySecondTestIsMultiOrWriting,
         sentenceTestAllWords,
+        answerDelayMs,
         writingEnabled,
         multiSelectEnabled,
         dragDropEnabled,
@@ -171,6 +177,36 @@ export const TestConfigView = () => {
                             ) =>
                                 setMultiSelectChoicesAmount(newValue as number)
                             }
+                        />
+
+                        <Typography variant="h5">
+                            Time to see the answer:{" "}
+                            {answerDelayMs === -1
+                                ? "Press button"
+                                : `${(answerDelayMs / 1000).toFixed(1)}s`}
+                        </Typography>
+                        <Slider
+                            min={-1}
+                            max={5000}
+                            step={null}
+                            marks={[
+                                {
+                                    value: -1,
+                                    label: "Manual",
+                                },
+                                { value: 0, label: "0s" },
+                                { value: 500, label: "0.5s" },
+                                { value: 1000, label: "1s" },
+                                { value: 1500, label: "1.5s" },
+                                { value: 2000, label: "2s" },
+                                { value: 3000, label: "3s" },
+                                { value: 5000, label: "5s" },
+                            ]}
+                            value={answerDelayMs}
+                            onChange={(
+                                _e: Event,
+                                newValue: number | number[],
+                            ) => setAnswerDelayMs(newValue as number)}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, md: 5 }} gap={2}>

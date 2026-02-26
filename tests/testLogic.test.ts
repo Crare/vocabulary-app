@@ -29,6 +29,7 @@ describe("testLogic", () => {
         onlySecondLanguageWordsTested: false,
         everySecondTestIsMultiOrWriting: false,
         sentenceTestAllWords: true,
+        answerDelayMs: 1500,
         testType: {
             writing: true,
             multiSelect: true,

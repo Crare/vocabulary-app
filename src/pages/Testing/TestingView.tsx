@@ -239,10 +239,15 @@ export const TestingView = (props: TestingViewProps) => {
     // Auto-advance after answer feedback delay
     useEffect(() => {
         if (testState === TestState.Success || testState === TestState.Failed) {
-            const timer = setTimeout(advanceToNext, 1500);
+            // -1 means manual mode — user must press Continue
+            if (settings.answerDelayMs === -1) return;
+            const timer = setTimeout(
+                advanceToNext,
+                settings.answerDelayMs,
+            );
             return () => clearTimeout(timer);
         }
-    }, [testState, advanceToNext]);
+    }, [testState, advanceToNext, settings.answerDelayMs]);
 
     const answer = (guess: string) => {
         if (isAnsweringRef.current || !guessWord || testState !== undefined) {
@@ -457,6 +462,7 @@ export const TestingView = (props: TestingViewProps) => {
                         onSkip={skip}
                         onBackToStart={onBackToStart}
                         hasInteracted={hasInteracted}
+                        manualAdvance={settings.answerDelayMs === -1}
                     />
                 </>
             )}
