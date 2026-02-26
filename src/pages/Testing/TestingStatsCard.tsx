@@ -59,7 +59,7 @@ export const TestingStatsCard = (props: TestingStatsCardProps) => {
                     variant="determinate"
                     value={progress}
                     sx={{
-                        height: 8,
+                        height: 20,
                         borderRadius: 4,
                         bgcolor: "rgba(79, 70, 229, 0.1)",
                         "& .MuiLinearProgress-bar": {
@@ -69,6 +69,21 @@ export const TestingStatsCard = (props: TestingStatsCardProps) => {
                         },
                     }}
                 />
+                <Typography
+                    variant="caption"
+                    fontWeight={700}
+                    sx={{
+                        position: "relative",
+                        top: -17,
+                        textAlign: "center",
+                        display: "block",
+                        lineHeight: 1,
+                        color: progress > 45 ? "#fff" : "text.primary",
+                        pointerEvents: "none",
+                    }}
+                >
+                    {wordsLeft} words left
+                </Typography>
             </Box>
         </Card>
     );

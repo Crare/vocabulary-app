@@ -19,7 +19,7 @@ interface PersistedSettings {
     multiSelectChoicesAmount: number;
     onlySecondLanguageWordsTested: boolean;
     everySecondTestIsMultiOrWriting: boolean;
-    testType: { writing: boolean; multiSelect: boolean };
+    testType: { writing: boolean; multiSelect: boolean; dragDrop: boolean };
     [key: string]: unknown;
 }
 
@@ -79,6 +79,11 @@ export const TestConfigView = () => {
             ? loadedTestType.multiSelect
             : true,
     );
+    const [dragDropEnabled, setDragDropEnabled] = useState<boolean>(() =>
+        loadedTestType && typeof loadedTestType === "object"
+            ? (loadedTestType.dragDrop ?? true)
+            : true,
+    );
 
     useEffect(() => {
         savePersistedSettings({
@@ -89,6 +94,7 @@ export const TestConfigView = () => {
             testType: {
                 writing: writingEnabled,
                 multiSelect: multiSelectEnabled,
+                dragDrop: dragDropEnabled,
             },
         });
     }, [
@@ -98,6 +104,7 @@ export const TestConfigView = () => {
         everySecondTestIsMultiOrWriting,
         writingEnabled,
         multiSelectEnabled,
+        dragDropEnabled,
     ]);
 
     return (
@@ -207,6 +214,17 @@ export const TestConfigView = () => {
                                     />
                                 }
                                 label="Multi-select test"
+                            />
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={dragDropEnabled}
+                                        onChange={(e) =>
+                                            setDragDropEnabled(e.target.checked)
+                                        }
+                                    />
+                                }
+                                label="Drag and drop matching test"
                             />
                         </FormGroup>
                     </Grid>

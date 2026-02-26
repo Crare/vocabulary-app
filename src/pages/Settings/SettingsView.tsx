@@ -133,11 +133,14 @@ export const SettingsView = (props: SettingsViewProps) => {
                 persisted.everySecondTestIsMultiOrWriting ?? false,
             testType:
                 persisted.testType && typeof persisted.testType === "object"
-                    ? (persisted.testType as {
-                          writing: boolean;
-                          multiSelect: boolean;
-                      })
-                    : { writing: true, multiSelect: true },
+                    ? {
+                          writing: (persisted.testType as any).writing ?? true,
+                          multiSelect:
+                              (persisted.testType as any).multiSelect ?? true,
+                          dragDrop:
+                              (persisted.testType as any).dragDrop ?? true,
+                      }
+                    : { writing: true, multiSelect: true, dragDrop: true },
         };
         onStartTest(settings);
     };

@@ -4,7 +4,7 @@ export interface TestSettings {
     multiSelectChoicesAmount: number;
     onlySecondLanguageWordsTested: boolean;
     everySecondTestIsMultiOrWriting: boolean;
-    testType: { writing: boolean; multiSelect: boolean };
+    testType: { writing: boolean; multiSelect: boolean; dragDrop: boolean };
 }
 
 export interface LanguageSet {
@@ -30,6 +30,7 @@ export interface TestWord {
 export enum TestOption {
     WriteCorrectAnswer,
     SelectFromMultiple,
+    DragAndDrop,
 }
 
 export interface TestResults {

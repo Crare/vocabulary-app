@@ -28,7 +28,7 @@ describe("testLogic", () => {
         multiSelectChoicesAmount: 4,
         onlySecondLanguageWordsTested: false,
         everySecondTestIsMultiOrWriting: false,
-        testType: { writing: true, multiSelect: true },
+        testType: { writing: true, multiSelect: true, dragDrop: false },
     };
 
     const mockWord: TestWord = {
@@ -66,7 +66,11 @@ describe("testLogic", () => {
         it("should return WriteCorrectAnswer when only writing is enabled", () => {
             const settings = {
                 ...mockSettings,
-                testType: { writing: true, multiSelect: false },
+                testType: {
+                    writing: true,
+                    multiSelect: false,
+                    dragDrop: false,
+                },
             };
             expect(chooseTestOption(settings, 0)).toBe(
                 TestOption.WriteCorrectAnswer,
@@ -79,7 +83,11 @@ describe("testLogic", () => {
         it("should return SelectFromMultiple when only multiSelect is enabled", () => {
             const settings = {
                 ...mockSettings,
-                testType: { writing: false, multiSelect: true },
+                testType: {
+                    writing: false,
+                    multiSelect: true,
+                    dragDrop: false,
+                },
             };
             expect(chooseTestOption(settings, 0)).toBe(
                 TestOption.SelectFromMultiple,
@@ -92,7 +100,7 @@ describe("testLogic", () => {
         it("should alternate strictly when both enabled and everySecondTestIsMultiOrWriting is true", () => {
             const settings = {
                 ...mockSettings,
-                testType: { writing: true, multiSelect: true },
+                testType: { writing: true, multiSelect: true, dragDrop: false },
                 everySecondTestIsMultiOrWriting: true,
             };
 
@@ -122,7 +130,7 @@ describe("testLogic", () => {
         it("should choose randomly when both enabled and everySecondTestIsMultiOrWriting is false", () => {
             const settings = {
                 ...mockSettings,
-                testType: { writing: true, multiSelect: true },
+                testType: { writing: true, multiSelect: true, dragDrop: false },
                 everySecondTestIsMultiOrWriting: false,
             };
 

@@ -11,9 +11,10 @@ import { calcTimeTakenText } from "../../hooks/useDate";
 import { GuessResult } from "./GuessResult";
 import { WriteTestCard } from "./WriteTestCard";
 import { SelectAnswerCard } from "./SelectAnswerCard";
+import { DragDropTestCard, DRAG_DROP_BATCH_SIZE } from "./DragDropTestCard";
 import { TestingStatsCard } from "./TestingStatsCard";
 import { TestBottomButtons } from "./TestBottomButtons";
-import { randomIntFromInterval } from "../../util/helpers";
+import { randomIntFromInterval, shuffle } from "../../util/helpers";
 import {
     GuessDirection,
     chooseTestOption,
@@ -68,6 +69,7 @@ export const TestingView = (props: TestingViewProps) => {
         string | undefined
     >(undefined);
     const [hasInteracted, setHasInteracted] = useState(false);
+    const [dragDropBatch, setDragDropBatch] = useState<TestWord[]>([]);
 
     const finishTest = useCallback(() => {
         const words = testWordsRef.current;
@@ -101,20 +103,40 @@ export const TestingView = (props: TestingViewProps) => {
             return;
         }
         questionIndexRef.current += 1;
-        const next = remaining[randomIntFromInterval(0, remaining.length - 1)];
-        const option = chooseTestOption(s, questionIndexRef.current);
+        let option = chooseTestOption(s, questionIndexRef.current);
         const direction = chooseGuessDirection(s);
+
+        // Fall back if drag-and-drop chosen but < 2 remaining words
+        if (option === TestOption.DragAndDrop && remaining.length < 2) {
+            option = s.testType.writing
+                ? TestOption.WriteCorrectAnswer
+                : TestOption.SelectFromMultiple;
+        }
+
+        if (option === TestOption.DragAndDrop) {
+            const shuffled = [...remaining];
+            shuffle(shuffled);
+            const batch = shuffled.slice(0, DRAG_DROP_BATCH_SIZE);
+            setDragDropBatch(batch);
+            setGuessWord(undefined);
+        } else {
+            const next =
+                remaining[randomIntFromInterval(0, remaining.length - 1)];
+            setGuessWord(next);
+            setDragDropBatch([]);
+        }
+
         log.debug("next_question", {
             questionIndex: questionIndexRef.current,
             wordsRemaining: remaining.length,
-            word: next.lang1Word,
             testOption:
                 option === TestOption.WriteCorrectAnswer
                     ? "write"
-                    : "multi-select",
+                    : option === TestOption.SelectFromMultiple
+                      ? "multi-select"
+                      : "drag-drop",
             direction,
         });
-        setGuessWord(next);
         setWordsLeft(remaining.length);
         setTestOption(option);
         setGuessDirection(direction);
@@ -157,12 +179,30 @@ export const TestingView = (props: TestingViewProps) => {
             finishTest();
             return;
         }
-        const firstWord =
-            remaining[randomIntFromInterval(0, remaining.length - 1)];
-        setGuessWord(firstWord);
+
+        let firstOption = chooseTestOption(s, 0);
+        const firstDirection = chooseGuessDirection(s);
+
+        // Fall back if drag-and-drop chosen but < 2 remaining words
+        if (firstOption === TestOption.DragAndDrop && remaining.length < 2) {
+            firstOption = s.testType.writing
+                ? TestOption.WriteCorrectAnswer
+                : TestOption.SelectFromMultiple;
+        }
+
+        if (firstOption === TestOption.DragAndDrop) {
+            const shuffled = [...remaining];
+            shuffle(shuffled);
+            setDragDropBatch(shuffled.slice(0, DRAG_DROP_BATCH_SIZE));
+        } else {
+            const firstWord =
+                remaining[randomIntFromInterval(0, remaining.length - 1)];
+            setGuessWord(firstWord);
+        }
+
         setWordsLeft(remaining.length);
-        setTestOption(chooseTestOption(s, 0));
-        setGuessDirection(chooseGuessDirection(s));
+        setTestOption(firstOption);
+        setGuessDirection(firstDirection);
         wordStartTimeRef.current = Date.now();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -244,6 +284,37 @@ export const TestingView = (props: TestingViewProps) => {
         setCorrectAnswerValue(answer);
     };
 
+    const handleDragDropComplete = useCallback(
+        (results: { word: TestWord; correct: boolean }[]) => {
+            const elapsed = Date.now() - wordStartTimeRef.current;
+            const perWordTime = Math.floor(elapsed / results.length);
+
+            let anyWrong = false;
+            for (const r of results) {
+                r.word.totalAnswerTimeMs += perWordTime;
+                r.word.answerAttempts += 1;
+                if (r.correct) {
+                    r.word.timesCorrect += 1;
+                } else {
+                    r.word.timesFailed += 1;
+                    anyWrong = true;
+                }
+            }
+
+            setHasInteracted(true);
+            if (anyWrong) onWrong();
+            else onCorrect();
+
+            advanceToNext();
+        },
+        [advanceToNext, onCorrect, onWrong],
+    );
+
+    const targetLangName =
+        guessDirection === "lang1to2"
+            ? settings.languageSet.language2Name
+            : settings.languageSet.language1Name;
+
     return (
         <Grid container className="content" gap={2} flexDirection={"column"}>
             <TestingStatsCard
@@ -252,55 +323,62 @@ export const TestingView = (props: TestingViewProps) => {
                 wordsLeft={wordsLeft}
             />
 
-            <GuessResult
-                testState={testState}
-                guessWord={guessWord}
-                guessDirection={guessDirection}
-            />
-
-            {testOption === TestOption.WriteCorrectAnswer && guessWord ? (
-                <WriteTestCard
-                    testState={testState}
-                    guessWord={guessWord}
-                    onSendAnswer={answer}
-                    testOption={TestOption.WriteCorrectAnswer}
+            {testOption === TestOption.DragAndDrop &&
+            dragDropBatch.length > 0 ? (
+                <DragDropTestCard
+                    key={dragDropBatch.map((w) => w.id).join(",")}
+                    words={dragDropBatch}
                     guessDirection={guessDirection}
-                    targetLanguageName={
-                        guessDirection === "lang1to2"
-                            ? settings.languageSet.language2Name
-                            : settings.languageSet.language1Name
-                    }
+                    targetLanguageName={targetLangName}
+                    onComplete={handleDragDropComplete}
                 />
-            ) : null}
+            ) : (
+                <>
+                    <GuessResult
+                        testState={testState}
+                        guessWord={guessWord}
+                        guessDirection={guessDirection}
+                    />
 
-            {testOption === TestOption.SelectFromMultiple && guessWord ? (
-                <SelectAnswerCard
-                    testState={testState}
-                    guessWord={guessWord}
-                    onChooseOption={answer}
-                    testOption={TestOption.SelectFromMultiple}
-                    settings={settings}
-                    testWords={testWordsRef.current}
-                    wordsLeft={wordsLeft}
-                    guessDirection={guessDirection}
-                    targetLanguageName={
-                        guessDirection === "lang1to2"
-                            ? settings.languageSet.language2Name
-                            : settings.languageSet.language1Name
-                    }
-                />
-            ) : null}
+                    {testOption === TestOption.WriteCorrectAnswer &&
+                    guessWord ? (
+                        <WriteTestCard
+                            testState={testState}
+                            guessWord={guessWord}
+                            onSendAnswer={answer}
+                            testOption={TestOption.WriteCorrectAnswer}
+                            guessDirection={guessDirection}
+                            targetLanguageName={targetLangName}
+                        />
+                    ) : null}
 
-            <TestBottomButtons
-                testState={testState}
-                correctAnswerValue={correctAnswerValue}
-                onCheckCorrectAnswer={checkCorrectAnswer}
-                onEndTesting={finishTest}
-                onNext={next}
-                onSkip={skip}
-                onBackToStart={onBackToStart}
-                hasInteracted={hasInteracted}
-            />
+                    {testOption === TestOption.SelectFromMultiple &&
+                    guessWord ? (
+                        <SelectAnswerCard
+                            testState={testState}
+                            guessWord={guessWord}
+                            onChooseOption={answer}
+                            testOption={TestOption.SelectFromMultiple}
+                            settings={settings}
+                            testWords={testWordsRef.current}
+                            wordsLeft={wordsLeft}
+                            guessDirection={guessDirection}
+                            targetLanguageName={targetLangName}
+                        />
+                    ) : null}
+
+                    <TestBottomButtons
+                        testState={testState}
+                        correctAnswerValue={correctAnswerValue}
+                        onCheckCorrectAnswer={checkCorrectAnswer}
+                        onEndTesting={finishTest}
+                        onNext={next}
+                        onSkip={skip}
+                        onBackToStart={onBackToStart}
+                        hasInteracted={hasInteracted}
+                    />
+                </>
+            )}
         </Grid>
     );
 };

@@ -1,4 +1,14 @@
-import { Box, Button, Card, Chip, Grid, Typography } from "@mui/material";
+import {
+    Box,
+    Button,
+    Card,
+    Chip,
+    Grid,
+    Typography,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+} from "@mui/material";
 import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
 import { TestResults, TestWord } from "../Testing/types";
 import {
@@ -20,6 +30,8 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AvTimerIcon from "@mui/icons-material/AvTimer";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { alpha } from "../../colors";
 
 const columns: GridColDef[] = [
@@ -171,18 +183,29 @@ export const ResultsView = (props: ResultsViewProps) => {
                 />
             </Card>
 
-            <Card sx={{ p: 3 }}>
-                <WordScoreChart wordResults={results.wordResults} />
-            </Card>
+            <Accordion
+                defaultExpanded={false}
+                sx={{ borderRadius: 3, "&:before": { display: "none" } }}
+            >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <BarChartIcon color="primary" />
+                        <Typography variant="h5">Charts</Typography>
+                    </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <WordScoreChart wordResults={results.wordResults} />
 
-            {historyEntries.length >= 2 && (
-                <Card sx={{ p: 3 }}>
-                    <Typography variant="h5" mb={1}>
-                        Progress for &ldquo;{languageSetName}&rdquo;
-                    </Typography>
-                    <ProgressChart entries={historyEntries} />
-                </Card>
-            )}
+                    {historyEntries.length >= 2 && (
+                        <Box sx={{ mt: 3 }}>
+                            <Typography variant="h5" mb={1}>
+                                Progress for &ldquo;{languageSetName}&rdquo;
+                            </Typography>
+                            <ProgressChart entries={historyEntries} />
+                        </Box>
+                    )}
+                </AccordionDetails>
+            </Accordion>
 
             <Box
                 sx={{

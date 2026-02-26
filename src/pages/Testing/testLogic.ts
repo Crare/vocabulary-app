@@ -7,35 +7,36 @@ import { randomIntFromInterval } from "../../util/helpers";
 export type GuessDirection = "lang1to2" | "lang2to1";
 
 /**
- * Determine which test option (writing or multi-select) to use for the current question.
+ * Determine which test option (writing, multi-select, or drag-and-drop) to use for the current question.
  */
 export function chooseTestOption(
     settings: TestSettings,
     questionIndex: number,
 ): TestOption {
-    const { writing, multiSelect } = settings.testType;
+    const { writing, multiSelect, dragDrop } = settings.testType;
 
-    // Only writing enabled
-    if (writing && !multiSelect) {
-        return TestOption.WriteCorrectAnswer;
-    }
-    // Only multi-select enabled
-    if (!writing && multiSelect) {
-        return TestOption.SelectFromMultiple;
+    const enabled: TestOption[] = [];
+    if (writing) enabled.push(TestOption.WriteCorrectAnswer);
+    if (multiSelect) enabled.push(TestOption.SelectFromMultiple);
+    if (dragDrop) enabled.push(TestOption.DragAndDrop);
+
+    // If none enabled, default to writing + multi-select
+    if (enabled.length === 0) {
+        enabled.push(
+            TestOption.WriteCorrectAnswer,
+            TestOption.SelectFromMultiple,
+        );
     }
 
-    // Both enabled (or neither — treat as both)
+    if (enabled.length === 1) return enabled[0];
+
     if (settings.everySecondTestIsMultiOrWriting) {
-        // Strictly alternate: even index = writing, odd index = multi-select
-        return questionIndex % 2 === 0
-            ? TestOption.WriteCorrectAnswer
-            : TestOption.SelectFromMultiple;
+        // Cycle through all enabled options
+        return enabled[questionIndex % enabled.length];
     }
 
-    // Random choice
-    return randomIntFromInterval(0, 1) === 0
-        ? TestOption.WriteCorrectAnswer
-        : TestOption.SelectFromMultiple;
+    // Random choice among enabled options
+    return enabled[randomIntFromInterval(0, enabled.length - 1)];
 }
 
 /**
