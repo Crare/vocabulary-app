@@ -241,10 +241,7 @@ export const TestingView = (props: TestingViewProps) => {
         if (testState === TestState.Success || testState === TestState.Failed) {
             // -1 means manual mode — user must press Continue
             if (settings.answerDelayMs === -1) return;
-            const timer = setTimeout(
-                advanceToNext,
-                settings.answerDelayMs,
-            );
+            const timer = setTimeout(advanceToNext, settings.answerDelayMs);
             return () => clearTimeout(timer);
         }
     }, [testState, advanceToNext, settings.answerDelayMs]);
