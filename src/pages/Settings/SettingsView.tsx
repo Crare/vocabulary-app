@@ -2,16 +2,22 @@ import {
     Accordion,
     AccordionDetails,
     AccordionSummary,
+    Alert,
     Autocomplete,
     Box,
     Button,
     Card,
+    Collapse,
     Grid,
+    IconButton,
     Input,
     TextareaAutosize,
     TextField,
+    Tooltip,
     Typography,
 } from "@mui/material";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import CloseIcon from "@mui/icons-material/Close";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { LanguageSet, TestSettings } from "../Testing/types";
 import { useEffect, useRef, useState } from "react";
@@ -102,6 +108,9 @@ const loadPersistedSettings = (): Partial<PersistedSettings> => {
 export const SettingsView = (props: SettingsViewProps) => {
     const { onStartTest } = props;
     const muiTheme = useTheme();
+    const [showInstructions, setShowInstructions] = useState<boolean>(
+        () => localStorage.getItem("HIDE_INSTRUCTIONS") !== "true",
+    );
 
     const [language1Words, setLanguage1Words] = useState<string>(
         () => loadPersistedSettings().language1Words ?? "",
@@ -455,6 +464,52 @@ export const SettingsView = (props: SettingsViewProps) => {
                 onDownload={downloadWordSet}
             />
 
+            <Collapse in={showInstructions}>
+                <Alert
+                    severity="info"
+                    icon={<HelpOutlineIcon />}
+                    action={
+                        <IconButton
+                            aria-label="Dismiss instructions"
+                            size="small"
+                            onClick={() => {
+                                setShowInstructions(false);
+                                localStorage.setItem(
+                                    "HIDE_INSTRUCTIONS",
+                                    "true",
+                                );
+                            }}
+                        >
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    }
+                    sx={{ mb: 2, borderRadius: 3 }}
+                >
+                    <Typography variant="subtitle2" gutterBottom>
+                        How to use Vocabulary Trainer
+                    </Typography>
+                    <Typography
+                        variant="body2"
+                        component="ol"
+                        sx={{ pl: 2, m: 0 }}
+                    >
+                        <li>
+                            Enter words in two languages below (one word per
+                            line, same order).
+                        </li>
+                        <li>Or load a saved set / use a built-in template.</li>
+                        <li>
+                            Optionally add sentences for fill-in-the-blank
+                            practice.
+                        </li>
+                        <li>
+                            Press <strong>Start Test</strong> and practise until
+                            every word is mastered!
+                        </li>
+                    </Typography>
+                </Alert>
+            </Collapse>
+
             <Card sx={{ p: 3 }}>
                 <Typography variant="h3" mb={3} textAlign={"center"}>
                     Word Lists
@@ -469,53 +524,73 @@ export const SettingsView = (props: SettingsViewProps) => {
                         justifyContent: "center",
                     }}
                 >
-                    <Button
-                        variant="outlined"
-                        onClick={openLoadSetModal}
-                        endIcon={<MenuOpenIcon />}
-                        size="small"
+                    <Tooltip
+                        title="Load a previously saved word set from local storage"
+                        arrow
                     >
-                        Load set
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        onClick={openTemplateListModal}
-                        endIcon={<PlaylistAddIcon />}
-                        size="small"
+                        <Button
+                            variant="outlined"
+                            onClick={openLoadSetModal}
+                            endIcon={<MenuOpenIcon />}
+                            size="small"
+                        >
+                            Load set
+                        </Button>
+                    </Tooltip>
+                    <Tooltip
+                        title="Pick a built-in word set template to get started quickly"
+                        arrow
                     >
-                        Use template
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        onClick={flip}
-                        endIcon={<LoopIcon />}
-                        size="small"
+                        <Button
+                            variant="outlined"
+                            onClick={openTemplateListModal}
+                            endIcon={<PlaylistAddIcon />}
+                            size="small"
+                        >
+                            Use template
+                        </Button>
+                    </Tooltip>
+                    <Tooltip
+                        title="Swap language 1 and language 2 columns"
+                        arrow
                     >
-                        Flip
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        onClick={clear}
-                        endIcon={<ClearIcon />}
-                        size="small"
-                    >
-                        Clear
-                    </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={flip}
+                            endIcon={<LoopIcon />}
+                            size="small"
+                        >
+                            Flip
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title="Clear all word and sentence inputs" arrow>
+                        <Button
+                            variant="outlined"
+                            onClick={clear}
+                            endIcon={<ClearIcon />}
+                            size="small"
+                        >
+                            Clear
+                        </Button>
+                    </Tooltip>
                     <input
                         ref={fileInputRef}
                         type="file"
                         accept=".json"
                         style={{ display: "none" }}
                         onChange={handleImportFile}
+                        aria-label="Import word set JSON file"
                     />
-                    <Button
-                        variant="outlined"
-                        onClick={() => fileInputRef.current?.click()}
-                        endIcon={<UploadFileIcon />}
-                        size="small"
-                    >
-                        Import file
-                    </Button>
+                    <Tooltip title="Import a word set from a JSON file" arrow>
+                        <Button
+                            variant="outlined"
+                            onClick={() => fileInputRef.current?.click()}
+                            endIcon={<UploadFileIcon />}
+                            size="small"
+                        >
+                            Import file
+                        </Button>
+                    </Tooltip>
                 </Box>
 
                 <Typography
@@ -558,6 +633,7 @@ export const SettingsView = (props: SettingsViewProps) => {
                         <TextareaAutosize
                             ref={textarea1Ref}
                             onScroll={() => syncScroll("lang1")}
+                            aria-label={`Words in ${lang1Name || "language 1"}, one per line`}
                             style={{
                                 width: "100%",
                                 fontFamily: "'Inter', sans-serif",
@@ -601,6 +677,7 @@ export const SettingsView = (props: SettingsViewProps) => {
                         <TextareaAutosize
                             ref={textarea2Ref}
                             onScroll={() => syncScroll("lang2")}
+                            aria-label={`Words in ${lang2Name || "language 2"}, one per line`}
                             style={{
                                 width: "100%",
                                 fontFamily: "'Inter', sans-serif",
@@ -779,15 +856,21 @@ export const SettingsView = (props: SettingsViewProps) => {
                             value={langSetName}
                             onChange={(e) => setLangSetName(e.target.value)}
                             sx={{ minWidth: 200 }}
+                            aria-label="Name for this word set"
                         />
-                        <Button
-                            variant="outlined"
-                            onClick={saveSet}
-                            endIcon={<SaveIcon />}
-                            size="small"
+                        <Tooltip
+                            title="Save this word set to local storage for later use"
+                            arrow
                         >
-                            Save set
-                        </Button>
+                            <Button
+                                variant="outlined"
+                                onClick={saveSet}
+                                endIcon={<SaveIcon />}
+                                size="small"
+                            >
+                                Save set
+                            </Button>
+                        </Tooltip>
                         {savedIndicator && (
                             <Typography
                                 variant="body2"
@@ -798,23 +881,30 @@ export const SettingsView = (props: SettingsViewProps) => {
                                 ✓ Set saved!
                             </Typography>
                         )}
-                        <Button
-                            variant="outlined"
-                            onClick={() =>
-                                downloadWordSet(
-                                    langSetName || "word-set",
-                                    language1Words.split("\n"),
-                                    language2Words.split("\n"),
-                                    lang1Name,
-                                    lang2Name,
-                                )
-                            }
-                            endIcon={<DownloadIcon />}
-                            size="small"
-                            disabled={!languageSetIsValid}
+                        <Tooltip
+                            title="Download this word set as a JSON file you can share or import later"
+                            arrow
                         >
-                            Download
-                        </Button>
+                            <span>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() =>
+                                        downloadWordSet(
+                                            langSetName || "word-set",
+                                            language1Words.split("\n"),
+                                            language2Words.split("\n"),
+                                            lang1Name,
+                                            lang2Name,
+                                        )
+                                    }
+                                    endIcon={<DownloadIcon />}
+                                    size="small"
+                                    disabled={!languageSetIsValid}
+                                >
+                                    Download
+                                </Button>
+                            </span>
+                        </Tooltip>
                     </Grid>
                 </Grid>
             </Card>

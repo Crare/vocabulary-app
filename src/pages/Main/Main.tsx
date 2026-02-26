@@ -103,7 +103,13 @@ const Main = () => {
 
     return (
         <Grid container className="container" justifyContent={"center"}>
+            <a href="#main-content" className="skip-to-content">
+                Skip to content
+            </a>
             <Grid
+                id="main-content"
+                component="main"
+                role="main"
                 p={2}
                 flexDirection={"row"}
                 size={{ xs: 12, md: 8 }}

@@ -1,4 +1,4 @@
-import { Box, Button, Card, Typography } from "@mui/material";
+import { Box, Button, Card, Tooltip, Typography } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
@@ -43,14 +43,19 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
                 }}
             >
                 {!hasInteracted && (
-                    <Button
-                        variant="outlined"
-                        onClick={onBackToStart}
-                        startIcon={<ArrowBackIcon />}
-                        size="small"
+                    <Tooltip
+                        title="Return to word list setup without finishing the test"
+                        arrow
                     >
-                        Back to start
-                    </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={onBackToStart}
+                            startIcon={<ArrowBackIcon />}
+                            size="small"
+                        >
+                            Back to start
+                        </Button>
+                    </Tooltip>
                 )}
                 {correctAnswerValue ? (
                     <Typography variant="body2" color="text.secondary">
@@ -64,16 +69,23 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
                         </Typography>
                     </Typography>
                 ) : (
-                    <Button
-                        color="error"
-                        variant="outlined"
-                        onClick={onCheckCorrectAnswer}
-                        disabled={testState !== undefined}
-                        startIcon={<VisibilityIcon />}
-                        size="small"
+                    <Tooltip
+                        title="Show the correct answer (counts as a mistake)"
+                        arrow
                     >
-                        Reveal answer
-                    </Button>
+                        <span>
+                            <Button
+                                color="error"
+                                variant="outlined"
+                                onClick={onCheckCorrectAnswer}
+                                disabled={testState !== undefined}
+                                startIcon={<VisibilityIcon />}
+                                size="small"
+                            >
+                                Reveal answer
+                            </Button>
+                        </span>
+                    </Tooltip>
                 )}
                 {testState === TestState.CheckedAnswer && (
                     <Button
@@ -96,24 +108,30 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
                         </Button>
                     )}
 
-                <Button
-                    variant="outlined"
-                    onClick={onSkip}
-                    disabled={testState !== undefined}
-                    startIcon={<SkipNextIcon />}
-                    size="small"
-                >
-                    Skip
-                </Button>
-                <Button
-                    color="success"
-                    variant="contained"
-                    onClick={onEndTesting}
-                    startIcon={<DoneAllIcon />}
-                    size="small"
-                >
-                    End test
-                </Button>
+                <Tooltip title="Skip this word (it will come back later)" arrow>
+                    <span>
+                        <Button
+                            variant="outlined"
+                            onClick={onSkip}
+                            disabled={testState !== undefined}
+                            startIcon={<SkipNextIcon />}
+                            size="small"
+                        >
+                            Skip
+                        </Button>
+                    </span>
+                </Tooltip>
+                <Tooltip title="Finish the test now and see your results" arrow>
+                    <Button
+                        color="success"
+                        variant="contained"
+                        onClick={onEndTesting}
+                        startIcon={<DoneAllIcon />}
+                        size="small"
+                    >
+                        End test
+                    </Button>
+                </Tooltip>
             </Box>
         </Card>
     );

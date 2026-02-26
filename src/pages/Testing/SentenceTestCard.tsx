@@ -272,6 +272,7 @@ export const SentenceTestCard = ({
                     size="small"
                     fullWidth
                     autoFocus
+                    aria-label="Type the missing word from the sentence"
                     sx={{
                         "& .MuiOutlinedInput-root": { borderRadius: 2.5 },
                     }}
@@ -293,6 +294,8 @@ export const SentenceTestCard = ({
                     variant="body2"
                     color="success.main"
                     fontWeight={600}
+                    role="status"
+                    aria-live="assertive"
                     sx={{ textAlign: "center", mt: 2 }}
                 >
                     ✓ Correct! The word was: {blankData.missingWord}
@@ -303,6 +306,8 @@ export const SentenceTestCard = ({
                     variant="body2"
                     color="error.main"
                     fontWeight={600}
+                    role="status"
+                    aria-live="assertive"
                     sx={{ textAlign: "center", mt: 2 }}
                 >
                     ✗ Incorrect! Correct answer: {blankData.missingWord}

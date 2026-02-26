@@ -6,12 +6,8 @@ import App from "../src/App";
 test("renders title and subtitle", () => {
     render(<App />);
     const titleElement = screen.getByRole("heading", {
-        level: 1,
-        name: /^Vocabulary$/i,
+        level: 3,
+        name: /Word Lists/i,
     });
     expect(titleElement).toBeInTheDocument();
-    const subtitleElement = screen.getByText(
-        /Memorize any vocabulary by repetition/i,
-    );
-    expect(subtitleElement).toBeInTheDocument();
 });

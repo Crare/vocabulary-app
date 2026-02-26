@@ -58,6 +58,10 @@ export const TestingStatsCard = (props: TestingStatsCardProps) => {
                 <LinearProgress
                     variant="determinate"
                     value={progress}
+                    aria-label={`Test progress: ${Math.round(progress)}%`}
+                    aria-valuenow={Math.round(progress)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
                     sx={{
                         height: 20,
                         borderRadius: 4,

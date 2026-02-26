@@ -3,6 +3,7 @@ import {
     Button,
     Card,
     Grid,
+    Tooltip,
     Typography,
     Accordion,
     AccordionSummary,
@@ -111,26 +112,35 @@ export const ResultsView = (props: ResultsViewProps) => {
                     flexWrap: "wrap",
                 }}
             >
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    disabled={selectedWords.length <= 1}
-                    onClick={() => onRetestWords(selectedWords)}
-                    startIcon={<RefreshIcon />}
-                    size="large"
-                    sx={{ px: 5, py: 1.5 }}
+                <Tooltip
+                    title="Re-test only the words you selected in the table above"
+                    arrow
                 >
-                    Test selected ({selectedWords.length})
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={onBackToStart}
-                    startIcon={<ReplayIcon />}
-                    size="large"
-                    sx={{ px: 5, py: 1.5 }}
-                >
-                    Back to start
-                </Button>
+                    <span>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            disabled={selectedWords.length <= 1}
+                            onClick={() => onRetestWords(selectedWords)}
+                            startIcon={<RefreshIcon />}
+                            size="large"
+                            sx={{ px: 5, py: 1.5 }}
+                        >
+                            Test selected ({selectedWords.length})
+                        </Button>
+                    </span>
+                </Tooltip>
+                <Tooltip title="Return to the word list setup screen" arrow>
+                    <Button
+                        variant="contained"
+                        onClick={onBackToStart}
+                        startIcon={<ReplayIcon />}
+                        size="large"
+                        sx={{ px: 5, py: 1.5 }}
+                    >
+                        Back to start
+                    </Button>
+                </Tooltip>
             </Box>
         </Grid>
     );

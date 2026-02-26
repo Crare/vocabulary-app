@@ -74,6 +74,7 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
                     size="small"
                     fullWidth
                     autoFocus
+                    aria-label="Type your translation answer"
                     sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
                 />
                 <Button
@@ -91,6 +92,8 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
                 testState === TestState.Failed) && (
                 <Typography
                     variant="body2"
+                    role="status"
+                    aria-live="assertive"
                     sx={{
                         textAlign: "center",
                         mt: 2,

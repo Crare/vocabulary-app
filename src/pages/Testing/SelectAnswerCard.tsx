@@ -110,6 +110,8 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
                 testState === TestState.Failed) && (
                 <Typography
                     variant="body2"
+                    role="status"
+                    aria-live="assertive"
                     sx={{
                         textAlign: "center",
                         mt: 2,

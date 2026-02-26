@@ -5,6 +5,7 @@ import {
     FormGroup,
     Grid,
     Slider,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -146,14 +147,21 @@ export const TestConfigView = () => {
                     justifyContent={"space-evenly"}
                 >
                     <Grid size={{ xs: 12, md: 5 }}>
-                        <Typography variant="h5">
-                            Amount of times needed word needs to be get correct:{" "}
-                            {wordNeedsToGetCorrectTimes}
-                        </Typography>
+                        <Tooltip
+                            title="Each word must be answered correctly this many times before it is removed from the pool"
+                            arrow
+                            placement="top"
+                        >
+                            <Typography variant="h5">
+                                Amount of times needed word needs to be get
+                                correct: {wordNeedsToGetCorrectTimes}
+                            </Typography>
+                        </Tooltip>
                         <Slider
                             min={1}
                             max={10}
                             value={wordNeedsToGetCorrectTimes}
+                            aria-label="Times word needs to be answered correctly"
                             onChange={(
                                 _e: Event,
                                 newValue: number | number[],
@@ -163,14 +171,21 @@ export const TestConfigView = () => {
                                 )
                             }
                         />
-                        <Typography variant="h5">
-                            Amount of choices shown in multi-select test:{" "}
-                            {multiSelectChoicesAmount}
-                        </Typography>
+                        <Tooltip
+                            title="Number of answer options shown during multi-select tests"
+                            arrow
+                            placement="top"
+                        >
+                            <Typography variant="h5">
+                                Amount of choices shown in multi-select test:{" "}
+                                {multiSelectChoicesAmount}
+                            </Typography>
+                        </Tooltip>
                         <Slider
                             min={2}
                             max={10}
                             value={multiSelectChoicesAmount}
+                            aria-label="Number of multi-select choices"
                             onChange={(
                                 _e: Event,
                                 newValue: number | number[],
@@ -179,16 +194,23 @@ export const TestConfigView = () => {
                             }
                         />
 
-                        <Typography variant="h5">
-                            Time to see the answer:{" "}
-                            {answerDelayMs === -1
-                                ? "Press button"
-                                : `${(answerDelayMs / 1000).toFixed(1)}s`}
-                        </Typography>
+                        <Tooltip
+                            title="How long the correct/incorrect result is displayed before the next word appears. 'Manual' requires pressing Continue."
+                            arrow
+                            placement="top"
+                        >
+                            <Typography variant="h5">
+                                Time to see the answer:{" "}
+                                {answerDelayMs === -1
+                                    ? "Press button"
+                                    : `${(answerDelayMs / 1000).toFixed(1)}s`}
+                            </Typography>
+                        </Tooltip>
                         <Slider
                             min={-1}
                             max={5000}
                             step={null}
+                            aria-label="Time to see the answer"
                             marks={[
                                 {
                                     value: -1,
@@ -212,36 +234,46 @@ export const TestConfigView = () => {
                     <Grid size={{ xs: 12, md: 5 }} gap={2}>
                         <Grid mb={2}>
                             <FormGroup>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={
-                                                onlySecondLanguageWordsTested
-                                            }
-                                            onChange={(e) =>
-                                                setOnlySecondLanguageWordsTested(
-                                                    e.target.checked,
-                                                )
-                                            }
-                                        />
-                                    }
-                                    label="Only second language words tested."
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={
-                                                everySecondTestIsMultiOrWriting
-                                            }
-                                            onChange={(e) =>
-                                                setEverySecondTestIsMultiOrWriting(
-                                                    e.target.checked,
-                                                )
-                                            }
-                                        />
-                                    }
-                                    label="Every second test contains writing and then multi-select test."
-                                />
+                                <Tooltip
+                                    title="When enabled, you will only be asked to translate from language 1 to language 2 (never the reverse)"
+                                    arrow
+                                >
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    onlySecondLanguageWordsTested
+                                                }
+                                                onChange={(e) =>
+                                                    setOnlySecondLanguageWordsTested(
+                                                        e.target.checked,
+                                                    )
+                                                }
+                                            />
+                                        }
+                                        label="Only second language words tested."
+                                    />
+                                </Tooltip>
+                                <Tooltip
+                                    title="Alternate strictly between writing and multi-select questions"
+                                    arrow
+                                >
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    everySecondTestIsMultiOrWriting
+                                                }
+                                                onChange={(e) =>
+                                                    setEverySecondTestIsMultiOrWriting(
+                                                        e.target.checked,
+                                                    )
+                                                }
+                                            />
+                                        }
+                                        label="Every second test contains writing and then multi-select test."
+                                    />
+                                </Tooltip>
                             </FormGroup>
                         </Grid>
 
@@ -261,54 +293,78 @@ export const TestConfigView = () => {
                                         Please select at least one testing type.
                                     </Typography>
                                 )}
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={writingEnabled}
-                                        onChange={(e) =>
-                                            setWritingEnabled(e.target.checked)
-                                        }
-                                    />
-                                }
-                                label="Writing test"
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={multiSelectEnabled}
-                                        onChange={(e) =>
-                                            setMultiSelectEnabled(
-                                                e.target.checked,
-                                            )
-                                        }
-                                    />
-                                }
-                                label="Multi-select test"
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={dragDropEnabled}
-                                        onChange={(e) =>
-                                            setDragDropEnabled(e.target.checked)
-                                        }
-                                    />
-                                }
-                                label="Drag and drop matching test"
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={sentenceFillBlankEnabled}
-                                        onChange={(e) =>
-                                            setSentenceFillBlankEnabled(
-                                                e.target.checked,
-                                            )
-                                        }
-                                    />
-                                }
-                                label="Sentence fill-in-the-blank test"
-                            />
+                            <Tooltip
+                                title="Type the translation yourself — the hardest but most effective practice"
+                                arrow
+                            >
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={writingEnabled}
+                                            onChange={(e) =>
+                                                setWritingEnabled(
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                    }
+                                    label="Writing test"
+                                />
+                            </Tooltip>
+                            <Tooltip
+                                title="Choose the correct translation from several options"
+                                arrow
+                            >
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={multiSelectEnabled}
+                                            onChange={(e) =>
+                                                setMultiSelectEnabled(
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                    }
+                                    label="Multi-select test"
+                                />
+                            </Tooltip>
+                            <Tooltip
+                                title="Drag words to match them with their translations"
+                                arrow
+                            >
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={dragDropEnabled}
+                                            onChange={(e) =>
+                                                setDragDropEnabled(
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                    }
+                                    label="Drag and drop matching test"
+                                />
+                            </Tooltip>
+                            <Tooltip
+                                title="Fill in the missing word in a sentence (requires sentences in the word set)"
+                                arrow
+                            >
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={sentenceFillBlankEnabled}
+                                            onChange={(e) =>
+                                                setSentenceFillBlankEnabled(
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                    }
+                                    label="Sentence fill-in-the-blank test"
+                                />
+                            </Tooltip>
                             {sentenceFillBlankEnabled && (
                                 <FormControlLabel
                                     control={

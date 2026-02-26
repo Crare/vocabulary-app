@@ -52,6 +52,8 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
         <AppBar
             position="static"
             elevation={0}
+            component="nav"
+            aria-label="Main navigation"
             sx={{
                 background:
                     mode === "dark" ? gradients.brandDark : gradients.brand,

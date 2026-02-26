@@ -117,6 +117,7 @@ export const HistoryView = () => {
                         onChange={(e) => setSearch(e.target.value)}
                         fullWidth
                         sx={{ mb: 2 }}
+                        aria-label="Search test history by set name"
                         slotProps={{
                             input: {
                                 startAdornment: (

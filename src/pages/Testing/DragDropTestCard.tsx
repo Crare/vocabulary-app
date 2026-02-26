@@ -213,6 +213,18 @@ export const DragDropTestCard = ({
                             onDragOver={handleDragOver}
                             onDrop={() => handleDrop(i)}
                             onClick={() => handleClick(i)}
+                            role="button"
+                            tabIndex={checked ? -1 : 0}
+                            aria-label={`Answer option: ${answers[i]}. ${selectedIndex === i ? "Selected. Click another to swap." : "Click to select for swapping."}`}
+                            onKeyDown={(e: React.KeyboardEvent) => {
+                                if (
+                                    !checked &&
+                                    (e.key === "Enter" || e.key === " ")
+                                ) {
+                                    e.preventDefault();
+                                    handleClick(i);
+                                }
+                            }}
                             sx={{
                                 flex: 1,
                                 p: 1.5,
@@ -293,6 +305,8 @@ export const DragDropTestCard = ({
                     <Typography
                         variant="body1"
                         fontWeight={600}
+                        role="status"
+                        aria-live="assertive"
                         color={allCorrect ? "success.main" : "error.main"}
                     >
                         {allCorrect
