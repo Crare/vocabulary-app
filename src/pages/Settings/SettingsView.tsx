@@ -60,31 +60,71 @@ interface SettingsViewProps {
 
 const storage_keys = {
     LANGUAGE_SETS: "LANGUAGE_SETS",
+    SETTINGS: "SETTINGS",
+};
+
+interface PersistedSettings {
+    wordNeedsToGetCorrectTimes: number;
+    multiSelectChoicesAmount: number;
+    onlySecondLanguageWordsTested: boolean;
+    everySecondTestIsMultiOrWriting: boolean;
+    language1Words: string;
+    language2Words: string;
+    lang1Name: string;
+    lang2Name: string;
+    langSetName: string;
+    testType: "both" | "multi-select" | "writing";
+}
+
+const loadPersistedSettings = (): Partial<PersistedSettings> => {
+    try {
+        const raw = localStorage.getItem(storage_keys.SETTINGS);
+        return raw ? (JSON.parse(raw) as Partial<PersistedSettings>) : {};
+    } catch {
+        return {};
+    }
 };
 
 export const SettingsView = (props: SettingsViewProps) => {
     const { onStartTest } = props;
 
     const [wordNeedsToGetCorrectTimes, setWordNeedsToGetCorrectTimes] =
-        useState<number>(3);
+        useState<number>(
+            () => loadPersistedSettings().wordNeedsToGetCorrectTimes ?? 3,
+        );
     const [multiSelectChoicesAmount, setMultiSelectChoicesAmount] =
-        useState<number>(4);
+        useState<number>(
+            () => loadPersistedSettings().multiSelectChoicesAmount ?? 4,
+        );
 
     const [onlySecondLanguageWordsTested, setOnlySecondLanguageWordsTested] =
-        useState<boolean>(false);
+        useState<boolean>(
+            () =>
+                loadPersistedSettings().onlySecondLanguageWordsTested ?? false,
+        );
     const [
         everySecondTestIsMultiOrWriting,
         setEverySecondTestIsMultiOrWriting,
-    ] = useState<boolean>(false);
+    ] = useState<boolean>(
+        () => loadPersistedSettings().everySecondTestIsMultiOrWriting ?? false,
+    );
 
-    const [language1Words, setLanguage1Words] = useState<string>("");
-    const [language2Words, setLanguage2Words] = useState<string>("");
-    const [lang1Name, setLang1Name] = useState<string>("");
-    const [lang2Name, setLang2Name] = useState<string>("");
+    const [language1Words, setLanguage1Words] = useState<string>(
+        () => loadPersistedSettings().language1Words ?? "",
+    );
+    const [language2Words, setLanguage2Words] = useState<string>(
+        () => loadPersistedSettings().language2Words ?? "",
+    );
+    const [lang1Name, setLang1Name] = useState<string>(
+        () => loadPersistedSettings().lang1Name ?? "",
+    );
+    const [lang2Name, setLang2Name] = useState<string>(
+        () => loadPersistedSettings().lang2Name ?? "",
+    );
 
     const [testType, setTestType] = useState<
         "both" | "multi-select" | "writing"
-    >("both");
+    >(() => loadPersistedSettings().testType ?? "both");
 
     const clear = () => {
         setLanguage1Words("");
@@ -184,8 +224,9 @@ export const SettingsView = (props: SettingsViewProps) => {
         e.target.value = "";
     };
 
-    // const [langSetCount, setLangSetCount] = useState<number>(0);
-    const [langSetName, setLangSetName] = useState<string>("");
+    const [langSetName, setLangSetName] = useState<string>(
+        () => loadPersistedSettings().langSetName ?? "",
+    );
     const saveSet = () => {
         const languageSet: LanguageSet = {
             name: langSetName.length > 0 ? langSetName : "unnamed language set",
@@ -282,6 +323,33 @@ export const SettingsView = (props: SettingsViewProps) => {
         checkLanguageSetIsValid();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [language1Words, language2Words]);
+
+    useEffect(() => {
+        const persisted: PersistedSettings = {
+            wordNeedsToGetCorrectTimes,
+            multiSelectChoicesAmount,
+            onlySecondLanguageWordsTested,
+            everySecondTestIsMultiOrWriting,
+            language1Words,
+            language2Words,
+            lang1Name,
+            lang2Name,
+            langSetName,
+            testType,
+        };
+        localStorage.setItem(storage_keys.SETTINGS, JSON.stringify(persisted));
+    }, [
+        wordNeedsToGetCorrectTimes,
+        multiSelectChoicesAmount,
+        onlySecondLanguageWordsTested,
+        everySecondTestIsMultiOrWriting,
+        language1Words,
+        language2Words,
+        lang1Name,
+        lang2Name,
+        langSetName,
+        testType,
+    ]);
 
     return (
         <Grid container className="content" gap={2} flexDirection={"column"}>

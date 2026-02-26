@@ -37,6 +37,16 @@ export interface TestResults {
     score: number;
 }
 
+export interface HistoryEntry {
+    id: string;
+    date: string; // ISO string
+    languageSetName: string;
+    timeTaken: string;
+    score: number;
+    wordCount: number;
+    wordResults: TestWord[];
+}
+
 export enum TestState {
     Success,
     Failed,

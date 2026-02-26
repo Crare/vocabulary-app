@@ -1,58 +1,77 @@
-import { Box, Typography } from "@mui/material";
+import { AppBar, Box, Tab, Tabs, Toolbar, Typography } from "@mui/material";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import HistoryIcon from "@mui/icons-material/History";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 
-export const Header = () => {
+export type NavView = "settings" | "history";
+
+interface HeaderProps {
+    activeTab: NavView | null;
+    onNavigate: (view: NavView) => void;
+}
+
+export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
     return (
-        <Box
+        <AppBar
+            position="static"
+            elevation={0}
             sx={{
-                background:
-                    "linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%)",
-                borderRadius: 4,
-                py: 5,
-                px: 3,
+                background: "linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%)",
+                borderRadius: 3,
                 mb: 3,
-                textAlign: "center",
-                position: "relative",
-                overflow: "hidden",
-                "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background:
-                        "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.15) 0%, transparent 50%)",
-                },
             }}
         >
-            <AutoStoriesIcon
-                sx={{
-                    fontSize: 48,
-                    color: "rgba(255,255,255,0.9)",
-                    mb: 1,
-                }}
-            />
-            <Typography
-                variant="h1"
-                sx={{
-                    color: "#fff",
-                    textShadow: "0 2px 12px rgba(0,0,0,0.15)",
-                    position: "relative",
-                }}
-            >
-                Vocabulary
-            </Typography>
-            <Typography
-                variant="h4"
-                sx={{
-                    color: "rgba(255,255,255,0.8)",
-                    mt: 1,
-                    position: "relative",
-                }}
-            >
-                Memorize any vocabulary by repetition
-            </Typography>
-        </Box>
+            <Toolbar sx={{ gap: 1 }}>
+                <AutoStoriesIcon
+                    sx={{ color: "rgba(255,255,255,0.9)", mr: 1 }}
+                />
+                <Typography
+                    variant="h5"
+                    fontWeight={700}
+                    sx={{ color: "#fff", flexGrow: 1, letterSpacing: 0.5 }}
+                >
+                    Vocabulary
+                </Typography>
+                <Box>
+                    <Tabs
+                        value={activeTab ?? false}
+                        onChange={(_e, val: NavView) => onNavigate(val)}
+                        textColor="inherit"
+                        TabIndicatorProps={{
+                            style: {
+                                background: "#fff",
+                                height: 3,
+                                borderRadius: 2,
+                            },
+                        }}
+                    >
+                        <Tab
+                            value="settings"
+                            label="Word Lists"
+                            icon={<MenuBookIcon />}
+                            iconPosition="start"
+                            sx={{
+                                color: "rgba(255,255,255,0.75)",
+                                "&.Mui-selected": { color: "#fff" },
+                                minHeight: 48,
+                                fontSize: "0.8rem",
+                            }}
+                        />
+                        <Tab
+                            value="history"
+                            label="History"
+                            icon={<HistoryIcon />}
+                            iconPosition="start"
+                            sx={{
+                                color: "rgba(255,255,255,0.75)",
+                                "&.Mui-selected": { color: "#fff" },
+                                minHeight: 48,
+                                fontSize: "0.8rem",
+                            }}
+                        />
+                    </Tabs>
+                </Box>
+            </Toolbar>
+        </AppBar>
     );
 };

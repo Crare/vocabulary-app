@@ -1,17 +1,19 @@
 import "./Main.css";
 import { Grid } from "@mui/material";
-import { Header } from "./Header";
+import { Header, NavView } from "./Header";
 
 import { SettingsView } from "../Settings/SettingsView";
 import { useState } from "react";
 import { TestingView } from "../Testing/TestingView";
 import { ResultsView } from "../Results/ResultsView";
+import { HistoryView } from "../History/HistoryView";
 import { TestResults, TestSettings, TestWord } from "../Testing/types";
+import { saveTestResult } from "../../util/historyStorage";
 
 const Main = () => {
-    const [view, setView] = useState<"settings" | "testing" | "results">(
-        "settings",
-    );
+    const [view, setView] = useState<
+        "settings" | "testing" | "results" | "history"
+    >("settings");
     const [settings, setSettings] = useState<TestSettings | undefined>(
         undefined,
     );
@@ -23,6 +25,7 @@ const Main = () => {
     };
 
     const endTesting = (testResults: TestResults) => {
+        if (settings) saveTestResult(testResults, settings);
         setResults(testResults);
         setView("results");
     };
@@ -46,6 +49,14 @@ const Main = () => {
         startTest(newSettings);
     };
 
+    const activeTab: NavView | null =
+        view === "settings" || view === "history" ? view : null;
+
+    const onNavigate = (target: NavView) => {
+        setView(target);
+        setResults(undefined);
+    };
+
     return (
         <Grid container className="container" justifyContent={"center"}>
             <Grid
@@ -55,7 +66,7 @@ const Main = () => {
                 justifyContent={"center"}
                 height={"100%"}
             >
-                <Header />
+                <Header activeTab={activeTab} onNavigate={onNavigate} />
 
                 {view === "settings" ? (
                     <SettingsView onStartTest={startTest} />
@@ -73,6 +84,7 @@ const Main = () => {
                         onRetestWords={retestWords}
                     />
                 ) : null}
+                {view === "history" ? <HistoryView /> : null}
             </Grid>
         </Grid>
     );
