@@ -36,7 +36,7 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
     const sendAnswer = () => (guessAnswer ? onSendAnswer(guessAnswer) : null);
 
     useEffect(() => {
-        if (testState === TestState.Success || testState === TestState.Failed) {
+        if (testState === TestState.Success || testState === TestState.Failed || testState === TestState.TypoMatch) {
             setGuessAnswer("");
         }
         if (testState === undefined) {
@@ -89,7 +89,8 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
             </Box>
 
             {(testState === TestState.Success ||
-                testState === TestState.Failed) && (
+                testState === TestState.Failed ||
+                testState === TestState.TypoMatch) && (
                 <Typography
                     variant="body2"
                     role="status"
@@ -101,12 +102,16 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
                         color:
                             testState === TestState.Success
                                 ? "success.main"
-                                : "error.main",
+                                : testState === TestState.TypoMatch
+                                  ? "warning.main"
+                                  : "error.main",
                     }}
                 >
                     {testState === TestState.Success
                         ? "\u2713 Correct!"
-                        : `\u2717 Incorrect! Correct answer: ${getExpectedAnswer(guessWord, guessDirection)}`}
+                        : testState === TestState.TypoMatch
+                          ? `\u2713 Almost! Correct spelling: ${getExpectedAnswer(guessWord, guessDirection)}`
+                          : `\u2717 Incorrect! Correct answer: ${getExpectedAnswer(guessWord, guessDirection)}`}
                 </Typography>
             )}
         </Card>

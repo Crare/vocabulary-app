@@ -21,6 +21,7 @@ import {
     chooseGuessDirection,
     getExpectedAnswer,
     isAnswerCorrect,
+    checkAnswer,
 } from "./testLogic";
 import { createLogger } from "../../util/logger";
 import { useSound } from "../../SoundContext";
@@ -238,7 +239,7 @@ export const TestingView = (props: TestingViewProps) => {
 
     // Auto-advance after answer feedback delay
     useEffect(() => {
-        if (testState === TestState.Success || testState === TestState.Failed) {
+        if (testState === TestState.Success || testState === TestState.Failed || testState === TestState.TypoMatch) {
             // -1 means manual mode — user must press Continue
             if (settings.answerDelayMs === -1) return;
             const timer = setTimeout(advanceToNext, settings.answerDelayMs);
@@ -258,12 +259,12 @@ export const TestingView = (props: TestingViewProps) => {
         isAnsweringRef.current = true;
         setHasInteracted(true);
 
-        const correct = isAnswerCorrect(guess, guessWord, guessDirection);
+        const result = checkAnswer(guess, guessWord, guessDirection, settings.allowTypos);
         log.debug("answer_submitted", {
             word: guessWord.lang1Word,
             guess,
             expected: getExpectedAnswer(guessWord, guessDirection),
-            correct,
+            result,
             direction: guessDirection,
         });
 
@@ -271,9 +272,13 @@ export const TestingView = (props: TestingViewProps) => {
         guessWord.totalAnswerTimeMs += elapsed;
         guessWord.answerAttempts += 1;
 
-        if (correct) {
+        if (result === "correct") {
             guessWord.timesCorrect += 1;
             setTestState(TestState.Success);
+            onCorrect();
+        } else if (result === "typo") {
+            guessWord.timesCorrect += 1;
+            setTestState(TestState.TypoMatch);
             onCorrect();
         } else {
             guessWord.timesFailed += 1;
@@ -288,6 +293,7 @@ export const TestingView = (props: TestingViewProps) => {
         correct: boolean,
         testedWord: string,
         sentence: string,
+        typo?: boolean,
     ) => {
         if (isAnsweringRef.current || !guessWord || testState !== undefined) {
             return;
@@ -305,7 +311,11 @@ export const TestingView = (props: TestingViewProps) => {
         }
         guessWord.sentenceResults.push({ testedWord, correct, sentence });
 
-        if (correct) {
+        if (correct && typo) {
+            guessWord.timesCorrect += 1;
+            setTestState(TestState.TypoMatch);
+            onCorrect();
+        } else if (correct) {
             guessWord.timesCorrect += 1;
             setTestState(TestState.Success);
             onCorrect();
@@ -438,6 +448,7 @@ export const TestingView = (props: TestingViewProps) => {
                             guessDirection={guessDirection}
                             targetLanguageName={targetLangName}
                             testAllWords={settings.sentenceTestAllWords}
+                            allowTypos={settings.allowTypos}
                             alreadyTestedWords={
                                 guessWord.sentenceResults?.map(
                                     (r) => r.testedWord,

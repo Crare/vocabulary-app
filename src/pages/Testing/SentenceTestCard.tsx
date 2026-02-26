@@ -4,7 +4,7 @@ import SendIcon from "@mui/icons-material/Send";
 import ShortTextIcon from "@mui/icons-material/ShortText";
 import { TestState, TestWord } from "./types";
 import { GuessDirection } from "./testLogic";
-import { randomIntFromInterval } from "../../util/helpers";
+import { randomIntFromInterval, stringSimilarity } from "../../util/helpers";
 import { colors, alpha } from "../../colors";
 
 interface SentenceTestCardProps {
@@ -20,9 +20,12 @@ interface SentenceTestCardProps {
         correct: boolean,
         testedWord: string,
         sentence: string,
+        typo?: boolean,
     ) => void;
     /** Called when the blank word is selected, so parent can use it for "Reveal answer" */
     onBlankWordSelected?: (word: string) => void;
+    /** When true, close-but-not-exact answers count as correct (but show a typo warning) */
+    allowTypos?: boolean;
 }
 
 /**
@@ -91,6 +94,7 @@ export const SentenceTestCard = ({
     testAllWords,
     onSendAnswer,
     onBlankWordSelected,
+    allowTypos,
 }: SentenceTestCardProps) => {
     const [guess, setGuess] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
@@ -145,7 +149,7 @@ export const SentenceTestCard = ({
     ]);
 
     useEffect(() => {
-        if (testState === TestState.Success || testState === TestState.Failed) {
+        if (testState === TestState.Success || testState === TestState.Failed || testState === TestState.TypoMatch) {
             setGuess("");
         }
         if (testState === undefined) {
@@ -156,19 +160,37 @@ export const SentenceTestCard = ({
 
     const handleKeyUp = (e: React.KeyboardEvent) => {
         if (e.code === "Enter" && guess && blankData && targetSentence) {
-            const correct =
-                guess.trim().toLowerCase() ===
-                blankData.missingWord.toLowerCase();
-            onSendAnswer(correct, blankData.missingWord, targetSentence);
+            const guessNorm = guess.trim().toLowerCase();
+            const expectedNorm = blankData.missingWord.toLowerCase();
+            const exact = guessNorm === expectedNorm;
+            const isTypo =
+                !exact &&
+                allowTypos === true &&
+                stringSimilarity(guessNorm, expectedNorm) >= 0.8;
+            onSendAnswer(
+                exact || isTypo,
+                blankData.missingWord,
+                targetSentence,
+                isTypo,
+            );
         }
     };
 
     const handleSend = () => {
         if (guess && blankData && targetSentence) {
-            const correct =
-                guess.trim().toLowerCase() ===
-                blankData.missingWord.toLowerCase();
-            onSendAnswer(correct, blankData.missingWord, targetSentence);
+            const guessNorm = guess.trim().toLowerCase();
+            const expectedNorm = blankData.missingWord.toLowerCase();
+            const exact = guessNorm === expectedNorm;
+            const isTypo =
+                !exact &&
+                allowTypos === true &&
+                stringSimilarity(guessNorm, expectedNorm) >= 0.8;
+            onSendAnswer(
+                exact || isTypo,
+                blankData.missingWord,
+                targetSentence,
+                isTypo,
+            );
         }
     };
 
@@ -299,6 +321,18 @@ export const SentenceTestCard = ({
                     sx={{ textAlign: "center", mt: 2 }}
                 >
                     ✓ Correct! The word was: {blankData.missingWord}
+                </Typography>
+            )}
+            {testState === TestState.TypoMatch && (
+                <Typography
+                    variant="body2"
+                    color="warning.main"
+                    fontWeight={600}
+                    role="status"
+                    aria-live="assertive"
+                    sx={{ textAlign: "center", mt: 2 }}
+                >
+                    ✓ Almost! Correct spelling: {blankData.missingWord}
                 </Typography>
             )}
             {testState === TestState.Failed && (

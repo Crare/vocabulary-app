@@ -7,6 +7,8 @@ export interface TestSettings {
     sentenceTestAllWords: boolean;
     /** Delay in ms before auto-advancing after an answer. -1 = manual (press button). */
     answerDelayMs: number;
+    /** When enabled, answers that are close (~80% similar) count as correct but show a typo warning. */
+    allowTypos: boolean;
     testType: {
         writing: boolean;
         multiSelect: boolean;
@@ -74,4 +76,5 @@ export enum TestState {
     Success,
     Failed,
     CheckedAnswer,
+    TypoMatch,
 }

@@ -22,6 +22,7 @@ interface PersistedSettings {
     everySecondTestIsMultiOrWriting: boolean;
     sentenceTestAllWords: boolean;
     answerDelayMs: number;
+    allowTypos: boolean;
     testType: {
         writing: boolean;
         multiSelect: boolean;
@@ -104,6 +105,9 @@ export const TestConfigView = () => {
     const [answerDelayMs, setAnswerDelayMs] = useState<number>(
         () => loadPersistedSettings().answerDelayMs ?? 1500,
     );
+    const [allowTypos, setAllowTypos] = useState<boolean>(
+        () => loadPersistedSettings().allowTypos ?? true,
+    );
 
     useEffect(() => {
         savePersistedSettings({
@@ -113,6 +117,7 @@ export const TestConfigView = () => {
             everySecondTestIsMultiOrWriting,
             sentenceTestAllWords,
             answerDelayMs,
+            allowTypos,
             testType: {
                 writing: writingEnabled,
                 multiSelect: multiSelectEnabled,
@@ -127,6 +132,7 @@ export const TestConfigView = () => {
         everySecondTestIsMultiOrWriting,
         sentenceTestAllWords,
         answerDelayMs,
+        allowTypos,
         writingEnabled,
         multiSelectEnabled,
         dragDropEnabled,
@@ -272,6 +278,24 @@ export const TestConfigView = () => {
                                             />
                                         }
                                         label="Every second test contains writing and then multi-select test."
+                                    />
+                                </Tooltip>
+                                <Tooltip
+                                    title="When enabled, answers that are close but not exact (e.g. small typos, swapped or missing characters) still count as correct — but the correct spelling is shown"
+                                    arrow
+                                >
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={allowTypos}
+                                                onChange={(e) =>
+                                                    setAllowTypos(
+                                                        e.target.checked,
+                                                    )
+                                                }
+                                            />
+                                        }
+                                        label="Allow small typos in writing test"
                                     />
                                 </Tooltip>
                             </FormGroup>

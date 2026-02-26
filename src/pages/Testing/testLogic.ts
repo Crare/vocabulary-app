@@ -1,5 +1,5 @@
 import { TestOption, TestSettings, TestWord } from "./types";
-import { randomIntFromInterval } from "../../util/helpers";
+import { randomIntFromInterval, stringSimilarity } from "../../util/helpers";
 
 /**
  * The direction of the question: which language is shown vs which is the answer.
@@ -87,6 +87,36 @@ export function isAnswerCorrect(
     direction: GuessDirection,
 ): boolean {
     return guess === getExpectedAnswer(word, direction);
+}
+
+export type AnswerResult = "correct" | "typo" | "wrong";
+
+/** Similarity threshold (0-1) for a guess to count as a typo match. */
+const TYPO_SIMILARITY_THRESHOLD = 0.8;
+
+/**
+ * Check the user's guess with optional typo tolerance.
+ * Returns "correct" for an exact match, "typo" for a close match
+ * (>= 80% similar, case-insensitive), or "wrong" otherwise.
+ */
+export function checkAnswer(
+    guess: string,
+    word: TestWord,
+    direction: GuessDirection,
+    allowTypos: boolean,
+): AnswerResult {
+    const expected = getExpectedAnswer(word, direction);
+    if (guess === expected) return "correct";
+    if (
+        allowTypos &&
+        stringSimilarity(
+            guess.toLowerCase().trim(),
+            expected.toLowerCase().trim(),
+        ) >= TYPO_SIMILARITY_THRESHOLD
+    ) {
+        return "typo";
+    }
+    return "wrong";
 }
 
 /**

@@ -79,6 +79,7 @@ interface PersistedSettings {
     everySecondTestIsMultiOrWriting: boolean;
     sentenceTestAllWords: boolean;
     answerDelayMs: number;
+    allowTypos: boolean;
     language1Words: string;
     language2Words: string;
     lang1Name: string;
@@ -164,6 +165,7 @@ export const SettingsView = (props: SettingsViewProps) => {
                 persisted.everySecondTestIsMultiOrWriting ?? false,
             sentenceTestAllWords: persisted.sentenceTestAllWords ?? true,
             answerDelayMs: persisted.answerDelayMs ?? 1500,
+            allowTypos: persisted.allowTypos ?? true,
             testType:
                 persisted.testType && typeof persisted.testType === "object"
                     ? {

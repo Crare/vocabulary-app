@@ -73,6 +73,10 @@ export const alpha = {
     error20: "rgba(239, 68, 68, 0.2)",
     error30: "rgba(239, 68, 68, 0.3)",
 
+    // Warning (amber 500 = rgb(245, 158, 11))
+    warning10: "rgba(245, 158, 11, 0.1)",
+    warning30: "rgba(245, 158, 11, 0.3)",
+
     // Black
     black03: "rgba(0, 0, 0, 0.03)",
     black04: "rgba(0, 0, 0, 0.04)",

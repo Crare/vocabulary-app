@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { shuffle, randomIntFromInterval } from "../src/util/helpers";
+import {
+    shuffle,
+    randomIntFromInterval,
+    levenshteinDistance,
+    stringSimilarity,
+} from "../src/util/helpers";
 
 describe("helpers", () => {
     afterEach(() => {
@@ -56,6 +61,61 @@ describe("helpers", () => {
         it("should handle a range starting at 0", () => {
             vi.spyOn(Math, "random").mockReturnValue(0);
             expect(randomIntFromInterval(0, 10)).toBe(0);
+        });
+    });
+
+    describe("levenshteinDistance", () => {
+        it("should return 0 for identical strings", () => {
+            expect(levenshteinDistance("hello", "hello")).toBe(0);
+        });
+
+        it("should return the length of the other string when one is empty", () => {
+            expect(levenshteinDistance("", "abc")).toBe(3);
+            expect(levenshteinDistance("abc", "")).toBe(3);
+        });
+
+        it("should return 1 for a single substitution", () => {
+            expect(levenshteinDistance("cat", "car")).toBe(1);
+        });
+
+        it("should return 1 for a single insertion", () => {
+            expect(levenshteinDistance("cat", "cats")).toBe(1);
+        });
+
+        it("should return 1 for a single deletion", () => {
+            expect(levenshteinDistance("cats", "cat")).toBe(1);
+        });
+
+        it("should return 2 for two adjacent swapped characters", () => {
+            expect(levenshteinDistance("ab", "ba")).toBe(2);
+        });
+
+        it("should handle completely different strings", () => {
+            expect(levenshteinDistance("abc", "xyz")).toBe(3);
+        });
+    });
+
+    describe("stringSimilarity", () => {
+        it("should return 1 for identical strings", () => {
+            expect(stringSimilarity("hello", "hello")).toBe(1);
+        });
+
+        it("should return 1 for two empty strings", () => {
+            expect(stringSimilarity("", "")).toBe(1);
+        });
+
+        it("should return 0 for completely different strings of equal length", () => {
+            expect(stringSimilarity("abc", "xyz")).toBeCloseTo(0, 5);
+        });
+
+        it("should return ~0.857 for 'hermosa' vs 'hermoza' (1 diff in 7 chars)", () => {
+            const sim = stringSimilarity("hermosa", "hermoza");
+            expect(sim).toBeCloseTo(6 / 7, 3);
+            expect(sim).toBeGreaterThanOrEqual(0.8);
+        });
+
+        it("should return 0.75 for 'hola' vs 'holo' (1 diff in 4 chars)", () => {
+            expect(stringSimilarity("hola", "holo")).toBe(0.75);
         });
     });
 });

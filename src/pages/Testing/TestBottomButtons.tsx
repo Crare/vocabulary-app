@@ -98,7 +98,8 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
                 )}
                 {manualAdvance &&
                     (testState === TestState.Success ||
-                        testState === TestState.Failed) && (
+                        testState === TestState.Failed ||
+                        testState === TestState.TypoMatch) && (
                         <Button
                             variant="contained"
                             onClick={onNext}

@@ -5,15 +5,20 @@ import {
     getDisplayWord,
     getExpectedAnswer,
     isAnswerCorrect,
+    checkAnswer,
     getAnswerOptionsForDirection,
     countWordsLeft,
 } from "../src/pages/Testing/testLogic";
 import { TestOption, TestSettings, TestWord } from "../src/pages/Testing/types";
 
-// Mock the randomIntFromInterval function
-vi.mock("../src/util/helpers", () => ({
-    randomIntFromInterval: vi.fn(),
-}));
+// Mock the randomIntFromInterval function but keep real implementations of other helpers
+vi.mock("../src/util/helpers", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("../src/util/helpers")>();
+    return {
+        ...actual,
+        randomIntFromInterval: vi.fn(),
+    };
+});
 
 import { randomIntFromInterval } from "../src/util/helpers";
 
@@ -30,6 +35,7 @@ describe("testLogic", () => {
         everySecondTestIsMultiOrWriting: false,
         sentenceTestAllWords: true,
         answerDelayMs: 1500,
+        allowTypos: true,
         testType: {
             writing: true,
             multiSelect: true,
@@ -233,6 +239,68 @@ describe("testLogic", () => {
         it("should return false when guess does not match expected answer for 'lang2to1'", () => {
             expect(isAnswerCorrect("world", mockWord, "lang2to1")).toBe(false);
             expect(isAnswerCorrect("hola", mockWord, "lang2to1")).toBe(false);
+        });
+    });
+
+    describe("checkAnswer", () => {
+        const longWord: TestWord = {
+            id: 2,
+            lang1Word: "beautiful",
+            lang2Word: "hermosa",
+            timesCorrect: 0,
+            timesFailed: 0,
+            timesSkipped: 0,
+            timesCheckedAnswer: 0,
+            totalAnswerTimeMs: 0,
+            answerAttempts: 0,
+        };
+
+        it("should return 'correct' for exact match", () => {
+            expect(checkAnswer("hola", mockWord, "lang1to2", true)).toBe("correct");
+            expect(checkAnswer("hola", mockWord, "lang1to2", false)).toBe("correct");
+        });
+
+        it("should return 'typo' for close match when allowTypos is true", () => {
+            // "hermosa" vs "hermoza" — 1 char different in 7 chars = ~86% similar
+            expect(checkAnswer("hermoza", longWord, "lang1to2", true)).toBe("typo");
+        });
+
+        it("should return 'wrong' for close match when allowTypos is false", () => {
+            expect(checkAnswer("hermoza", longWord, "lang1to2", false)).toBe("wrong");
+        });
+
+        it("should return 'wrong' for distant match even when allowTypos is true", () => {
+            expect(checkAnswer("xyz", longWord, "lang1to2", true)).toBe("wrong");
+        });
+
+        it("should be case-insensitive for typo matching", () => {
+            expect(checkAnswer("Hermoza", longWord, "lang1to2", true)).toBe("typo");
+            expect(checkAnswer("HERMOSA", longWord, "lang1to2", true)).toBe("typo");
+        });
+
+        it("should return 'wrong' for swapped characters in short word (below threshold)", () => {
+            // "hermosa" vs "hermoas" — 2 edits (swap) in 7 chars = ~71% similar, below 80%
+            expect(checkAnswer("hermoas", longWord, "lang1to2", true)).toBe("wrong");
+        });
+
+        it("should return 'typo' for swapped characters in longer word", () => {
+            // "beautiful" vs "beuatiful" — 2 edits in 9 chars = ~78%... still below
+            // "encyclopedia" (12 chars) with 2 edits = ~83%
+            const longWord2: TestWord = {
+                ...longWord,
+                lang2Word: "encyclopedia",
+            };
+            expect(checkAnswer("encyclopaedia", longWord2, "lang1to2", true)).toBe("typo");
+        });
+
+        it("should return 'typo' for missing character", () => {
+            // "hermosa" vs "hermsa" — 1 char missing in 7 chars = ~86% similar
+            expect(checkAnswer("hermsa", longWord, "lang1to2", true)).toBe("typo");
+        });
+
+        it("should return 'wrong' for very short words with any difference", () => {
+            // "hola" vs "holo" — 1 char different in 4 chars = 75% similar, below 80%
+            expect(checkAnswer("holo", mockWord, "lang1to2", true)).toBe("wrong");
         });
     });
 
