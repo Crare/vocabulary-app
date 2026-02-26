@@ -1,9 +1,12 @@
-import { Button, Card, Grid, Typography } from "@mui/material";
+import { Box, Button, Card, Chip, Grid, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { TestResults, TestWord } from "../Testing/types";
 import MoodIcon from "@mui/icons-material/Mood";
 import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
 import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
+import ReplayIcon from "@mui/icons-material/Replay";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 
 const calculateScore = (word: TestWord): string => {
     var score =
@@ -19,57 +22,64 @@ const calculatePercentage = (word: TestWord): number => {
         word.timesCheckedAnswer + word.timesFailed + word.timesSkipped;
     var rightTimes = word.timesCorrect;
     var total = wrongTimes + rightTimes;
-    return (rightTimes / total) * 100;
+    if (total === 0) return 0;
+    return Math.round((rightTimes / total) * 100);
 };
 
 const columns: GridColDef[] = [
-    { field: "lang1Word", headerName: "language 1", flex: 1 },
-    { field: "lang2Word", headerName: "language 2", flex: 1 },
-    { field: "timesCorrect", headerName: "correct", flex: 1 },
-    { field: "timesFailed", headerName: "wrong", flex: 1 },
+    { field: "lang1Word", headerName: "Language 1", flex: 1 },
+    { field: "lang2Word", headerName: "Language 2", flex: 1 },
+    { field: "timesCorrect", headerName: "Correct", flex: 0.7 },
+    { field: "timesFailed", headerName: "Wrong", flex: 0.7 },
     {
         field: "timesCheckedAnswer",
-        headerName: "checked answer",
-        flex: 1,
+        headerName: "Checked",
+        flex: 0.7,
     },
     {
         field: "timesSkipped",
-        headerName: "times skipped",
-        flex: 1,
+        headerName: "Skipped",
+        flex: 0.7,
     },
     {
         field: "score",
-        headerName: "score",
-        flex: 1,
+        headerName: "Score",
+        flex: 0.6,
         valueGetter: (_value, row) => calculateScore(row),
-        renderCell(params) {
-            return <Typography>{params.value}</Typography>;
-        },
     },
     {
         field: "percentage",
-        headerName: "percentage",
+        headerName: "Accuracy",
         flex: 1,
         valueGetter: (_value, row) => calculatePercentage(row),
         renderCell(params) {
+            const value = params.value as number;
             return (
-                <Grid
-                    container
-                    style={{
-                        justifyContent: "center",
+                <Box
+                    sx={{
+                        display: "flex",
                         alignItems: "center",
-                        gap: 10,
+                        gap: 1,
+                        height: "100%",
                     }}
                 >
-                    <Typography>{params.value}%</Typography>
-                    {params.value > 85 ? (
-                        <MoodIcon htmlColor="green" />
-                    ) : params.value > 60 ? (
-                        <SentimentSatisfiedIcon htmlColor="orange" />
+                    <Typography variant="body2" fontWeight={600}>
+                        {value}%
+                    </Typography>
+                    {value > 85 ? (
+                        <MoodIcon
+                            sx={{ color: "success.main", fontSize: 20 }}
+                        />
+                    ) : value > 60 ? (
+                        <SentimentSatisfiedIcon
+                            sx={{ color: "secondary.main", fontSize: 20 }}
+                        />
                     ) : (
-                        <SentimentVeryDissatisfiedIcon htmlColor="red" />
+                        <SentimentVeryDissatisfiedIcon
+                            sx={{ color: "error.main", fontSize: 20 }}
+                        />
                     )}
-                </Grid>
+                </Box>
             );
         },
     },
@@ -87,56 +97,62 @@ export const ResultsView = (props: ResultsViewProps) => {
 
     return (
         <Grid container className="content" gap={2} flexDirection={"column"}>
-            <Card style={{ padding: 20 }}>
-                <Typography variant="h3" m={2} textAlign={"center"}>
+            <Card sx={{ p: 3 }}>
+                <Typography variant="h3" mb={3} textAlign={"center"}>
                     Results
                 </Typography>
 
-                <Grid
-                    container
-                    flexDirection={"row"}
-                    gap={2}
-                    justifyContent={"space-evenly"}
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: 2,
+                        mb: 3,
+                        flexWrap: "wrap",
+                    }}
                 >
-                    <Grid size={12} ml={6}>
-                        <Typography>
-                            Started: {results.date.toLocaleDateString()}
-                        </Typography>
-                        <Typography>
-                            words: {results.wordResults.length}
-                        </Typography>
-                        <Typography>Time taken: {results.timeTaken}</Typography>
-                    </Grid>
-                    <Grid size={12} ml={6}>
-                        <DataGrid
-                            rows={results.wordResults}
-                            columns={columns}
-                            initialState={{ pagination: { paginationModel } }}
-                            pageSizeOptions={[5, 10]}
-                            checkboxSelection
-                            sx={{ border: 0 }}
-                        />
-                    </Grid>
-                </Grid>
+                    <Chip
+                        icon={<FormatListNumberedIcon />}
+                        label={`${results.wordResults.length} words`}
+                        variant="outlined"
+                    />
+                    <Chip
+                        icon={<AccessTimeIcon />}
+                        label={results.timeTaken}
+                        variant="outlined"
+                    />
+                </Box>
+
+                <DataGrid
+                    rows={results.wordResults}
+                    columns={columns}
+                    initialState={{ pagination: { paginationModel } }}
+                    pageSizeOptions={[5, 10, 20]}
+                    checkboxSelection
+                    sx={{
+                        border: "1px solid rgba(148, 163, 184, 0.15)",
+                        borderRadius: 3,
+                        "& .MuiDataGrid-columnHeaders": {
+                            bgcolor: "rgba(79, 70, 229, 0.04)",
+                        },
+                        "& .MuiDataGrid-cell": {
+                            borderColor: "rgba(148, 163, 184, 0.1)",
+                        },
+                    }}
+                />
             </Card>
 
-            <Card style={{ padding: 20 }}>
-                <Grid
-                    container
-                    flexDirection={"row"}
-                    gap={2}
-                    justifyContent={"space-evenly"}
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <Button
+                    variant="contained"
+                    onClick={onBackToStart}
+                    startIcon={<ReplayIcon />}
+                    size="large"
+                    sx={{ px: 5, py: 1.5 }}
                 >
-                    <Button
-                        color="success"
-                        variant="contained"
-                        style={{ marginRight: 10 }}
-                        onClick={onBackToStart}
-                    >
-                        Back to start
-                    </Button>
-                </Grid>
-            </Card>
+                    Back to start
+                </Button>
+            </Box>
         </Grid>
     );
 };

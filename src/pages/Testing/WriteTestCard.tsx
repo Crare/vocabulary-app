@@ -1,61 +1,69 @@
-import { Button, Card, Input } from "@mui/material";
+import { Box, Button, Card, TextField } from "@mui/material";
+import SendIcon from "@mui/icons-material/Send";
 import { GuessWordTitle } from "./GuessWordTitle";
 import { TestOption, TestState, TestWord } from "./types";
 import { useEffect, useState } from "react";
 
 interface WriteTestCardProps {
-  testState: TestState | undefined;
-  guessWord: TestWord;
-  testOption: TestOption;
-  onSendAnswer: (value: string) => void;
+    testState: TestState | undefined;
+    guessWord: TestWord;
+    testOption: TestOption;
+    onSendAnswer: (value: string) => void;
 }
 
 export const WriteTestCard = (props: WriteTestCardProps) => {
-  const { guessWord, testOption, testState, onSendAnswer } = props;
+    const { guessWord, testOption, testState, onSendAnswer } = props;
 
-  const [guessAnswer, setGuessAnswer] = useState<string>("");
+    const [guessAnswer, setGuessAnswer] = useState<string>("");
 
-  const checkEnterForSendAnswer = (e: any) => {
-    if (e.code === "Enter" && guessAnswer) {
-      onSendAnswer(guessAnswer);
-    }
-  };
+    const checkEnterForSendAnswer = (e: React.KeyboardEvent) => {
+        if (e.code === "Enter" && guessAnswer) {
+            onSendAnswer(guessAnswer);
+        }
+    };
 
-  const sendAnswer = () => (guessAnswer ? onSendAnswer(guessAnswer) : null);
+    const sendAnswer = () => (guessAnswer ? onSendAnswer(guessAnswer) : null);
 
-  useEffect(() => {
-    if (testState === TestState.Success || testState === TestState.Failed) {
-      setGuessAnswer("");
-    }
-  }, [testState]);
+    useEffect(() => {
+        if (testState === TestState.Success || testState === TestState.Failed) {
+            setGuessAnswer("");
+        }
+    }, [testState]);
 
-  return (
-    <Card style={{ padding: 20 }}>
-      <GuessWordTitle guessWord={guessWord} testOption={testOption} />
-      <div
-        style={{
-          flexDirection: "row",
-          display: "flex",
-          gap: 10,
-          flex: 1,
-          justifyContent: "center",
-        }}
-      >
-        <Input
-          value={guessAnswer}
-          onChange={(e) => setGuessAnswer(e.target.value)}
-          placeholder="write your answer..."
-          disabled={testState === TestState.CheckedAnswer}
-          onKeyUp={(e) => checkEnterForSendAnswer(e)}
-        />
-        <Button
-          variant="contained"
-          onClick={sendAnswer}
-          disabled={testState !== undefined}
-        >
-          Send answer
-        </Button>
-      </div>
-    </Card>
-  );
+    return (
+        <Card sx={{ p: 3 }}>
+            <GuessWordTitle guessWord={guessWord} testOption={testOption} />
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: 1.5,
+                    justifyContent: "center",
+                    alignItems: "flex-start",
+                    maxWidth: 420,
+                    mx: "auto",
+                }}
+            >
+                <TextField
+                    value={guessAnswer}
+                    onChange={(e) => setGuessAnswer(e.target.value)}
+                    placeholder="Type your answer..."
+                    disabled={testState === TestState.CheckedAnswer}
+                    onKeyUp={checkEnterForSendAnswer}
+                    size="small"
+                    fullWidth
+                    autoFocus
+                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.5 } }}
+                />
+                <Button
+                    variant="contained"
+                    onClick={sendAnswer}
+                    disabled={testState !== undefined}
+                    endIcon={<SendIcon />}
+                    sx={{ whiteSpace: "nowrap", px: 3 }}
+                >
+                    Send
+                </Button>
+            </Box>
+        </Card>
+    );
 };

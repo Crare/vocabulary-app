@@ -1,6 +1,7 @@
-import { Card, Grid, Typography } from "@mui/material";
+import { Box, Card, Chip, LinearProgress, Typography } from "@mui/material";
 import { TestSettings } from "./types";
 import { TimeTaken } from "../../components/TimeTaken";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 interface TestingStatsCardProps {
     settings: TestSettings;
@@ -9,30 +10,60 @@ interface TestingStatsCardProps {
 
 export const TestingStatsCard = (props: TestingStatsCardProps) => {
     const { settings, wordsLeft } = props;
-    return (
-        <Card style={{ padding: 20 }}>
-            <Typography variant="h3" m={2} textAlign={"center"}>
-                Testing
-            </Typography>
+    const total = settings.languageSet.language1Words.length;
+    const done = total - wordsLeft;
+    const progress = total > 0 ? (done / total) * 100 : 0;
 
-            <Grid
-                container
-                flexDirection={"row"}
-                gap={2}
-                justifyContent={"space-evenly"}
+    return (
+        <Card sx={{ p: 3 }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 1,
+                    mb: 2,
+                }}
             >
-                <Grid size={12} ml={6}>
-                    <Typography>
-                        words: {settings.languageSet.language1Words.length}
+                <Typography variant="h3">Testing</Typography>
+                <Chip
+                    icon={<AccessTimeIcon />}
+                    label={<TimeTaken />}
+                    variant="outlined"
+                    size="small"
+                />
+            </Box>
+            <Box sx={{ mb: 1 }}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mb: 0.5,
+                    }}
+                >
+                    <Typography variant="body2" color="text.secondary">
+                        Progress: {done} / {total} words
                     </Typography>
-                    <Typography>
-                        words left to get correct: {wordsLeft}
+                    <Typography variant="body2" color="text.secondary">
+                        {wordsLeft} remaining
                     </Typography>
-                    <Typography>
-                        Time taken: <TimeTaken />
-                    </Typography>
-                </Grid>
-            </Grid>
+                </Box>
+                <LinearProgress
+                    variant="determinate"
+                    value={progress}
+                    sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        bgcolor: "rgba(79, 70, 229, 0.1)",
+                        "& .MuiLinearProgress-bar": {
+                            borderRadius: 4,
+                            background:
+                                "linear-gradient(90deg, #4f46e5, #7c3aed)",
+                        },
+                    }}
+                />
+            </Box>
         </Card>
     );
 };

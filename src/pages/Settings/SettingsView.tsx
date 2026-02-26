@@ -57,12 +57,13 @@ const modalStyle = {
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    width: "60%",
-    maxWidth: 600,
+    width: "90%",
+    maxWidth: 560,
     bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
+    borderRadius: 4,
+    boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
     p: 4,
+    outline: "none",
 };
 
 const storage_keys = {
@@ -197,7 +198,7 @@ export const SettingsView = (props: SettingsViewProps) => {
         if (language1Words.length === 0) {
             valid = false;
         }
-        if (language1Words.length === 0) {
+        if (language2Words.length === 0) {
             valid = false;
         }
         if (
@@ -221,97 +222,89 @@ export const SettingsView = (props: SettingsViewProps) => {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={modalStyle} maxHeight={"60%"} overflow={"scroll"}>
-                    <Button
-                        onClick={handleLoadSetModalClose}
-                        endIcon={<ClearIcon />}
-                        style={{ float: "right" }}
+                <Box sx={modalStyle} maxHeight={"70%"} overflow={"auto"}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            mb: 2,
+                        }}
                     >
-                        Close
-                    </Button>
+                        <Typography variant="h3">
+                            {languageSets.length === 0
+                                ? "No saved sets"
+                                : "Your saved sets"}
+                        </Typography>
+                        <Button
+                            onClick={handleLoadSetModalClose}
+                            endIcon={<ClearIcon />}
+                            size="small"
+                        >
+                            Close
+                        </Button>
+                    </Box>
                     {languageSets.length === 0 ? (
-                        <Typography>
+                        <Typography color="text.secondary">
                             You don't have any saved language sets yet.
                         </Typography>
                     ) : (
-                        <>
-                            <Typography
-                                id="modal-modal-title"
-                                variant="h6"
-                                component="h2"
-                            >
-                                Your saved language sets:
-                            </Typography>
-                            <Grid
-                                container
-                                flexDirection={"column"}
-                                flex={1}
-                                width={"100%"}
-                            >
-                                {languageSets.map((set, index) => {
-                                    return (
-                                        <Grid
-                                            key={index}
-                                            m={1}
-                                            style={{ border: "1px solid gray" }}
-                                            borderRadius={4}
-                                            padding={1}
+                        <Grid container flexDirection={"column"} gap={1.5}>
+                            {languageSets.map((set, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        gap: 2,
+                                        p: 2,
+                                        borderRadius: 3,
+                                        bgcolor: "rgba(79, 70, 229, 0.04)",
+                                        border: "1px solid rgba(79, 70, 229, 0.1)",
+                                        flexWrap: "wrap",
+                                    }}
+                                >
+                                    <Box>
+                                        <Typography fontWeight={600}>
+                                            {set.name}
+                                        </Typography>
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
                                         >
-                                            <Grid
-                                                container
-                                                flexDirection={"row"}
-                                                flex={1}
-                                                width={"100%"}
-                                                justifyContent={"space-between"}
-                                                gap={2}
-                                            >
-                                                <Typography
-                                                    style={{
-                                                        fontWeight: "bold",
-                                                    }}
-                                                >
-                                                    {set.name}
-                                                </Typography>
-                                                <Typography
-                                                    style={{ color: "black" }}
-                                                >
-                                                    (words:{" "}
-                                                    {set.language1Words.length})
-                                                </Typography>
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        gap: 10,
-                                                    }}
-                                                >
-                                                    <Button
-                                                        variant="contained"
-                                                        onClick={() =>
-                                                            selectLanguageSet(
-                                                                index,
-                                                            )
-                                                        }
-                                                    >
-                                                        Select
-                                                    </Button>
-                                                    <Button
-                                                        variant="contained"
-                                                        color="error"
-                                                        onClick={() =>
-                                                            deleteLanguageSet(
-                                                                index,
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </div>
-                                            </Grid>
-                                        </Grid>
-                                    );
-                                })}
-                            </Grid>
-                        </>
+                                            {set.language1Words.length} words
+                                        </Typography>
+                                    </Box>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            gap: 1,
+                                        }}
+                                    >
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            onClick={() =>
+                                                selectLanguageSet(index)
+                                            }
+                                        >
+                                            Select
+                                        </Button>
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            size="small"
+                                            onClick={() =>
+                                                deleteLanguageSet(index)
+                                            }
+                                        >
+                                            Delete
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Grid>
                     )}
                 </Box>
             </Modal>
@@ -322,181 +315,124 @@ export const SettingsView = (props: SettingsViewProps) => {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={modalStyle} maxHeight={"60%"} overflow={"scroll"}>
-                    <Button
-                        onClick={handleTemplateListModalClose}
-                        endIcon={<ClearIcon />}
-                        style={{ float: "right" }}
+                <Box sx={modalStyle} maxHeight={"70%"} overflow={"auto"}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            mb: 2,
+                        }}
                     >
-                        Close
-                    </Button>
-
-                    <Typography
-                        id="modal-modal-title"
-                        variant="h6"
-                        component="h2"
-                    >
-                        Templates:
-                    </Typography>
-                    <Grid container flexDirection={"column"} width={"100%"}>
-                        {templates.map((template, index) => {
-                            return (
-                                <Grid
-                                    key={index}
-                                    m={1}
-                                    style={{ border: "1px solid gray" }}
-                                    borderRadius={4}
-                                    padding={1}
-                                >
-                                    <Grid
-                                        container
-                                        flexDirection={"row"}
-                                        flex={1}
-                                        width={"100%"}
-                                        justifyContent={"space-between"}
+                        <Typography variant="h3">Templates</Typography>
+                        <Button
+                            onClick={handleTemplateListModalClose}
+                            endIcon={<ClearIcon />}
+                            size="small"
+                        >
+                            Close
+                        </Button>
+                    </Box>
+                    <Grid container flexDirection={"column"} gap={1.5}>
+                        {templates.map((template, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 2,
+                                    p: 2,
+                                    borderRadius: 3,
+                                    bgcolor: "rgba(79, 70, 229, 0.04)",
+                                    border: "1px solid rgba(79, 70, 229, 0.1)",
+                                    flexWrap: "wrap",
+                                }}
+                            >
+                                <Box>
+                                    <Typography fontWeight={600}>
+                                        {template.name}
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
                                     >
-                                        <Typography
-                                            style={{ fontWeight: "bold" }}
-                                        >
-                                            {template.name}
-                                        </Typography>
-                                        <Typography style={{ color: "black" }}>
-                                            (words:{" "}
-                                            {
-                                                template.words.map(
-                                                    (w) => w.lang1,
-                                                ).length
-                                            }
-                                            )
-                                        </Typography>
-                                        <Button
-                                            variant="contained"
-                                            onClick={() =>
-                                                selectLanguageSetFromTemplate(
-                                                    index,
-                                                )
-                                            }
-                                        >
-                                            Select
-                                        </Button>
-                                    </Grid>
-                                </Grid>
-                            );
-                        })}
+                                        {template.words.length} words
+                                    </Typography>
+                                </Box>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() =>
+                                        selectLanguageSetFromTemplate(index)
+                                    }
+                                >
+                                    Select
+                                </Button>
+                            </Box>
+                        ))}
                     </Grid>
                 </Box>
             </Modal>
 
-            <Card style={{ padding: 20 }}>
-                <Typography variant="h3" m={2} textAlign={"center"}>
-                    Values
+            <Card sx={{ p: 3 }}>
+                <Typography variant="h3" mb={3} textAlign={"center"}>
+                    Word Lists
                 </Typography>
 
-                <Grid
-                    container
-                    flexDirection={"row"}
-                    gap={2}
-                    justifyContent={"space-evenly"}
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 1,
+                        mb: 3,
+                        justifyContent: "center",
+                    }}
                 >
-                    <Grid size={{ xs: 12, sm: 5 }}>
-                        <div>
-                            <Button
-                                type="button"
-                                variant="outlined"
-                                onClick={openLoadSetModal}
-                                endIcon={<MenuOpenIcon />}
-                                style={{ marginRight: 8, marginBottom: 8 }}
-                            >
-                                Load set
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outlined"
-                                onClick={openTemplateListModal}
-                                endIcon={<PlaylistAddIcon />}
-                                style={{ marginRight: 8, marginBottom: 8 }}
-                            >
-                                Use template
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outlined"
-                                onClick={flip}
-                                endIcon={<LoopIcon />}
-                                style={{ marginRight: 8, marginBottom: 8 }}
-                            >
-                                flip
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outlined"
-                                onClick={clear}
-                                endIcon={<ClearIcon />}
-                                style={{ marginRight: 8, marginBottom: 8 }}
-                            >
-                                clear
-                            </Button>
-                        </div>
-                    </Grid>
-
-                    <Grid
-                        size={{ xs: 12, sm: 5 }}
-                        display={"flex"}
-                        justifyContent={"flex-end"}
+                    <Button
+                        variant="outlined"
+                        onClick={openLoadSetModal}
+                        endIcon={<MenuOpenIcon />}
+                        size="small"
                     >
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                            }}
-                        >
-                            <div>
-                                <Button
-                                    type="button"
-                                    variant="contained"
-                                    style={{
-                                        justifySelf: "flex-end",
-                                        marginLeft: 8,
-                                        marginBottom: 8,
-                                        float: "right",
-                                    }}
-                                    onClick={startTest}
-                                    disabled={!languageSetIsValid}
-                                    endIcon={<PlayArrowIcon />}
-                                >
-                                    Start!
-                                </Button>
-                            </div>
-                            {!languageSetIsValid ? (
-                                <Typography
-                                    variant="caption"
-                                    color={"red"}
-                                    style={{
-                                        marginLeft: 8,
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Please add same amount of words in both
-                                    fields first.
-                                </Typography>
-                            ) : null}
-                        </div>
-                    </Grid>
-                </Grid>
+                        Load set
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        onClick={openTemplateListModal}
+                        endIcon={<PlaylistAddIcon />}
+                        size="small"
+                    >
+                        Use template
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        onClick={flip}
+                        endIcon={<LoopIcon />}
+                        size="small"
+                    >
+                        Flip
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        onClick={clear}
+                        endIcon={<ClearIcon />}
+                        size="small"
+                    >
+                        Clear
+                    </Button>
+                </Box>
 
-                <Grid
-                    container
-                    flexDirection={"row"}
-                    gap={2}
-                    justifyContent={"space-evenly"}
-                    mt={4}
+                <Typography
+                    variant="body1"
+                    textAlign="center"
                     mb={2}
+                    color="text.secondary"
+                    fontSize="0.85rem"
                 >
-                    <Typography variant="body1">
-                        Add words in two languages in same order and they will
-                        be mappeed to each other. One word per line.
-                    </Typography>
-                </Grid>
+                    Add words in two languages in the same order. One word per
+                    line.
+                </Typography>
                 <Grid
                     container
                     flexDirection={"row"}
@@ -504,24 +440,46 @@ export const SettingsView = (props: SettingsViewProps) => {
                     justifyContent={"space-evenly"}
                 >
                     <Grid size={{ xs: 12, sm: 5 }}>
-                        <Typography variant="h5">
-                            Add words in your language
+                        <Typography variant="h5" mb={1}>
+                            Your language
                         </Typography>
                         <TextareaAutosize
-                            style={{ width: "100%" }}
-                            minRows={10}
+                            style={{
+                                width: "100%",
+                                fontFamily: "'Inter', sans-serif",
+                                fontSize: "0.9rem",
+                                padding: 12,
+                                borderRadius: 10,
+                                border: "1.5px solid #e2e8f0",
+                                outline: "none",
+                                resize: "vertical",
+                                transition: "border-color 0.2s",
+                                lineHeight: 1.6,
+                            }}
+                            minRows={8}
                             value={language1Words}
                             onChange={(e) => setLanguage1Words(e.target.value)}
                             placeholder={placeholderYourLang}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 5 }}>
-                        <Typography variant="h5">
-                            Add words in another language
+                        <Typography variant="h5" mb={1}>
+                            Other language
                         </Typography>
                         <TextareaAutosize
-                            style={{ width: "100%" }}
-                            minRows={10}
+                            style={{
+                                width: "100%",
+                                fontFamily: "'Inter', sans-serif",
+                                fontSize: "0.9rem",
+                                padding: 12,
+                                borderRadius: 10,
+                                border: "1.5px solid #e2e8f0",
+                                outline: "none",
+                                resize: "vertical",
+                                transition: "border-color 0.2s",
+                                lineHeight: 1.6,
+                            }}
+                            minRows={8}
                             value={language2Words}
                             onChange={(e) => setLanguage2Words(e.target.value)}
                             placeholder={placeholderOtherLang}
@@ -529,34 +487,32 @@ export const SettingsView = (props: SettingsViewProps) => {
                     </Grid>
                     <Grid
                         size={12}
-                        mr={6}
-                        gap={2}
-                        justifyContent={"flex-end"}
-                        // alignItems={"center"}
+                        gap={1.5}
+                        justifyContent={"center"}
+                        alignItems={"center"}
                         display={"flex"}
+                        flexWrap={"wrap"}
                     >
                         <Input
-                            title="set name"
-                            placeholder="Give name for the set..."
+                            placeholder="Name for this set..."
                             value={langSetName}
-                            onChange={(e) => {
-                                setLangSetName(e.target.value);
-                            }}
+                            onChange={(e) => setLangSetName(e.target.value)}
+                            sx={{ minWidth: 200 }}
                         />
                         <Button
-                            type="button"
                             variant="outlined"
                             onClick={saveSet}
                             endIcon={<SaveIcon />}
+                            size="small"
                         >
-                            Save set for later
+                            Save set
                         </Button>
                     </Grid>
                 </Grid>
             </Card>
 
-            <Card style={{ padding: 20 }}>
-                <Typography variant="h3" m={2} textAlign={"center"}>
+            <Card sx={{ p: 3 }}>
+                <Typography variant="h3" mb={3} textAlign={"center"}>
                     Settings
                 </Typography>
 
@@ -664,50 +620,53 @@ export const SettingsView = (props: SettingsViewProps) => {
                 </Grid>
             </Card>
 
-            <Card style={{ padding: 20 }}>
-                <Typography variant="h3" m={2} textAlign={"center"}>
+            <Card
+                sx={{
+                    p: 3,
+                    background:
+                        "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                    color: "#fff",
+                    textAlign: "center",
+                }}
+            >
+                <Typography variant="h3" mb={2} sx={{ color: "#fff" }}>
                     Ready?
                 </Typography>
-                <Grid container flexDirection={"row"} gap={2}>
-                    <Grid
-                        size={12}
-                        justifyContent={"center"}
-                        alignItems={"center"}
+                {!languageSetIsValid && (
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: "rgba(255,255,255,0.8)",
+                            mb: 2,
+                        }}
                     >
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                flexDirection: "column",
-                            }}
-                        >
-                            {!languageSetIsValid ? (
-                                <Typography
-                                    variant="caption"
-                                    color={"red"}
-                                    style={{
-                                        margin: 8,
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    Please add same amount of words in both
-                                    fields first.
-                                </Typography>
-                            ) : null}
-                            <div style={{ textAlign: "center" }}>
-                                <Button
-                                    type="button"
-                                    variant="contained"
-                                    onClick={startTest}
-                                    disabled={!languageSetIsValid}
-                                    endIcon={<PlayArrowIcon />}
-                                >
-                                    Start!
-                                </Button>
-                            </div>
-                        </div>
-                    </Grid>
-                </Grid>
+                        Add the same number of words in both fields to start.
+                    </Typography>
+                )}
+                <Button
+                    variant="contained"
+                    onClick={startTest}
+                    disabled={!languageSetIsValid}
+                    endIcon={<PlayArrowIcon />}
+                    size="large"
+                    sx={{
+                        bgcolor: "#fff",
+                        color: "#4f46e5",
+                        fontWeight: 700,
+                        px: 5,
+                        py: 1.5,
+                        fontSize: "1rem",
+                        "&:hover": {
+                            bgcolor: "rgba(255,255,255,0.9)",
+                        },
+                        "&.Mui-disabled": {
+                            bgcolor: "rgba(255,255,255,0.3)",
+                            color: "rgba(255,255,255,0.5)",
+                        },
+                    }}
+                >
+                    Start Test
+                </Button>
             </Card>
         </Grid>
     );

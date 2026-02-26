@@ -1,77 +1,101 @@
-import { Button, Card, Grid, Typography } from "@mui/material";
+import { Box, Button, Card, Typography } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import SkipNextIcon from "@mui/icons-material/SkipNext";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { TestState } from "./types";
 
 interface TestBottomButtonsProps {
-  testState: TestState | undefined;
-  correctAnswerValue: string | undefined;
-  onCheckCorrectAnswer: () => void;
-  onNext: () => void;
-  onSkip: () => void;
-  onEndTesting: () => void;
+    testState: TestState | undefined;
+    correctAnswerValue: string | undefined;
+    onCheckCorrectAnswer: () => void;
+    onNext: () => void;
+    onSkip: () => void;
+    onEndTesting: () => void;
 }
 
 export const TestBottomButtons = (props: TestBottomButtonsProps) => {
-  const {
-    testState,
-    correctAnswerValue,
-    onCheckCorrectAnswer,
-    onEndTesting,
-    onNext,
-    onSkip,
-  } = props;
-  return (
-    <Card style={{ padding: 20 }}>
-      <Grid
-        container
-        flexDirection={"row"}
-        gap={2}
-        justifyContent={"space-evenly"}
-      >
-        {correctAnswerValue ? (
-          <div>
-            <Typography>Correct answer is:</Typography>
-            <Typography style={{ fontWeight: "bold" }}>
-              {correctAnswerValue}
-            </Typography>
-          </div>
-        ) : (
-          <Button
-            color="error"
-            variant="outlined"
-            style={{ marginRight: 10 }}
-            onClick={onCheckCorrectAnswer}
-            disabled={testState !== undefined}
-          >
-            See right answer
-          </Button>
-        )}
-        {testState === TestState.CheckedAnswer ? (
-          <Button
-            variant="contained"
-            style={{ marginRight: 10 }}
-            onClick={onNext}
-          >
-            Continue
-          </Button>
-        ) : null}
+    const {
+        testState,
+        correctAnswerValue,
+        onCheckCorrectAnswer,
+        onEndTesting,
+        onNext,
+        onSkip,
+    } = props;
+    return (
+        <Card sx={{ p: 3 }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 1.5,
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
+                {correctAnswerValue ? (
+                    <Box
+                        sx={{
+                            px: 2.5,
+                            py: 1,
+                            borderRadius: 2,
+                            bgcolor: "rgba(79, 70, 229, 0.08)",
+                            border: "1px solid rgba(79, 70, 229, 0.2)",
+                        }}
+                    >
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            component="span"
+                        >
+                            Answer:{" "}
+                        </Typography>
+                        <Typography fontWeight={700} component="span">
+                            {correctAnswerValue}
+                        </Typography>
+                    </Box>
+                ) : (
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={onCheckCorrectAnswer}
+                        disabled={testState !== undefined}
+                        startIcon={<VisibilityIcon />}
+                        size="small"
+                    >
+                        Reveal answer
+                    </Button>
+                )}
+                {testState === TestState.CheckedAnswer && (
+                    <Button
+                        variant="contained"
+                        onClick={onNext}
+                        startIcon={<NavigateNextIcon />}
+                    >
+                        Continue
+                    </Button>
+                )}
 
-        <Button
-          variant="outlined"
-          style={{ marginRight: 10 }}
-          onClick={onSkip}
-          disabled={testState !== undefined}
-        >
-          New word (skip)
-        </Button>
-        <Button
-          color="success"
-          variant="contained"
-          style={{ marginRight: 10 }}
-          onClick={onEndTesting}
-        >
-          See results (end testing)
-        </Button>
-      </Grid>
-    </Card>
-  );
+                <Button
+                    variant="outlined"
+                    onClick={onSkip}
+                    disabled={testState !== undefined}
+                    startIcon={<SkipNextIcon />}
+                    size="small"
+                >
+                    Skip
+                </Button>
+                <Button
+                    color="success"
+                    variant="contained"
+                    onClick={onEndTesting}
+                    startIcon={<DoneAllIcon />}
+                    size="small"
+                >
+                    End test
+                </Button>
+            </Box>
+        </Card>
+    );
 };

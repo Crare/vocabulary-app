@@ -1,9 +1,14 @@
-import React from "react";
+import { ThemeProvider, CssBaseline } from "@mui/material";
 import Main from "./pages/Main";
+import theme from "./theme";
 
 function App() {
-  return <Main />;
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Main />
+        </ThemeProvider>
+    );
 }
 
 export default App;
-
