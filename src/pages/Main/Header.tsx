@@ -2,8 +2,9 @@ import { AppBar, Box, Tab, Tabs, Toolbar, Typography } from "@mui/material";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import HistoryIcon from "@mui/icons-material/History";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
+import SettingsIcon from "@mui/icons-material/Settings";
 
-export type NavView = "settings" | "history";
+export type NavView = "wordlists" | "settings" | "history";
 
 interface HeaderProps {
     activeTab: NavView | null;
@@ -46,9 +47,21 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                         }}
                     >
                         <Tab
-                            value="settings"
+                            value="wordlists"
                             label="Word Lists"
                             icon={<MenuBookIcon />}
+                            iconPosition="start"
+                            sx={{
+                                color: "rgba(255,255,255,0.75)",
+                                "&.Mui-selected": { color: "#fff" },
+                                minHeight: 48,
+                                fontSize: "0.8rem",
+                            }}
+                        />
+                        <Tab
+                            value="settings"
+                            label="Settings"
+                            icon={<SettingsIcon />}
                             iconPosition="start"
                             sx={{
                                 color: "rgba(255,255,255,0.75)",

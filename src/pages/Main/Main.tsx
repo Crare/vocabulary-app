@@ -3,6 +3,7 @@ import { Grid } from "@mui/material";
 import { Header, NavView } from "./Header";
 
 import { SettingsView } from "../Settings/SettingsView";
+import { TestConfigView } from "../Settings/TestConfigView";
 import { useState } from "react";
 import { TestingView } from "../Testing/TestingView";
 import { ResultsView } from "../Results/ResultsView";
@@ -15,8 +16,8 @@ const log = createLogger("main");
 
 const Main = () => {
     const [view, setView] = useState<
-        "settings" | "testing" | "results" | "history"
-    >("settings");
+        "wordlists" | "settings" | "testing" | "results" | "history"
+    >("wordlists");
     const [settings, setSettings] = useState<TestSettings | undefined>(
         undefined,
     );
@@ -57,7 +58,7 @@ const Main = () => {
     };
 
     const backToStart = () => {
-        setView("settings");
+        setView("wordlists");
         setResults(undefined);
     };
 
@@ -83,7 +84,9 @@ const Main = () => {
     };
 
     const activeTab: NavView | null =
-        view === "settings" || view === "history" ? view : null;
+        view === "wordlists" || view === "settings" || view === "history"
+            ? view
+            : null;
 
     const onNavigate = (target: NavView) => {
         log.debug("view_changed", { from: view, to: target });
@@ -102,9 +105,10 @@ const Main = () => {
             >
                 <Header activeTab={activeTab} onNavigate={onNavigate} />
 
-                {view === "settings" ? (
+                {view === "wordlists" ? (
                     <SettingsView onStartTest={startTest} />
                 ) : null}
+                {view === "settings" ? <TestConfigView /> : null}
                 {view === "testing" && settings ? (
                     <TestingView
                         settings={settings}
