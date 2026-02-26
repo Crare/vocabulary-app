@@ -25,6 +25,7 @@ import {
     calculateAvgAnswerTime,
     formatSeconds,
     calculateOverallAvgTime,
+    calculateTotalScore,
 } from "../Results/resultUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -292,7 +293,7 @@ export const HistoryView = () => {
                                                             icon={
                                                                 <EmojiEventsIcon />
                                                             }
-                                                            label={`Score ${entry.score}`}
+                                                            label={`${calculateTotalScore(entry.wordResults).correct}/${calculateTotalScore(entry.wordResults).total}`}
                                                             size="small"
                                                             color="primary"
                                                             variant="outlined"

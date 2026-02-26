@@ -56,3 +56,23 @@ export const calculateOverallAvgTime = (words: TestWord[]): number => {
     if (totalAttempts === 0) return 0;
     return totalMs / totalAttempts / 1000;
 };
+
+/**
+ * Calculate total correct answers and total attempts across all words.
+ * Returns { correct, total } to display as "correct/total".
+ */
+export const calculateTotalScore = (
+    words: TestWord[],
+): { correct: number; total: number } => {
+    const correct = words.reduce((sum, w) => sum + w.timesCorrect, 0);
+    const total = words.reduce(
+        (sum, w) =>
+            sum +
+            w.timesCorrect +
+            w.timesFailed +
+            w.timesSkipped +
+            w.timesCheckedAnswer,
+        0,
+    );
+    return { correct, total };
+};
