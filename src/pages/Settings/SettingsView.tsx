@@ -626,7 +626,10 @@ export const SettingsView = (props: SettingsViewProps) => {
                     <Grid size={12}>
                         <Accordion
                             defaultExpanded={
-                                !!(language1Sentences.trim() || language2Sentences.trim())
+                                !!(
+                                    language1Sentences.trim() ||
+                                    language2Sentences.trim()
+                                )
                             }
                             disableGutters
                             sx={{
@@ -651,7 +654,9 @@ export const SettingsView = (props: SettingsViewProps) => {
                                     color="text.secondary"
                                     fontSize="0.85rem"
                                 >
-                                    <strong>Sentence training (optional)</strong>
+                                    <strong>
+                                        Sentence training (optional)
+                                    </strong>
                                 </Typography>
                             </AccordionSummary>
                             <AccordionDetails sx={{ px: 0, pt: 0 }}>
@@ -677,19 +682,23 @@ export const SettingsView = (props: SettingsViewProps) => {
                                             color="text.secondary"
                                             sx={{ mb: 0.5, display: "block" }}
                                         >
-                                            Sentences ({lang1Name || "Language 1"})
+                                            Sentences (
+                                            {lang1Name || "Language 1"})
                                         </Typography>
                                         <TextareaAutosize
                                             style={{
                                                 width: "100%",
-                                                fontFamily: "'Inter', sans-serif",
+                                                fontFamily:
+                                                    "'Inter', sans-serif",
                                                 fontSize: "0.9rem",
                                                 padding: 12,
                                                 borderRadius: 10,
                                                 border: `1.5px solid ${alpha.slate30}`,
                                                 backgroundColor:
-                                                    muiTheme.palette.background.paper,
-                                                color: muiTheme.palette.text.primary,
+                                                    muiTheme.palette.background
+                                                        .paper,
+                                                color: muiTheme.palette.text
+                                                    .primary,
                                                 outline: "none",
                                                 resize: "vertical",
                                                 transition: "border-color 0.2s",
@@ -700,7 +709,9 @@ export const SettingsView = (props: SettingsViewProps) => {
                                             maxRows={8}
                                             value={language1Sentences}
                                             onChange={(e) =>
-                                                setLanguage1Sentences(e.target.value)
+                                                setLanguage1Sentences(
+                                                    e.target.value,
+                                                )
                                             }
                                             placeholder={
                                                 "e.g. Minä menen kouluun\nHän lukee kirjaa"
@@ -713,19 +724,23 @@ export const SettingsView = (props: SettingsViewProps) => {
                                             color="text.secondary"
                                             sx={{ mb: 0.5, display: "block" }}
                                         >
-                                            Sentences ({lang2Name || "Language 2"})
+                                            Sentences (
+                                            {lang2Name || "Language 2"})
                                         </Typography>
                                         <TextareaAutosize
                                             style={{
                                                 width: "100%",
-                                                fontFamily: "'Inter', sans-serif",
+                                                fontFamily:
+                                                    "'Inter', sans-serif",
                                                 fontSize: "0.9rem",
                                                 padding: 12,
                                                 borderRadius: 10,
                                                 border: `1.5px solid ${alpha.slate30}`,
                                                 backgroundColor:
-                                                    muiTheme.palette.background.paper,
-                                                color: muiTheme.palette.text.primary,
+                                                    muiTheme.palette.background
+                                                        .paper,
+                                                color: muiTheme.palette.text
+                                                    .primary,
                                                 outline: "none",
                                                 resize: "vertical",
                                                 transition: "border-color 0.2s",
@@ -735,7 +750,9 @@ export const SettingsView = (props: SettingsViewProps) => {
                                             maxRows={8}
                                             value={language2Sentences}
                                             onChange={(e) =>
-                                                setLanguage2Sentences(e.target.value)
+                                                setLanguage2Sentences(
+                                                    e.target.value,
+                                                )
                                             }
                                             placeholder={
                                                 "e.g. Jag går till skolan\nHan läser en bok"
