@@ -86,7 +86,9 @@ export const ResultsView = (props: ResultsViewProps) => {
     });
 
     const selectedWords = results.wordResults.filter((w) =>
-        rowSelection.ids.has(w.id),
+        rowSelection.type === "include"
+            ? rowSelection.ids.has(w.id)
+            : !rowSelection.ids.has(w.id),
     );
 
     return (
