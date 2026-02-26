@@ -6,7 +6,7 @@ import {
     TestState,
     TestWord,
 } from "./types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { calcTimeTakenText } from "../../hooks/useDate";
 import { GuessResult } from "./GuessResult";
 import { WriteTestCard } from "./WriteTestCard";
@@ -21,6 +21,9 @@ import {
     getExpectedAnswer,
     isAnswerCorrect,
 } from "./testLogic";
+import { createLogger } from "../../util/logger";
+
+const log = createLogger("testing");
 
 interface TestingViewProps {
     settings: TestSettings;
@@ -29,83 +32,160 @@ interface TestingViewProps {
 
 export const TestingView = (props: TestingViewProps) => {
     const { settings, onEndTesting } = props;
-    const [startTime] = useState<Date>(new Date());
-    const [testOption, setTestOption] = useState<TestOption>(
-        TestOption.WriteCorrectAnswer,
-    );
-    const [testWords, setTestWords] = useState<TestWord[] | undefined>(
-        undefined,
-    );
-    const [wordsLeft, setWordsLeft] = useState<number>(-1);
+
+    // Keep latest prop values in refs so callbacks never go stale
+    const settingsRef = useRef(settings);
+    const onEndTestingRef = useRef(onEndTesting);
+    useEffect(() => {
+        settingsRef.current = settings;
+    }, [settings]);
+    useEffect(() => {
+        onEndTestingRef.current = onEndTesting;
+    }, [onEndTesting]);
+
+    // Mutable data in refs — never stale, mutations visible immediately
+    const startTime = useRef(new Date());
+    const testWordsRef = useRef<TestWord[]>([]);
+    const questionIndexRef = useRef(0);
+    const isAnsweringRef = useRef(false); // hard guard against double submission
+
+    // UI state (trigger re-renders)
     const [guessWord, setGuessWord] = useState<TestWord | undefined>(undefined);
     const [testState, setTestState] = useState<TestState | undefined>(
         undefined,
     );
-    const [questionIndex, setQuestionIndex] = useState<number>(0);
+    const [wordsLeft, setWordsLeft] = useState<number>(0);
+    const [testOption, setTestOption] = useState<TestOption>(
+        TestOption.WriteCorrectAnswer,
+    );
     const [guessDirection, setGuessDirection] =
         useState<GuessDirection>("lang1to2");
+    const [correctAnswerValue, setCorrectAnswerValue] = useState<
+        string | undefined
+    >(undefined);
 
-    const setupWords = () => {
-        if (!settings) return;
-        const words = settings.languageSet.language1Words.map(
+    const finishTest = useCallback(() => {
+        const words = testWordsRef.current;
+        log.info("test_finished", {
+            totalWords: words.length,
+            questionCount: questionIndexRef.current,
+            wordSummary: words.map((w) => ({
+                word: w.lang1Word,
+                correct: w.timesCorrect,
+                failed: w.timesFailed,
+                skipped: w.timesSkipped,
+                checked: w.timesCheckedAnswer,
+            })),
+        });
+        onEndTestingRef.current({
+            date: new Date(),
+            timeTaken: calcTimeTakenText(startTime.current, new Date()),
+            score: 0,
+            wordResults: words,
+        });
+    }, []); // no deps — reads everything from refs
+
+    const advanceToNext = useCallback(() => {
+        const s = settingsRef.current;
+        const remaining = testWordsRef.current.filter(
+            (w) => w.timesCorrect < s.wordNeedsToGetCorrectTimes,
+        );
+        if (remaining.length === 0) {
+            finishTest();
+            return;
+        }
+        questionIndexRef.current += 1;
+        const next = remaining[randomIntFromInterval(0, remaining.length - 1)];
+        const option = chooseTestOption(s, questionIndexRef.current);
+        const direction = chooseGuessDirection(s);
+        log.debug("next_question", {
+            questionIndex: questionIndexRef.current,
+            wordsRemaining: remaining.length,
+            word: next.lang1Word,
+            testOption:
+                option === TestOption.WriteCorrectAnswer
+                    ? "write"
+                    : "multi-select",
+            direction,
+        });
+        setGuessWord(next);
+        setWordsLeft(remaining.length);
+        setTestOption(option);
+        setGuessDirection(direction);
+        setTestState(undefined);
+        setCorrectAnswerValue(undefined);
+        isAnsweringRef.current = false;
+    }, [finishTest]); // finishTest is stable (no deps), so advanceToNext is also stable
+
+    // Initialise once on mount
+    useEffect(() => {
+        const s = settingsRef.current;
+        const words: TestWord[] = s.languageSet.language1Words.map(
             (lang1Word, index) => ({
                 id: index,
                 lang1Word,
-                lang2Word: settings.languageSet.language2Words[index],
+                lang2Word: s.languageSet.language2Words[index],
                 timesCorrect: 0,
                 timesFailed: 0,
                 timesSkipped: 0,
                 timesCheckedAnswer: 0,
             }),
         );
-        setTestWords(words);
-        setWordsLeft(words.length);
-    };
-    useEffect(() => {
-        setupWords();
+        testWordsRef.current = words;
+        questionIndexRef.current = 0;
+        isAnsweringRef.current = false;
+
+        log.info("test_initialized", {
+            wordCount: words.length,
+            correctTimesNeeded: s.wordNeedsToGetCorrectTimes,
+            testType: s.testType,
+        });
+
+        const remaining = words.filter(
+            (w) => w.timesCorrect < s.wordNeedsToGetCorrectTimes,
+        );
+        if (remaining.length === 0) {
+            finishTest();
+            return;
+        }
+        const firstWord =
+            remaining[randomIntFromInterval(0, remaining.length - 1)];
+        setGuessWord(firstWord);
+        setWordsLeft(remaining.length);
+        setTestOption(chooseTestOption(s, 0));
+        setGuessDirection(chooseGuessDirection(s));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const chooseWordForGuessing = () => {
-        if (!testWords) return;
-        const remaining = testWords.filter(
-            (w) => w.timesCorrect < settings.wordNeedsToGetCorrectTimes,
-        );
-        if (remaining.length === 0) {
-            endTesting();
-            return;
-        }
-        const index = randomIntFromInterval(0, remaining.length - 1);
-        setGuessWord(remaining[index]);
-        setWordsLeft(remaining.length);
-    };
+    // Auto-advance after answer feedback delay
     useEffect(() => {
-        chooseWordForGuessing();
-    }, [testWords]);
-
-    // console.log("guessWord", guessWord);
-    // console.log("multiSelectGuessOptions", multiSelectGuessOptions);
-
-    useEffect(() => {
-        if (guessWord) {
-            setTestOption(chooseTestOption(settings, questionIndex));
-            setGuessDirection(chooseGuessDirection(settings));
+        if (testState === TestState.Success || testState === TestState.Failed) {
+            const timer = setTimeout(advanceToNext, 1500);
+            return () => clearTimeout(timer);
         }
-    }, [guessWord]);
-
-    const sendAnswer = (value: string) => {
-        answer(value);
-    };
-
-    const chooseOption = (option: string) => {
-        answer(option);
-    };
+    }, [testState, advanceToNext]);
 
     const answer = (guess: string) => {
-        if (!guessWord) {
+        if (isAnsweringRef.current || !guessWord || testState !== undefined) {
+            log.debug("answer_rejected", {
+                isAnswering: isAnsweringRef.current,
+                hasGuessWord: !!guessWord,
+                testState,
+            });
             return;
         }
-        if (isAnswerCorrect(guess, guessWord, guessDirection)) {
+        isAnsweringRef.current = true;
+
+        const correct = isAnswerCorrect(guess, guessWord, guessDirection);
+        log.debug("answer_submitted", {
+            word: guessWord.lang1Word,
+            guess,
+            expected: getExpectedAnswer(guessWord, guessDirection),
+            correct,
+            direction: guessDirection,
+        });
+
+        if (correct) {
             guessWord.timesCorrect += 1;
             setTestState(TestState.Success);
         } else {
@@ -113,54 +193,39 @@ export const TestingView = (props: TestingViewProps) => {
             setTestState(TestState.Failed);
         }
     };
-    useEffect(() => {
-        if (testState === TestState.Success || testState === TestState.Failed) {
-            setTimeout(() => {
-                next();
-            }, 1500);
-        }
-    }, [testState]);
 
-    const next = () => {
-        setTestState(undefined);
-        setQuestionIndex((prev) => prev + 1);
-        chooseWordForGuessing();
-        setCorrectAnswerValue(undefined);
-    };
+    const next = () => advanceToNext();
 
     const skip = () => {
-        guessWord!.timesSkipped += 1;
-        next();
+        if (guessWord) {
+            guessWord.timesSkipped += 1;
+            log.debug("word_skipped", {
+                word: guessWord.lang1Word,
+                timesSkipped: guessWord.timesSkipped,
+            });
+        }
+        advanceToNext();
     };
 
-    const [correctAnswerValue, setCorrectAnswerValue] = useState<
-        string | undefined
-    >(undefined);
     const checkCorrectAnswer = () => {
-        if (!guessWord) {
-            return;
-        }
-        guessWord!.timesCheckedAnswer += 1;
+        if (!guessWord) return;
+        guessWord.timesCheckedAnswer += 1;
+        const answer = getExpectedAnswer(guessWord, guessDirection);
+        log.debug("answer_checked", {
+            word: guessWord.lang1Word,
+            correctAnswer: answer,
+        });
         setTestState(TestState.CheckedAnswer);
-        setCorrectAnswerValue(getExpectedAnswer(guessWord, guessDirection));
-    };
-
-    const endTesting = () => {
-        if (!testWords) {
-            return;
-        }
-        const results: TestResults = {
-            date: new Date(),
-            timeTaken: calcTimeTakenText(startTime, new Date()),
-            score: 0,
-            wordResults: testWords,
-        };
-        onEndTesting(results);
+        setCorrectAnswerValue(answer);
     };
 
     return (
         <Grid container className="content" gap={2} flexDirection={"column"}>
-            <TestingStatsCard settings={settings} wordsLeft={wordsLeft} />
+            <TestingStatsCard
+                settings={settings}
+                testWords={testWordsRef.current}
+                wordsLeft={wordsLeft}
+            />
 
             <GuessResult
                 testState={testState}
@@ -172,7 +237,7 @@ export const TestingView = (props: TestingViewProps) => {
                 <WriteTestCard
                     testState={testState}
                     guessWord={guessWord}
-                    onSendAnswer={sendAnswer}
+                    onSendAnswer={answer}
                     testOption={TestOption.WriteCorrectAnswer}
                     guessDirection={guessDirection}
                     targetLanguageName={
@@ -187,10 +252,10 @@ export const TestingView = (props: TestingViewProps) => {
                 <SelectAnswerCard
                     testState={testState}
                     guessWord={guessWord}
-                    onChooseOption={chooseOption}
+                    onChooseOption={answer}
                     testOption={TestOption.SelectFromMultiple}
                     settings={settings}
-                    testWords={testWords}
+                    testWords={testWordsRef.current}
                     wordsLeft={wordsLeft}
                     guessDirection={guessDirection}
                     targetLanguageName={
@@ -205,7 +270,7 @@ export const TestingView = (props: TestingViewProps) => {
                 testState={testState}
                 correctAnswerValue={correctAnswerValue}
                 onCheckCorrectAnswer={checkCorrectAnswer}
-                onEndTesting={endTesting}
+                onEndTesting={finishTest}
                 onNext={next}
                 onSkip={skip}
             />

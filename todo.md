@@ -11,6 +11,9 @@
 - image test, allow user add images and text answer for them.
 - sentence test. add sentence and the test will remove one word of it randomly and test it, by letting user write it.
 - change the settings around: make all the test-options a checkbox (writing test & multiselect), set them all default on.
+- store time long it takes to answer each word. and in results show average time to answer.
+- move settings to the navbar
+- add button to go back to start if not yet answered to any questions.
 
 ## BUGS:
 

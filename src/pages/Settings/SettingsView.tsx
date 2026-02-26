@@ -30,6 +30,7 @@ import { TemplateListModal } from "./TemplateListModal";
 
 import { WordSet } from "../../wordsets/types";
 import { LANGUAGE_OPTIONS } from "../../wordsets/languages";
+import { createLogger } from "../../util/logger";
 import set1 from "../../wordsets/words1.json";
 import set2 from "../../wordsets/words2.json";
 import set3 from "../../wordsets/words3.json";
@@ -39,6 +40,8 @@ import set6 from "../../wordsets/words6.json";
 import set7 from "../../wordsets/words7.json";
 import set8 from "../../wordsets/words8.json";
 import set9 from "../../wordsets/words9.json";
+
+const log = createLogger("settings");
 const templates: WordSet[] = [
     set1,
     set2,
@@ -79,8 +82,15 @@ interface PersistedSettings {
 const loadPersistedSettings = (): Partial<PersistedSettings> => {
     try {
         const raw = localStorage.getItem(storage_keys.SETTINGS);
-        return raw ? (JSON.parse(raw) as Partial<PersistedSettings>) : {};
-    } catch {
+        const settings = raw
+            ? (JSON.parse(raw) as Partial<PersistedSettings>)
+            : {};
+        log.debug("settings_loaded", { hasPersistedSettings: !!raw });
+        return settings;
+    } catch (err) {
+        log.error("settings_load_failed", {
+            error: err instanceof Error ? err.message : String(err),
+        });
         return {};
     }
 };
@@ -214,11 +224,16 @@ export const SettingsView = (props: SettingsViewProps) => {
                 setLang1Name(parsed.language1 ?? "");
                 setLang2Name(parsed.language2 ?? "");
             } catch {
+                log.error("import_parse_failed", { fileName: file.name });
                 alert(
                     "Could not parse file. Make sure it is a valid JSON word set.",
                 );
             }
         };
+        log.info("import_file_started", {
+            fileName: file.name,
+            fileSize: file.size,
+        });
         reader.readAsText(file);
         // reset so the same file can be re-imported
         e.target.value = "";
@@ -242,6 +257,11 @@ export const SettingsView = (props: SettingsViewProps) => {
             storage_keys.LANGUAGE_SETS,
             JSON.stringify(langSets),
         );
+        log.info("set_saved", {
+            name: languageSet.name,
+            wordCount: languageSet.language1Words.length,
+            totalSets: langSets.length,
+        });
     };
 
     const [isLoadSetModalOpen, setLoadSetIsModalOpen] =
@@ -273,12 +293,17 @@ export const SettingsView = (props: SettingsViewProps) => {
     };
 
     const deleteLanguageSet = (index: number) => {
+        const deleted = languageSets[index];
         var newLanguageSets = languageSets.filter((set, i) => i !== index);
         setLanguageSets(newLanguageSets);
         localStorage.setItem(
             storage_keys.LANGUAGE_SETS,
             JSON.stringify(newLanguageSets),
         );
+        log.info("set_deleted", {
+            name: deleted?.name,
+            remainingSets: newLanguageSets.length,
+        });
     };
 
     const selectLanguageSet = (index: number) => {

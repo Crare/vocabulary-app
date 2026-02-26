@@ -9,6 +9,9 @@ import { ResultsView } from "../Results/ResultsView";
 import { HistoryView } from "../History/HistoryView";
 import { TestResults, TestSettings, TestWord } from "../Testing/types";
 import { saveTestResult } from "../../util/historyStorage";
+import { createLogger } from "../../util/logger";
+
+const log = createLogger("main");
 
 const Main = () => {
     const [view, setView] = useState<
@@ -20,11 +23,34 @@ const Main = () => {
     const [results, setResults] = useState<TestResults | undefined>(undefined);
 
     const startTest = (testSettings: TestSettings) => {
+        log.info("test_started", {
+            wordCount: testSettings.languageSet.language1Words.length,
+            languageSet: testSettings.languageSet.name,
+            testType: testSettings.testType,
+            correctTimesNeeded: testSettings.wordNeedsToGetCorrectTimes,
+            multiSelectChoices: testSettings.multiSelectChoicesAmount,
+            onlySecondLang: testSettings.onlySecondLanguageWordsTested,
+            alternating: testSettings.everySecondTestIsMultiOrWriting,
+        });
         setSettings(testSettings);
         setView("testing");
     };
 
     const endTesting = (testResults: TestResults) => {
+        const totalWords = testResults.wordResults.length;
+        const perfect = testResults.wordResults.filter(
+            (w) =>
+                w.timesFailed === 0 &&
+                w.timesSkipped === 0 &&
+                w.timesCheckedAnswer === 0,
+        ).length;
+        log.info("test_ended", {
+            timeTaken: testResults.timeTaken,
+            totalWords,
+            perfectWords: perfect,
+            score: testResults.score,
+            languageSet: settings?.languageSet.name,
+        });
         if (settings) saveTestResult(testResults, settings);
         setResults(testResults);
         setView("results");
@@ -36,7 +62,14 @@ const Main = () => {
     };
 
     const retestWords = (words: TestWord[]) => {
-        if (!settings) return;
+        if (!settings) {
+            log.warn("retest_no_settings", { wordCount: words.length });
+            return;
+        }
+        log.info("retest_started", {
+            wordCount: words.length,
+            languageSet: settings.languageSet.name,
+        });
         const newSettings: TestSettings = {
             ...settings,
             languageSet: {
@@ -53,6 +86,7 @@ const Main = () => {
         view === "settings" || view === "history" ? view : null;
 
     const onNavigate = (target: NavView) => {
+        log.debug("view_changed", { from: view, to: target });
         setView(target);
         setResults(undefined);
     };

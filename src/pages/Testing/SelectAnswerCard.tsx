@@ -7,7 +7,6 @@ import {
     getAnswerOptionsForDirection,
 } from "./testLogic";
 import { shuffle } from "../../util/helpers";
-import { randomIntFromInterval } from "../../util/helpers";
 import { useEffect, useState } from "react";
 
 interface SelectAnswerCardProps {
@@ -50,17 +49,16 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
             guessDirection,
         );
 
-        var guessOptions: string[] = [];
-        guessOptions.push(correctAnswer);
+        // Collect unique wrong answers, then shuffle and pick from them
+        const uniqueWrongAnswers = [
+            ...new Set(allAnswers.filter((a) => a !== correctAnswer)),
+        ];
+        shuffle(uniqueWrongAnswers);
 
-        for (var i = 0; i < settings.multiSelectChoicesAmount - 1; i++) {
-            let index = randomIntFromInterval(0, testWords.length - 1);
-            let option = allAnswers[index];
-            while (option === correctAnswer || guessOptions.includes(option)) {
-                index = randomIntFromInterval(0, testWords.length - 1);
-                option = allAnswers[index];
-            }
-            guessOptions.push(option);
+        const guessOptions: string[] = [correctAnswer];
+        const needed = settings.multiSelectChoicesAmount - 1;
+        for (let i = 0; i < needed && i < uniqueWrongAnswers.length; i++) {
+            guessOptions.push(uniqueWrongAnswers[i]);
         }
 
         shuffle(guessOptions);

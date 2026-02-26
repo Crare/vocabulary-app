@@ -62,7 +62,7 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
                     value={guessAnswer}
                     onChange={(e) => setGuessAnswer(e.target.value)}
                     placeholder="Type your answer..."
-                    disabled={testState === TestState.CheckedAnswer}
+                    disabled={testState !== undefined}
                     onKeyUp={checkEnterForSendAnswer}
                     size="small"
                     fullWidth

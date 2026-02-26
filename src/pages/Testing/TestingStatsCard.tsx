@@ -1,18 +1,23 @@
 import { Box, Card, Chip, LinearProgress, Typography } from "@mui/material";
-import { TestSettings } from "./types";
+import { TestSettings, TestWord } from "./types";
 import { TimeTaken } from "../../components/TimeTaken";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 interface TestingStatsCardProps {
     settings: TestSettings;
+    testWords: TestWord[];
     wordsLeft: number;
 }
 
 export const TestingStatsCard = (props: TestingStatsCardProps) => {
-    const { settings, wordsLeft } = props;
-    const total = settings.languageSet.language1Words.length;
-    const done = total - wordsLeft;
-    const progress = total > 0 ? (done / total) * 100 : 0;
+    const { settings, testWords, wordsLeft } = props;
+    const correctTimesNeeded = settings.wordNeedsToGetCorrectTimes;
+    const totalNeeded = testWords.length * correctTimesNeeded;
+    const totalCorrect = testWords.reduce(
+        (sum, w) => sum + Math.min(w.timesCorrect, correctTimesNeeded),
+        0,
+    );
+    const progress = totalNeeded > 0 ? (totalCorrect / totalNeeded) * 100 : 0;
 
     return (
         <Card sx={{ p: 3 }}>
@@ -43,10 +48,10 @@ export const TestingStatsCard = (props: TestingStatsCardProps) => {
                     }}
                 >
                     <Typography variant="body2" color="text.secondary">
-                        Progress: {done} / {total} words
+                        Correct: {totalCorrect} / {totalNeeded}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        {wordsLeft} remaining
+                        {wordsLeft} words remaining
                     </Typography>
                 </Box>
                 <LinearProgress
