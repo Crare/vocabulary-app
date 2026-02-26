@@ -58,6 +58,17 @@ export const deleteHistoryEntry = (id: string): void => {
     });
 };
 
+export const deleteHistoryGroup = (languageSetName: string): void => {
+    const updated = loadHistory().filter(
+        (e) => e.languageSetName !== languageSetName,
+    );
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    log.info("group_deleted", {
+        languageSetName,
+        remainingEntries: updated.length,
+    });
+};
+
 export const clearHistory = (): void => {
     localStorage.removeItem(HISTORY_KEY);
     log.info("history_cleared");

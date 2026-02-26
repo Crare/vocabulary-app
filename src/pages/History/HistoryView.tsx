@@ -16,6 +16,7 @@ import { HistoryEntry } from "../Testing/types";
 import {
     clearHistory,
     deleteHistoryEntry,
+    deleteHistoryGroup,
     loadHistory,
 } from "../../util/historyStorage";
 import { calculateTotalScore } from "../Results/resultUtils";
@@ -51,6 +52,13 @@ export const HistoryView = () => {
     const handleDelete = (id: string) => {
         deleteHistoryEntry(id);
         setEntries((prev) => prev.filter((e) => e.id !== id));
+    };
+
+    const handleDeleteGroup = (languageSetName: string) => {
+        deleteHistoryGroup(languageSetName);
+        setEntries((prev) =>
+            prev.filter((e) => e.languageSetName !== languageSetName),
+        );
     };
 
     const handleClearAll = () => {
@@ -191,6 +199,25 @@ export const HistoryView = () => {
                                     </Box>
                                 </AccordionSummary>
                                 <AccordionDetails sx={{ pt: 0 }}>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            justifyContent: "flex-end",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        <Button
+                                            size="small"
+                                            color="error"
+                                            variant="outlined"
+                                            startIcon={<DeleteIcon />}
+                                            onClick={() =>
+                                                handleDeleteGroup(setName)
+                                            }
+                                        >
+                                            Delete group
+                                        </Button>
+                                    </Box>
                                     <ProgressChart entries={groupEntries} />
                                     {groupEntries.map((entry) => (
                                         <Accordion
