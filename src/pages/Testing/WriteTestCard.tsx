@@ -3,7 +3,7 @@ import SendIcon from "@mui/icons-material/Send";
 import { GuessWordTitle } from "./GuessWordTitle";
 import { TestOption, TestState, TestWord } from "./types";
 import { GuessDirection } from "./testLogic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface WriteTestCardProps {
     testState: TestState | undefined;
@@ -25,6 +25,7 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
     } = props;
 
     const [guessAnswer, setGuessAnswer] = useState<string>("");
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const checkEnterForSendAnswer = (e: React.KeyboardEvent) => {
         if (e.code === "Enter" && guessAnswer) {
@@ -37,6 +38,11 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
     useEffect(() => {
         if (testState === TestState.Success || testState === TestState.Failed) {
             setGuessAnswer("");
+        }
+        if (testState === undefined) {
+            // Small delay to ensure the input is enabled before focusing
+            const timer = setTimeout(() => inputRef.current?.focus(), 50);
+            return () => clearTimeout(timer);
         }
     }, [testState]);
 
@@ -59,6 +65,7 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
                 }}
             >
                 <TextField
+                    inputRef={inputRef}
                     value={guessAnswer}
                     onChange={(e) => setGuessAnswer(e.target.value)}
                     placeholder="Type your answer..."
