@@ -1,7 +1,13 @@
 import { Box, Button, Card, Chip, Grid, Typography } from "@mui/material";
 import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
 import { TestResults, TestWord } from "../Testing/types";
-import { calculateScore, calculatePercentage } from "./resultUtils";
+import {
+    calculateScore,
+    calculatePercentage,
+    calculateAvgAnswerTime,
+    formatSeconds,
+    calculateOverallAvgTime,
+} from "./resultUtils";
 import MoodIcon from "@mui/icons-material/Mood";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useState } from "react";
@@ -9,6 +15,7 @@ import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
 import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
 import ReplayIcon from "@mui/icons-material/Replay";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import AvTimerIcon from "@mui/icons-material/AvTimer";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 
 const columns: GridColDef[] = [
@@ -25,6 +32,14 @@ const columns: GridColDef[] = [
         field: "timesSkipped",
         headerName: "Skipped",
         flex: 0.7,
+    },
+    {
+        field: "avgTime",
+        headerName: "Avg Time",
+        flex: 0.7,
+        valueGetter: (_value, row) => calculateAvgAnswerTime(row),
+        valueFormatter: (value: number) =>
+            value > 0 ? formatSeconds(value) : "-",
     },
     {
         field: "score",
@@ -115,6 +130,11 @@ export const ResultsView = (props: ResultsViewProps) => {
                     <Chip
                         icon={<AccessTimeIcon />}
                         label={results.timeTaken}
+                        variant="outlined"
+                    />
+                    <Chip
+                        icon={<AvTimerIcon />}
+                        label={`Avg ${formatSeconds(calculateOverallAvgTime(results.wordResults))}/answer`}
                         variant="outlined"
                     />
                 </Box>

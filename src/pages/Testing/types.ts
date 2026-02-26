@@ -23,6 +23,8 @@ export interface TestWord {
     timesFailed: number;
     timesSkipped: number;
     timesCheckedAnswer: number;
+    totalAnswerTimeMs: number;
+    answerAttempts: number;
 }
 
 export enum TestOption {

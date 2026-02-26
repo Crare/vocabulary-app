@@ -49,6 +49,7 @@ export const TestingView = (props: TestingViewProps) => {
     const testWordsRef = useRef<TestWord[]>([]);
     const questionIndexRef = useRef(0);
     const isAnsweringRef = useRef(false); // hard guard against double submission
+    const wordStartTimeRef = useRef<number>(Date.now());
 
     // UI state (trigger re-renders)
     const [guessWord, setGuessWord] = useState<TestWord | undefined>(undefined);
@@ -117,6 +118,7 @@ export const TestingView = (props: TestingViewProps) => {
         setTestState(undefined);
         setCorrectAnswerValue(undefined);
         isAnsweringRef.current = false;
+        wordStartTimeRef.current = Date.now();
     }, [finishTest]); // finishTest is stable (no deps), so advanceToNext is also stable
 
     // Initialise once on mount
@@ -131,6 +133,8 @@ export const TestingView = (props: TestingViewProps) => {
                 timesFailed: 0,
                 timesSkipped: 0,
                 timesCheckedAnswer: 0,
+                totalAnswerTimeMs: 0,
+                answerAttempts: 0,
             }),
         );
         testWordsRef.current = words;
@@ -156,6 +160,7 @@ export const TestingView = (props: TestingViewProps) => {
         setWordsLeft(remaining.length);
         setTestOption(chooseTestOption(s, 0));
         setGuessDirection(chooseGuessDirection(s));
+        wordStartTimeRef.current = Date.now();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -188,6 +193,10 @@ export const TestingView = (props: TestingViewProps) => {
             direction: guessDirection,
         });
 
+        const elapsed = Date.now() - wordStartTimeRef.current;
+        guessWord.totalAnswerTimeMs += elapsed;
+        guessWord.answerAttempts += 1;
+
         if (correct) {
             guessWord.timesCorrect += 1;
             setTestState(TestState.Success);
@@ -202,6 +211,9 @@ export const TestingView = (props: TestingViewProps) => {
     const skip = () => {
         setHasInteracted(true);
         if (guessWord) {
+            const elapsed = Date.now() - wordStartTimeRef.current;
+            guessWord.totalAnswerTimeMs += elapsed;
+            guessWord.answerAttempts += 1;
             guessWord.timesSkipped += 1;
             log.debug("word_skipped", {
                 word: guessWord.lang1Word,
@@ -214,6 +226,9 @@ export const TestingView = (props: TestingViewProps) => {
     const checkCorrectAnswer = () => {
         if (!guessWord) return;
         setHasInteracted(true);
+        const elapsed = Date.now() - wordStartTimeRef.current;
+        guessWord.totalAnswerTimeMs += elapsed;
+        guessWord.answerAttempts += 1;
         guessWord.timesCheckedAnswer += 1;
         const answer = getExpectedAnswer(guessWord, guessDirection);
         log.debug("answer_checked", {

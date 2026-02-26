@@ -17,10 +17,17 @@ import {
     deleteHistoryEntry,
     loadHistory,
 } from "../../util/historyStorage";
-import { calculateScore, calculatePercentage } from "../Results/resultUtils";
+import {
+    calculateScore,
+    calculatePercentage,
+    calculateAvgAnswerTime,
+    formatSeconds,
+    calculateOverallAvgTime,
+} from "../Results/resultUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import AvTimerIcon from "@mui/icons-material/AvTimer";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 
@@ -40,6 +47,14 @@ const wordColumns: GridColDef[] = [
         headerName: "Accuracy",
         flex: 0.7,
         valueGetter: (_value, row: TestWord) => `${calculatePercentage(row)}%`,
+    },
+    {
+        field: "avgTime",
+        headerName: "Avg Time",
+        flex: 0.7,
+        valueGetter: (_value, row: TestWord) => calculateAvgAnswerTime(row),
+        valueFormatter: (value: number) =>
+            value > 0 ? formatSeconds(value) : "-",
     },
 ];
 
@@ -157,6 +172,12 @@ export const HistoryView = () => {
                                         <Chip
                                             icon={<AccessTimeIcon />}
                                             label={entry.timeTaken}
+                                            size="small"
+                                            variant="outlined"
+                                        />
+                                        <Chip
+                                            icon={<AvTimerIcon />}
+                                            label={`Avg ${formatSeconds(calculateOverallAvgTime(entry.wordResults))}/answer`}
                                             size="small"
                                             variant="outlined"
                                         />
