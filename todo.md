@@ -1,18 +1,9 @@
 # TODO-list
 
-## do now
-
-- update look
-- add templates
-
 ## todos
 
-basically MVP of what was done in the angular version of the app: https://github.com/Crare/VocabularyTeacher
-
 - add option to select in the results-page what words to test again.
-
-# ideas-list
-
+- add option to upload templates to their computer.
 - add language titles which language you need to answer. maybe use flag-icons.
 - add templates to use for testing
 - audio test, text to speech. user listens audio of the text and writes it.
@@ -22,4 +13,4 @@ basically MVP of what was done in the angular version of the app: https://github
 - make the header smaller, make it navbar and add settings in there.
 - add in the navbar a page to check previous test-results.
 
-# bugs:
+## bugs:
