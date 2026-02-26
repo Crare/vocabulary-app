@@ -20,7 +20,6 @@ import {
     chooseGuessDirection,
     getExpectedAnswer,
     isAnswerCorrect,
-    countWordsLeft,
 } from "./testLogic";
 
 interface TestingViewProps {
@@ -47,58 +46,38 @@ export const TestingView = (props: TestingViewProps) => {
         useState<GuessDirection>("lang1to2");
 
     const setupWords = () => {
-        if (!settings) {
-            // console.log("here! setupWords()");
-            return;
-        }
-        // console.log("setupWords()");
-        // console.log("settings", settings);
-        // console.log("testWords", testWords);
-        // console.log("wordsLeft", wordsLeft);
-        var words = settings.languageSet.language1Words.map(
-            (lang1Word, index) => {
-                return {
-                    id: index,
-                    lang1Word: lang1Word,
-                    lang2Word: settings.languageSet.language2Words[index],
-                    timesCorrect: 0,
-                    timesFailed: 0,
-                    timesSkipped: 0,
-                    timesCheckedAnswer: 0,
-                };
-            },
+        if (!settings) return;
+        const words = settings.languageSet.language1Words.map(
+            (lang1Word, index) => ({
+                id: index,
+                lang1Word,
+                lang2Word: settings.languageSet.language2Words[index],
+                timesCorrect: 0,
+                timesFailed: 0,
+                timesSkipped: 0,
+                timesCheckedAnswer: 0,
+            }),
         );
-        // console.log("words", words);
         setTestWords(words);
         setWordsLeft(words.length);
     };
     useEffect(() => {
         setupWords();
-    }, [settings]);
-    useEffect(() => {
-        setupWords();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const chooseWordForGuessing = () => {
-        if (wordsLeft === 0) {
+        if (!testWords) return;
+        const remaining = testWords.filter(
+            (w) => w.timesCorrect < settings.wordNeedsToGetCorrectTimes,
+        );
+        if (remaining.length === 0) {
             endTesting();
-        }
-        // console.log("chooseWordForGuessing()");
-        if (!testWords) {
-            // console.log("HERE! testWords", testWords);
             return;
         }
-        let index = randomIntFromInterval(0, testWords!.length - 1);
-        let gWord = testWords![index];
-        while (
-            gWord.timesCorrect === settings.wordNeedsToGetCorrectTimes &&
-            guessWord !== gWord
-        ) {
-            index = randomIntFromInterval(0, testWords!.length - 1);
-            gWord = testWords![index];
-        }
-        // console.log("gWord", gWord);
-        setGuessWord(gWord);
+        const index = randomIntFromInterval(0, remaining.length - 1);
+        setGuessWord(remaining[index]);
+        setWordsLeft(remaining.length);
     };
     useEffect(() => {
         chooseWordForGuessing();
@@ -121,20 +100,6 @@ export const TestingView = (props: TestingViewProps) => {
     const chooseOption = (option: string) => {
         answer(option);
     };
-
-    const checkHowManyWordsLeft = () => {
-        if (!testWords) {
-            return;
-        }
-        setWordsLeft(
-            countWordsLeft(testWords, settings.wordNeedsToGetCorrectTimes),
-        );
-    };
-    useEffect(() => {
-        if (wordsLeft === 0) {
-            endTesting();
-        }
-    }, [wordsLeft]);
 
     const answer = (guess: string) => {
         if (!guessWord) {
@@ -161,7 +126,6 @@ export const TestingView = (props: TestingViewProps) => {
         setQuestionIndex((prev) => prev + 1);
         chooseWordForGuessing();
         setCorrectAnswerValue(undefined);
-        checkHowManyWordsLeft();
     };
 
     const skip = () => {
