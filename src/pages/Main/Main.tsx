@@ -110,7 +110,11 @@ const Main = () => {
                 justifyContent={"center"}
                 height={"100%"}
             >
-                <Header activeTab={activeTab} onNavigate={onNavigate} />
+                <Header
+                    activeTab={activeTab}
+                    onNavigate={onNavigate}
+                    disabled={view === "testing"}
+                />
 
                 {view === "wordlists" ? (
                     <SettingsView onStartTest={startTest} />

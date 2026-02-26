@@ -31,9 +31,10 @@ export type NavView = "wordlists" | "settings" | "history" | "credits";
 interface HeaderProps {
     activeTab: NavView | null;
     onNavigate: (view: NavView) => void;
+    disabled?: boolean;
 }
 
-export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
+export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
     const { mode, toggleMode } = useThemeMode();
     const { volume, setVolume } = useSound();
     const [volumeAnchor, setVolumeAnchor] = useState<HTMLButtonElement | null>(
@@ -63,74 +64,86 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                 <Typography
                     variant="h5"
                     fontWeight={700}
-                    onClick={() => onNavigate("wordlists")}
+                    onClick={
+                        disabled ? undefined : () => onNavigate("wordlists")
+                    }
                     sx={{
                         color: colors.white,
                         flexGrow: 1,
                         letterSpacing: 0.5,
-                        cursor: "pointer",
+                        cursor: disabled ? "default" : "pointer",
                     }}
                 >
                     Vocabulary Trainer
                 </Typography>
-                <Box>
-                    <Tabs
-                        value={activeTab ?? false}
-                        onChange={(_e, val: NavView) => onNavigate(val)}
-                        textColor="inherit"
-                        TabIndicatorProps={{
-                            style: {
-                                background: colors.white,
-                                height: 3,
-                                borderRadius: 2,
-                            },
-                        }}
-                    >
-                        <Tab
-                            value="wordlists"
-                            label="Word Lists"
-                            icon={<MenuBookIcon />}
-                            iconPosition="start"
-                            sx={{
-                                color: alpha.white85,
-                                "&.Mui-selected": { color: colors.white },
-                                minHeight: 48,
-                                fontSize: "0.8rem",
-                            }}
-                        />
-                        <Tab
-                            value="history"
-                            label="History"
-                            icon={<HistoryIcon />}
-                            iconPosition="start"
-                            sx={{
-                                color: alpha.white85,
-                                "&.Mui-selected": { color: colors.white },
-                                minHeight: 48,
-                                fontSize: "0.8rem",
-                            }}
-                        />
-                        <Tab
-                            value="settings"
-                            label="Settings"
-                            icon={<SettingsIcon />}
-                            iconPosition="start"
-                            sx={{
-                                color: alpha.white85,
-                                "&.Mui-selected": { color: colors.white },
-                                minHeight: 48,
-                                fontSize: "0.8rem",
-                            }}
-                        />
-                    </Tabs>
-                </Box>
-                <IconButton
-                    onClick={() => onNavigate("credits")}
-                    sx={{ color: alpha.white85, ml: 0.5 }}
-                    aria-label="Credits"
-                >
-                    <InfoOutlinedIcon />
-                </IconButton>
+                {!disabled && (
+                    <>
+                        <Box>
+                            <Tabs
+                                value={activeTab ?? false}
+                                onChange={(_e, val: NavView) => onNavigate(val)}
+                                textColor="inherit"
+                                TabIndicatorProps={{
+                                    style: {
+                                        background: colors.white,
+                                        height: 3,
+                                        borderRadius: 2,
+                                    },
+                                }}
+                            >
+                                <Tab
+                                    value="wordlists"
+                                    label="Word Lists"
+                                    icon={<MenuBookIcon />}
+                                    iconPosition="start"
+                                    sx={{
+                                        color: alpha.white85,
+                                        "&.Mui-selected": {
+                                            color: colors.white,
+                                        },
+                                        minHeight: 48,
+                                        fontSize: "0.8rem",
+                                    }}
+                                />
+                                <Tab
+                                    value="history"
+                                    label="History"
+                                    icon={<HistoryIcon />}
+                                    iconPosition="start"
+                                    sx={{
+                                        color: alpha.white85,
+                                        "&.Mui-selected": {
+                                            color: colors.white,
+                                        },
+                                        minHeight: 48,
+                                        fontSize: "0.8rem",
+                                    }}
+                                />
+                                <Tab
+                                    value="settings"
+                                    label="Settings"
+                                    icon={<SettingsIcon />}
+                                    iconPosition="start"
+                                    sx={{
+                                        color: alpha.white85,
+                                        "&.Mui-selected": {
+                                            color: colors.white,
+                                        },
+                                        minHeight: 48,
+                                        fontSize: "0.8rem",
+                                    }}
+                                />
+                            </Tabs>
+                        </Box>
+                        <IconButton
+                            onClick={() => onNavigate("credits")}
+                            sx={{ color: alpha.white85, ml: 0.5 }}
+                            aria-label="Credits"
+                        >
+                            <InfoOutlinedIcon />
+                        </IconButton>
+                    </>
+                )}
                 <IconButton
                     onClick={(e) => setVolumeAnchor(e.currentTarget)}
                     sx={{ color: alpha.white85, ml: 0.5 }}
