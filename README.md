@@ -51,6 +51,22 @@ Opens at http://localhost:3000/vocabulary-app/
 npm run build
 ```
 
+## Test
+
+Tests live in the `tests/` folder and use [Vitest](https://vitest.dev/).
+
+Run once:
+
+```sh
+npm test -- --run
+```
+
+Run in watch mode:
+
+```sh
+npm test
+```
+
 ## Preview production build locally
 
 ```sh

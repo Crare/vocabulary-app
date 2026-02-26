@@ -14,6 +14,14 @@ import { SelectAnswerCard } from "./SelectAnswerCard";
 import { TestingStatsCard } from "./TestingStatsCard";
 import { TestBottomButtons } from "./TestBottomButtons";
 import { randomIntFromInterval } from "../../util/helpers";
+import {
+    GuessDirection,
+    chooseTestOption,
+    chooseGuessDirection,
+    getExpectedAnswer,
+    isAnswerCorrect,
+    countWordsLeft,
+} from "./testLogic";
 
 interface TestingViewProps {
     settings: TestSettings;
@@ -31,12 +39,12 @@ export const TestingView = (props: TestingViewProps) => {
     );
     const [wordsLeft, setWordsLeft] = useState<number>(-1);
     const [guessWord, setGuessWord] = useState<TestWord | undefined>(undefined);
-    // const [success, setSuccess] = useState<boolean>(false);
-    // const [failed, setFailed] = useState<boolean>(false);
-    // const [checkedAnswer, setCheckedAnswer] = useState<boolean>(false);
     const [testState, setTestState] = useState<TestState | undefined>(
         undefined,
     );
+    const [questionIndex, setQuestionIndex] = useState<number>(0);
+    const [guessDirection, setGuessDirection] =
+        useState<GuessDirection>("lang1to2");
 
     const setupWords = () => {
         if (!settings) {
@@ -99,24 +107,12 @@ export const TestingView = (props: TestingViewProps) => {
     // console.log("guessWord", guessWord);
     // console.log("multiSelectGuessOptions", multiSelectGuessOptions);
 
-    const chooseTestOption = () => {
-        if (settings.testType === "writing") {
-            setTestOption(TestOption.WriteCorrectAnswer);
-        } else if (settings.testType === "multi-select") {
-            setTestOption(TestOption.SelectFromMultiple);
-        } else {
-            // "both" — alternate randomly
-            const index = randomIntFromInterval(0, 1);
-            setTestOption(
-                index === 0
-                    ? TestOption.WriteCorrectAnswer
-                    : TestOption.SelectFromMultiple,
-            );
-        }
-    };
     useEffect(() => {
-        chooseTestOption();
-    }, [testWords, guessWord]);
+        if (guessWord) {
+            setTestOption(chooseTestOption(settings, questionIndex));
+            setGuessDirection(chooseGuessDirection(settings));
+        }
+    }, [guessWord]);
 
     const sendAnswer = (value: string) => {
         answer(value);
@@ -127,21 +123,12 @@ export const TestingView = (props: TestingViewProps) => {
     };
 
     const checkHowManyWordsLeft = () => {
-        console.log("checkHowManyWordsLeft");
         if (!testWords) {
-            console.log("here! checkHowManyWordsLeft, testWords", testWords);
             return;
         }
-        console.log("here2! checkHowManyWordsLeft");
-        const doneWords = testWords?.filter(
-            (w) => w.timesCorrect >= settings.wordNeedsToGetCorrectTimes,
+        setWordsLeft(
+            countWordsLeft(testWords, settings.wordNeedsToGetCorrectTimes),
         );
-        console.log("testWords", testWords);
-        console.log("settings", settings);
-        console.log("doneWords", doneWords);
-        const wordsleftToDo = testWords?.length - doneWords?.length;
-        console.log("wordsleftToDo", wordsleftToDo);
-        setWordsLeft(wordsleftToDo);
     };
     useEffect(() => {
         if (wordsLeft === 0) {
@@ -153,14 +140,10 @@ export const TestingView = (props: TestingViewProps) => {
         if (!guessWord) {
             return;
         }
-        if (guess === guessWord?.lang2Word) {
-            // success
-            // console.log("correct answer!");
+        if (isAnswerCorrect(guess, guessWord, guessDirection)) {
             guessWord.timesCorrect += 1;
             setTestState(TestState.Success);
         } else {
-            // failed
-            // console.log("wrong answer!");
             guessWord.timesFailed += 1;
             setTestState(TestState.Failed);
         }
@@ -175,6 +158,7 @@ export const TestingView = (props: TestingViewProps) => {
 
     const next = () => {
         setTestState(undefined);
+        setQuestionIndex((prev) => prev + 1);
         chooseWordForGuessing();
         setCorrectAnswerValue(undefined);
         checkHowManyWordsLeft();
@@ -194,7 +178,7 @@ export const TestingView = (props: TestingViewProps) => {
         }
         guessWord!.timesCheckedAnswer += 1;
         setTestState(TestState.CheckedAnswer);
-        setCorrectAnswerValue(guessWord?.lang2Word!);
+        setCorrectAnswerValue(getExpectedAnswer(guessWord, guessDirection));
     };
 
     const endTesting = () => {
@@ -207,7 +191,6 @@ export const TestingView = (props: TestingViewProps) => {
             score: 0,
             wordResults: testWords,
         };
-        console.log("results", results);
         onEndTesting(results);
     };
 
@@ -215,20 +198,23 @@ export const TestingView = (props: TestingViewProps) => {
         <Grid container className="content" gap={2} flexDirection={"column"}>
             <TestingStatsCard settings={settings} wordsLeft={wordsLeft} />
 
-            <GuessResult testState={testState} guessWord={guessWord} />
+            <GuessResult
+                testState={testState}
+                guessWord={guessWord}
+                guessDirection={guessDirection}
+            />
 
             {testOption === TestOption.WriteCorrectAnswer && guessWord ? (
-                // {true && guessWord ? (
                 <WriteTestCard
                     testState={testState}
                     guessWord={guessWord}
                     onSendAnswer={sendAnswer}
                     testOption={TestOption.WriteCorrectAnswer}
+                    guessDirection={guessDirection}
                 />
             ) : null}
 
             {testOption === TestOption.SelectFromMultiple && guessWord ? (
-                // {true && guessWord ? (
                 <SelectAnswerCard
                     testState={testState}
                     guessWord={guessWord}
@@ -237,6 +223,7 @@ export const TestingView = (props: TestingViewProps) => {
                     settings={settings}
                     testWords={testWords}
                     wordsLeft={wordsLeft}
+                    guessDirection={guessDirection}
                 />
             ) : null}
 

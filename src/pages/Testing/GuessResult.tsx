@@ -2,20 +2,25 @@ import { Box, Typography } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import { TestState, TestWord } from "./types";
+import { GuessDirection, getExpectedAnswer } from "./testLogic";
 
 interface GuessResultProps {
     testState: TestState | undefined;
     guessWord: TestWord | undefined;
+    guessDirection?: GuessDirection;
 }
 
 export const GuessResult = (props: GuessResultProps) => {
-    const { testState, guessWord } = props;
+    const { testState, guessWord, guessDirection = "lang1to2" } = props;
 
     if (testState !== TestState.Success && testState !== TestState.Failed) {
         return null;
     }
 
     const isSuccess = testState === TestState.Success;
+    const answer = guessWord
+        ? getExpectedAnswer(guessWord, guessDirection)
+        : "";
 
     return (
         <Box
@@ -54,7 +59,7 @@ export const GuessResult = (props: GuessResultProps) => {
                 }}
             >
                 {isSuccess ? "Correct!" : "Incorrect!"} Answer:{" "}
-                <strong>"{guessWord?.lang2Word}"</strong>
+                <strong>"{answer}"</strong>
             </Typography>
         </Box>
     );

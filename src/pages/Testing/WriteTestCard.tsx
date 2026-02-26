@@ -2,6 +2,7 @@ import { Box, Button, Card, TextField } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { GuessWordTitle } from "./GuessWordTitle";
 import { TestOption, TestState, TestWord } from "./types";
+import { GuessDirection } from "./testLogic";
 import { useEffect, useState } from "react";
 
 interface WriteTestCardProps {
@@ -9,10 +10,17 @@ interface WriteTestCardProps {
     guessWord: TestWord;
     testOption: TestOption;
     onSendAnswer: (value: string) => void;
+    guessDirection?: GuessDirection;
 }
 
 export const WriteTestCard = (props: WriteTestCardProps) => {
-    const { guessWord, testOption, testState, onSendAnswer } = props;
+    const {
+        guessWord,
+        testOption,
+        testState,
+        onSendAnswer,
+        guessDirection = "lang1to2",
+    } = props;
 
     const [guessAnswer, setGuessAnswer] = useState<string>("");
 
@@ -32,7 +40,11 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
 
     return (
         <Card sx={{ p: 3 }}>
-            <GuessWordTitle guessWord={guessWord} testOption={testOption} />
+            <GuessWordTitle
+                guessWord={guessWord}
+                testOption={testOption}
+                guessDirection={guessDirection}
+            />
             <Box
                 sx={{
                     display: "flex",

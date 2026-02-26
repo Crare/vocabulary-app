@@ -1,7 +1,13 @@
 import { Box, Button, Card, Grid } from "@mui/material";
 import { GuessWordTitle } from "./GuessWordTitle";
 import { TestOption, TestSettings, TestState, TestWord } from "./types";
-import { randomIntFromInterval, shuffle } from "../../util/helpers";
+import {
+    GuessDirection,
+    getExpectedAnswer,
+    getAnswerOptionsForDirection,
+} from "./testLogic";
+import { shuffle } from "../../util/helpers";
+import { randomIntFromInterval } from "../../util/helpers";
 import { useEffect, useState } from "react";
 
 interface SelectAnswerCardProps {
@@ -12,6 +18,7 @@ interface SelectAnswerCardProps {
     settings: TestSettings;
     testWords: TestWord[] | undefined;
     onChooseOption: (value: string) => void;
+    guessDirection?: GuessDirection;
 }
 
 export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
@@ -23,6 +30,7 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
         settings,
         testWords,
         onChooseOption,
+        guessDirection = "lang1to2",
     } = props;
 
     const [multiSelectGuessOptions, setMultiSelectGuessOptions] = useState<
@@ -30,20 +38,27 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
     >([]);
 
     const chooseMultiselectGuessOptions = () => {
-        if (wordsLeft === 0) {
+        if (wordsLeft === 0 || !testWords) {
             return;
         }
+
+        const correctAnswer = getExpectedAnswer(guessWord, guessDirection);
+        const allAnswers = getAnswerOptionsForDirection(
+            testWords,
+            guessDirection,
+        );
+
         var guessOptions: string[] = [];
-        guessOptions.push(guessWord?.lang2Word!);
+        guessOptions.push(correctAnswer);
 
         for (var i = 0; i < settings.multiSelectChoicesAmount - 1; i++) {
-            let index = randomIntFromInterval(0, testWords!.length - 1);
-            let gWord = testWords![index];
-            while (gWord === guessWord) {
-                index = randomIntFromInterval(0, testWords!.length - 1);
-                gWord = testWords![index];
+            let index = randomIntFromInterval(0, testWords.length - 1);
+            let option = allAnswers[index];
+            while (option === correctAnswer || guessOptions.includes(option)) {
+                index = randomIntFromInterval(0, testWords.length - 1);
+                option = allAnswers[index];
             }
-            guessOptions.push(gWord.lang2Word);
+            guessOptions.push(option);
         }
 
         shuffle(guessOptions);
@@ -54,11 +69,15 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
             chooseMultiselectGuessOptions();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [testWords, guessWord]);
+    }, [testWords, guessWord, guessDirection]);
 
     return (
         <Card sx={{ p: 3 }}>
-            <GuessWordTitle guessWord={guessWord} testOption={testOption} />
+            <GuessWordTitle
+                guessWord={guessWord}
+                testOption={testOption}
+                guessDirection={guessDirection}
+            />
             <Grid container gap={1.5} justifyContent={"center"}>
                 {multiSelectGuessOptions.map((option, index) => (
                     <Box key={index}>

@@ -1,0 +1,108 @@
+import { TestOption, TestSettings, TestWord } from "./types";
+import { randomIntFromInterval } from "../../util/helpers";
+
+/**
+ * The direction of the question: which language is shown vs which is the answer.
+ */
+export type GuessDirection = "lang1to2" | "lang2to1";
+
+/**
+ * Determine which test option (writing or multi-select) to use for the current question.
+ */
+export function chooseTestOption(
+    settings: TestSettings,
+    questionIndex: number,
+): TestOption {
+    if (settings.testType === "writing") {
+        return TestOption.WriteCorrectAnswer;
+    }
+    if (settings.testType === "multi-select") {
+        return TestOption.SelectFromMultiple;
+    }
+
+    // testType === "both"
+    if (settings.everySecondTestIsMultiOrWriting) {
+        // Strictly alternate: even index = writing, odd index = multi-select
+        return questionIndex % 2 === 0
+            ? TestOption.WriteCorrectAnswer
+            : TestOption.SelectFromMultiple;
+    }
+
+    // Random choice
+    return randomIntFromInterval(0, 1) === 0
+        ? TestOption.WriteCorrectAnswer
+        : TestOption.SelectFromMultiple;
+}
+
+/**
+ * Determine the direction of the question.
+ *
+ * - `onlySecondLanguageWordsTested = true`:
+ *   Always show lang1 (your language), answer with lang2 (the foreign language).
+ *
+ * - `onlySecondLanguageWordsTested = false` (default):
+ *   Randomly alternate between both directions.
+ */
+export function chooseGuessDirection(settings: TestSettings): GuessDirection {
+    if (settings.onlySecondLanguageWordsTested) {
+        return "lang1to2";
+    }
+    // Test both directions randomly
+    return randomIntFromInterval(0, 1) === 0 ? "lang1to2" : "lang2to1";
+}
+
+/**
+ * Get the word shown to the user (the question).
+ */
+export function getDisplayWord(
+    word: TestWord,
+    direction: GuessDirection,
+): string {
+    return direction === "lang1to2" ? word.lang1Word : word.lang2Word;
+}
+
+/**
+ * Get the expected answer for the current direction.
+ */
+export function getExpectedAnswer(
+    word: TestWord,
+    direction: GuessDirection,
+): string {
+    return direction === "lang1to2" ? word.lang2Word : word.lang1Word;
+}
+
+/**
+ * Check if the user's guess matches the expected answer.
+ */
+export function isAnswerCorrect(
+    guess: string,
+    word: TestWord,
+    direction: GuessDirection,
+): boolean {
+    return guess === getExpectedAnswer(word, direction);
+}
+
+/**
+ * Get the answer options for multi-select from the word list for the current direction.
+ */
+export function getAnswerOptionsForDirection(
+    words: TestWord[],
+    direction: GuessDirection,
+): string[] {
+    return words.map((w) =>
+        direction === "lang1to2" ? w.lang2Word : w.lang1Word,
+    );
+}
+
+/**
+ * Count how many words still need to reach the correct-times threshold.
+ */
+export function countWordsLeft(
+    words: TestWord[],
+    correctTimesNeeded: number,
+): number {
+    const doneCount = words.filter(
+        (w) => w.timesCorrect >= correctTimesNeeded,
+    ).length;
+    return words.length - doneCount;
+}
