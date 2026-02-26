@@ -6,7 +6,7 @@ import { SettingsView } from "../Settings/SettingsView";
 import { useState } from "react";
 import { TestingView } from "../Testing/TestingView";
 import { ResultsView } from "../Results/ResultsView";
-import { TestResults, TestSettings } from "../Testing/types";
+import { TestResults, TestSettings, TestWord } from "../Testing/types";
 
 const Main = () => {
     const [view, setView] = useState<"settings" | "testing" | "results">(
@@ -30,6 +30,20 @@ const Main = () => {
     const backToStart = () => {
         setView("settings");
         setResults(undefined);
+    };
+
+    const retestWords = (words: TestWord[]) => {
+        if (!settings) return;
+        const newSettings: TestSettings = {
+            ...settings,
+            languageSet: {
+                ...settings.languageSet,
+                language1Words: words.map((w) => w.lang1Word),
+                language2Words: words.map((w) => w.lang2Word),
+            },
+        };
+        setResults(undefined);
+        startTest(newSettings);
     };
 
     return (
@@ -56,6 +70,7 @@ const Main = () => {
                     <ResultsView
                         results={results}
                         onBackToStart={backToStart}
+                        onRetestWords={retestWords}
                     />
                 ) : null}
             </Grid>

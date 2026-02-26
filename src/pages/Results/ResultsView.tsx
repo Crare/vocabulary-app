@@ -1,8 +1,10 @@
 import { Box, Button, Card, Chip, Grid, Typography } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { TestResults } from "../Testing/types";
+import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
+import { TestResults, TestWord } from "../Testing/types";
 import { calculateScore, calculatePercentage } from "./resultUtils";
 import MoodIcon from "@mui/icons-material/Mood";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useState } from "react";
 import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
 import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
 import ReplayIcon from "@mui/icons-material/Replay";
@@ -71,12 +73,21 @@ const columns: GridColDef[] = [
 interface ResultsViewProps {
     results: TestResults;
     onBackToStart: () => void;
+    onRetestWords: (words: TestWord[]) => void;
 }
 
 export const ResultsView = (props: ResultsViewProps) => {
-    const { results, onBackToStart } = props;
+    const { results, onBackToStart, onRetestWords } = props;
 
     const paginationModel = { page: 0, pageSize: 20 };
+    const [rowSelection, setRowSelection] = useState<GridRowSelectionModel>({
+        type: "include",
+        ids: new Set(),
+    });
+
+    const selectedWords = results.wordResults.filter((w) =>
+        rowSelection.ids.has(w.id),
+    );
 
     return (
         <Grid container className="content" gap={2} flexDirection={"column"}>
@@ -112,6 +123,8 @@ export const ResultsView = (props: ResultsViewProps) => {
                     initialState={{ pagination: { paginationModel } }}
                     pageSizeOptions={[5, 10, 20]}
                     checkboxSelection
+                    rowSelectionModel={rowSelection}
+                    onRowSelectionModelChange={setRowSelection}
                     sx={{
                         border: "1px solid rgba(148, 163, 184, 0.15)",
                         borderRadius: 3,
@@ -125,7 +138,27 @@ export const ResultsView = (props: ResultsViewProps) => {
                 />
             </Card>
 
-            <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 2,
+                    flexWrap: "wrap",
+                }}
+            >
+                {/* {selectedWords.length > 0 && ( */}
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    disabled={selectedWords.length <= 1}
+                    onClick={() => onRetestWords(selectedWords)}
+                    startIcon={<RefreshIcon />}
+                    size="large"
+                    sx={{ px: 5, py: 1.5 }}
+                >
+                    Test selected ({selectedWords.length})
+                </Button>
+                {/* )} */}
                 <Button
                     variant="contained"
                     onClick={onBackToStart}
