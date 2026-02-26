@@ -34,6 +34,8 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AvTimerIcon from "@mui/icons-material/AvTimer";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import { WordScoreChart } from "../../components/WordScoreChart";
+import { ProgressChart } from "../../components/ProgressChart";
 
 const wordColumns: GridColDef[] = [
     { field: "lang1Word", headerName: "Language 1", flex: 1 },
@@ -219,6 +221,7 @@ export const HistoryView = () => {
                                     </Box>
                                 </AccordionSummary>
                                 <AccordionDetails sx={{ pt: 0 }}>
+                                    <ProgressChart entries={groupEntries} />
                                     {groupEntries.map((entry) => (
                                         <Accordion
                                             key={entry.id}
@@ -302,6 +305,11 @@ export const HistoryView = () => {
                                                 </Box>
                                             </AccordionSummary>
                                             <AccordionDetails>
+                                                <WordScoreChart
+                                                    wordResults={
+                                                        entry.wordResults
+                                                    }
+                                                />
                                                 <DataGrid
                                                     rows={entry.wordResults}
                                                     columns={wordColumns}

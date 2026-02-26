@@ -119,6 +119,7 @@ const Main = () => {
                 {view === "results" && results ? (
                     <ResultsView
                         results={results}
+                        languageSetName={settings?.languageSet.name ?? ""}
                         onBackToStart={backToStart}
                         onRetestWords={retestWords}
                     />

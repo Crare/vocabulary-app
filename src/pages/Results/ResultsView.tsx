@@ -10,7 +10,10 @@ import {
 } from "./resultUtils";
 import MoodIcon from "@mui/icons-material/Mood";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { loadHistory } from "../../util/historyStorage";
+import { ProgressChart } from "../../components/ProgressChart";
+import { WordScoreChart } from "../../components/WordScoreChart";
 import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
 import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
 import ReplayIcon from "@mui/icons-material/Replay";
@@ -87,12 +90,19 @@ const columns: GridColDef[] = [
 
 interface ResultsViewProps {
     results: TestResults;
+    languageSetName: string;
     onBackToStart: () => void;
     onRetestWords: (words: TestWord[]) => void;
 }
 
 export const ResultsView = (props: ResultsViewProps) => {
-    const { results, onBackToStart, onRetestWords } = props;
+    const { results, languageSetName, onBackToStart, onRetestWords } = props;
+
+    const historyEntries = useMemo(
+        () =>
+            loadHistory().filter((e) => e.languageSetName === languageSetName),
+        [languageSetName],
+    );
 
     const paginationModel = { page: 0, pageSize: 20 };
     const [rowSelection, setRowSelection] = useState<GridRowSelectionModel>({
@@ -159,6 +169,19 @@ export const ResultsView = (props: ResultsViewProps) => {
                     }}
                 />
             </Card>
+
+            <Card sx={{ p: 3 }}>
+                <WordScoreChart wordResults={results.wordResults} />
+            </Card>
+
+            {historyEntries.length >= 2 && (
+                <Card sx={{ p: 3 }}>
+                    <Typography variant="h5" mb={1}>
+                        Progress for &ldquo;{languageSetName}&rdquo;
+                    </Typography>
+                    <ProgressChart entries={historyEntries} />
+                </Card>
+            )}
 
             <Box
                 sx={{
