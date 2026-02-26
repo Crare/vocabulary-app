@@ -284,6 +284,7 @@ export const SettingsView = (props: SettingsViewProps) => {
         setLanguage2Words(languageSets[index].language2Words.join("\n"));
         setLang1Name(languageSets[index].language1Name ?? "");
         setLang2Name(languageSets[index].language2Name ?? "");
+        setLangSetName(languageSets[index].name);
         handleLoadSetModalClose();
     };
 
@@ -296,6 +297,7 @@ export const SettingsView = (props: SettingsViewProps) => {
         );
         setLang1Name(templates[index].language1 ?? "");
         setLang2Name(templates[index].language2 ?? "");
+        setLangSetName(templates[index].name);
         handleTemplateListModalClose();
     };
 

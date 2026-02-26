@@ -29,9 +29,15 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                 <Typography
                     variant="h5"
                     fontWeight={700}
-                    sx={{ color: "#fff", flexGrow: 1, letterSpacing: 0.5 }}
+                    onClick={() => onNavigate("wordlists")}
+                    sx={{
+                        color: "#fff",
+                        flexGrow: 1,
+                        letterSpacing: 0.5,
+                        cursor: "pointer",
+                    }}
                 >
-                    Vocabulary
+                    Vocabulary Trainer
                 </Typography>
                 <Box>
                     <Tabs
@@ -59,9 +65,9 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                             }}
                         />
                         <Tab
-                            value="settings"
-                            label="Settings"
-                            icon={<SettingsIcon />}
+                            value="history"
+                            label="History"
+                            icon={<HistoryIcon />}
                             iconPosition="start"
                             sx={{
                                 color: "rgba(255,255,255,0.75)",
@@ -71,9 +77,9 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                             }}
                         />
                         <Tab
-                            value="history"
-                            label="History"
-                            icon={<HistoryIcon />}
+                            value="settings"
+                            label="Settings"
+                            icon={<SettingsIcon />}
                             iconPosition="start"
                             sx={{
                                 color: "rgba(255,255,255,0.75)",
