@@ -53,6 +53,7 @@ export const TestingView = (props: TestingViewProps) => {
     const questionIndexRef = useRef(0);
     const isAnsweringRef = useRef(false); // hard guard against double submission
     const wordStartTimeRef = useRef<number>(Date.now());
+    const sentenceBlankWordRef = useRef<string | undefined>(undefined);
 
     // UI state (trigger re-renders)
     const [guessWord, setGuessWord] = useState<TestWord | undefined>(undefined);
@@ -335,7 +336,12 @@ export const TestingView = (props: TestingViewProps) => {
         guessWord.totalAnswerTimeMs += elapsed;
         guessWord.answerAttempts += 1;
         guessWord.timesCheckedAnswer += 1;
-        const answer = getExpectedAnswer(guessWord, guessDirection);
+        // For sentence tests, show the blanked-out word; for normal tests, show the vocabulary word
+        const answer =
+            testOption === TestOption.SentenceFillBlank &&
+            sentenceBlankWordRef.current
+                ? sentenceBlankWordRef.current
+                : getExpectedAnswer(guessWord, guessDirection);
         log.debug("answer_checked", {
             word: guessWord.lang1Word,
             correctAnswer: answer,
@@ -436,6 +442,9 @@ export const TestingView = (props: TestingViewProps) => {
                                 ) ?? []
                             }
                             onSendAnswer={sentenceAnswer}
+                            onBlankWordSelected={(word) => {
+                                sentenceBlankWordRef.current = word;
+                            }}
                         />
                     ) : null}
 

@@ -21,6 +21,8 @@ interface SentenceTestCardProps {
         testedWord: string,
         sentence: string,
     ) => void;
+    /** Called when the blank word is selected, so parent can use it for "Reveal answer" */
+    onBlankWordSelected?: (word: string) => void;
 }
 
 /**
@@ -88,6 +90,7 @@ export const SentenceTestCard = ({
     alreadyTestedWords,
     testAllWords,
     onSendAnswer,
+    onBlankWordSelected,
 }: SentenceTestCardProps) => {
     const [guess, setGuess] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
@@ -105,21 +108,41 @@ export const SentenceTestCard = ({
             : guessWord.lang2Sentence;
 
     // Compute blank once per guessWord change
-    const [blankData, setBlankData] = useState(() =>
-        targetSentence
-            ? blankOutWord(targetSentence, testAllWords, alreadyTestedWords)
-            : null,
-    );
+    const [blankData, setBlankData] = useState(() => {
+        if (!targetSentence) return null;
+        const data = blankOutWord(
+            targetSentence,
+            testAllWords,
+            alreadyTestedWords,
+        );
+        // Notify parent of initial blank word (setTimeout to avoid setState-during-render)
+        setTimeout(() => onBlankWordSelected?.(data.missingWord), 0);
+        return data;
+    });
 
     useEffect(() => {
+        // Don't recalculate the blanked word after an answer has been submitted,
+        // otherwise the randomly-chosen blank word changes and the "correct answer"
+        // feedback shows the wrong word.
+        if (testState !== undefined) return;
         if (targetSentence) {
-            setBlankData(
-                blankOutWord(targetSentence, testAllWords, alreadyTestedWords),
+            const data = blankOutWord(
+                targetSentence,
+                testAllWords,
+                alreadyTestedWords,
             );
+            setBlankData(data);
+            onBlankWordSelected?.(data.missingWord);
         } else {
             setBlankData(null);
         }
-    }, [targetSentence, guessWord.id, testAllWords, alreadyTestedWords]);
+    }, [
+        targetSentence,
+        guessWord.id,
+        testAllWords,
+        alreadyTestedWords,
+        testState,
+    ]);
 
     useEffect(() => {
         if (testState === TestState.Success || testState === TestState.Failed) {
