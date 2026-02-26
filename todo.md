@@ -10,8 +10,6 @@
 
 - image test, allow user add images and text answer for them.
 
-- add option to increase and decrease text size in the navbar
-
 - add wordsets
 
 - allow small typos if some words are not exact. but tell them they wrote it incorrect. add this in the settings as option and enable by default.

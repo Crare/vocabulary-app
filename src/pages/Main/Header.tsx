@@ -8,6 +8,7 @@ import {
     Tab,
     Tabs,
     Toolbar,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
@@ -20,9 +21,12 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import TextDecreaseIcon from "@mui/icons-material/TextDecrease";
+import TextIncreaseIcon from "@mui/icons-material/TextIncrease";
 import { useState } from "react";
 import { useThemeMode } from "../../ThemeContext";
 import { useSound } from "../../SoundContext";
+import { useFontSize } from "../../FontSizeContext";
 import { colors, alpha, gradients } from "../../colors";
 import { playCorrect } from "../../util/sounds";
 
@@ -37,6 +41,7 @@ interface HeaderProps {
 export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
     const { mode, toggleMode } = useThemeMode();
     const { volume, setVolume } = useSound();
+    const { increase, decrease, canIncrease, canDecrease } = useFontSize();
     const [volumeAnchor, setVolumeAnchor] = useState<HTMLButtonElement | null>(
         null,
     );
@@ -146,6 +151,40 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
                         </IconButton>
                     </>
                 )}
+                <Tooltip title="Decrease text size">
+                    <span>
+                        <IconButton
+                            onClick={decrease}
+                            disabled={!canDecrease}
+                            sx={{
+                                color: alpha.white85,
+                                ml: 0.5,
+                                "&.Mui-disabled": { color: alpha.white30 },
+                            }}
+                            aria-label="Decrease text size"
+                            size="small"
+                        >
+                            <TextDecreaseIcon fontSize="small" />
+                        </IconButton>
+                    </span>
+                </Tooltip>
+                <Tooltip title="Increase text size">
+                    <span>
+                        <IconButton
+                            onClick={increase}
+                            disabled={!canIncrease}
+                            sx={{
+                                color: alpha.white85,
+                                ml: -0.5,
+                                "&.Mui-disabled": { color: alpha.white30 },
+                            }}
+                            aria-label="Increase text size"
+                            size="small"
+                        >
+                            <TextIncreaseIcon fontSize="small" />
+                        </IconButton>
+                    </span>
+                </Tooltip>
                 <IconButton
                     onClick={(e) => setVolumeAnchor(e.currentTarget)}
                     sx={{ color: alpha.white85, ml: 0.5 }}
