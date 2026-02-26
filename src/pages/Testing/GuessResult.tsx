@@ -3,6 +3,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import { TestState, TestWord } from "./types";
 import { GuessDirection, getExpectedAnswer } from "./testLogic";
+import { alpha } from "../../colors";
 
 interface GuessResultProps {
     testState: TestState | undefined;
@@ -32,10 +33,8 @@ export const GuessResult = (props: GuessResultProps) => {
                 py: 2,
                 px: 3,
                 borderRadius: 3,
-                bgcolor: isSuccess
-                    ? "rgba(16, 185, 129, 0.1)"
-                    : "rgba(239, 68, 68, 0.1)",
-                border: `1.5px solid ${isSuccess ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
+                bgcolor: isSuccess ? alpha.success10 : alpha.error10,
+                border: `1.5px solid ${isSuccess ? alpha.success30 : alpha.error30}`,
                 animation: "fadeIn 0.3s ease",
                 "@keyframes fadeIn": {
                     from: { opacity: 0, transform: "translateY(-8px)" },

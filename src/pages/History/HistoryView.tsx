@@ -36,6 +36,7 @@ import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import { WordScoreChart } from "../../components/WordScoreChart";
 import { ProgressChart } from "../../components/ProgressChart";
+import { alpha } from "../../colors";
 
 const wordColumns: GridColDef[] = [
     { field: "lang1Word", headerName: "Language 1", flex: 1 },
@@ -188,12 +189,16 @@ export const HistoryView = () => {
                                 defaultExpanded={false}
                                 disableGutters
                                 elevation={0}
-                                sx={{
-                                    border: "1px solid rgba(79,70,229,0.2)",
+                                sx={(theme) => ({
+                                    border: 1,
+                                    borderColor:
+                                        theme.palette.mode === "dark"
+                                            ? alpha.slate30
+                                            : alpha.primary20,
                                     borderRadius: "12px !important",
                                     mb: 1.5,
                                     "&:before": { display: "none" },
-                                }}
+                                })}
                             >
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
@@ -227,14 +232,19 @@ export const HistoryView = () => {
                                             key={entry.id}
                                             disableGutters
                                             elevation={0}
-                                            sx={{
-                                                border: "1px solid rgba(79,70,229,0.1)",
+                                            sx={(theme) => ({
+                                                border: 1,
+                                                borderColor:
+                                                    theme.palette.mode ===
+                                                    "dark"
+                                                        ? alpha.slate25
+                                                        : alpha.primary15,
                                                 borderRadius: "8px !important",
                                                 mb: 1,
                                                 "&:before": {
                                                     display: "none",
                                                 },
-                                            }}
+                                            })}
                                         >
                                             <AccordionSummary
                                                 expandIcon={<ExpandMoreIcon />}
@@ -323,13 +333,13 @@ export const HistoryView = () => {
                                                     }}
                                                     pageSizeOptions={[10, 20]}
                                                     sx={{
-                                                        border: "1px solid rgba(148,163,184,0.15)",
+                                                        border: `1px solid ${alpha.slate15}`,
                                                         borderRadius: 2,
                                                         mb: 1.5,
                                                         "& .MuiDataGrid-columnHeaders":
                                                             {
                                                                 bgcolor:
-                                                                    "rgba(79,70,229,0.04)",
+                                                                    alpha.primary04,
                                                             },
                                                     }}
                                                     density="compact"

@@ -8,6 +8,7 @@ import {
 } from "./testLogic";
 import { shuffle } from "../../util/helpers";
 import { useEffect, useState } from "react";
+import { colors } from "../../colors";
 
 interface SelectAnswerCardProps {
     testState: TestState | undefined;
@@ -95,7 +96,7 @@ export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
                                 "&:hover": {
                                     borderWidth: 1.5,
                                     bgcolor: "primary.main",
-                                    color: "#fff",
+                                    color: colors.white,
                                 },
                             }}
                         >

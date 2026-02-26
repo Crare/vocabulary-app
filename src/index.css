@@ -21,6 +21,7 @@ body {
     background: transparent;
 }
 
+/* Scrollbar colors match colors.indigo200 / colors.indigo300 from src/colors.ts */
 ::-webkit-scrollbar-thumb {
     background: #c7d2fe;
     border-radius: 4px;

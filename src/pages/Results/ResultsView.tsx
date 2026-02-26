@@ -20,6 +20,7 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AvTimerIcon from "@mui/icons-material/AvTimer";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import { alpha } from "../../colors";
 
 const columns: GridColDef[] = [
     { field: "lang1Word", headerName: "Language 1", flex: 1 },
@@ -158,13 +159,13 @@ export const ResultsView = (props: ResultsViewProps) => {
                     rowSelectionModel={rowSelection}
                     onRowSelectionModelChange={setRowSelection}
                     sx={{
-                        border: "1px solid rgba(148, 163, 184, 0.15)",
+                        border: `1px solid ${alpha.slate15}`,
                         borderRadius: 3,
                         "& .MuiDataGrid-columnHeaders": {
-                            bgcolor: "rgba(79, 70, 229, 0.04)",
+                            bgcolor: alpha.primary04,
                         },
                         "& .MuiDataGrid-cell": {
-                            borderColor: "rgba(148, 163, 184, 0.1)",
+                            borderColor: alpha.slate10,
                         },
                     }}
                 />

@@ -2,6 +2,7 @@ import { Box, Card, Chip, LinearProgress, Typography } from "@mui/material";
 import { TestSettings, TestWord } from "./types";
 import { TimeTaken } from "../../components/TimeTaken";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { alpha, gradients } from "../../colors";
 
 interface TestingStatsCardProps {
     settings: TestSettings;

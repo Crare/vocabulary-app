@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material/styles";
+import { colors, alpha, gradients } from "./colors";
 
 export const createAppTheme = (mode: "light" | "dark") => {
     const isDark = mode === "dark";
@@ -7,36 +8,34 @@ export const createAppTheme = (mode: "light" | "dark") => {
         palette: {
             mode,
             primary: {
-                main: isDark ? "#818cf8" : "#4f46e5",
-                light: "#818cf8",
-                dark: "#3730a3",
+                main: isDark ? colors.indigo400 : colors.indigo600,
+                light: colors.indigo400,
+                dark: colors.indigo800,
             },
             secondary: {
-                main: "#f59e0b",
-                light: "#fbbf24",
-                dark: "#d97706",
+                main: colors.amber500,
+                light: colors.amber400,
+                dark: colors.amber600,
             },
             success: {
-                main: "#10b981",
-                light: "#34d399",
-                dark: "#059669",
+                main: colors.emerald500,
+                light: colors.emerald400,
+                dark: colors.emerald600,
             },
             error: {
-                main: "#ef4444",
-                light: "#f87171",
-                dark: "#dc2626",
+                main: colors.red500,
+                light: colors.red400,
+                dark: colors.red600,
             },
             background: {
-                default: isDark ? "#0f172a" : "#f0f4ff",
-                paper: isDark ? "#1e293b" : "#ffffff",
+                default: isDark ? colors.slate900 : colors.indigo50,
+                paper: isDark ? colors.slate800 : colors.white,
             },
             text: {
-                primary: isDark ? "#e2e8f0" : "#1e293b",
-                secondary: isDark ? "#94a3b8" : "#64748b",
+                primary: isDark ? colors.slate200 : colors.slate800,
+                secondary: isDark ? colors.slate400 : colors.slate500,
             },
-            divider: isDark
-                ? "rgba(148, 163, 184, 0.15)"
-                : "rgba(148, 163, 184, 0.15)",
+            divider: alpha.slate15,
         },
         typography: {
             fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
@@ -74,8 +73,9 @@ export const createAppTheme = (mode: "light" | "dark") => {
                 styleOverrides: {
                     body: {
                         background: isDark
-                            ? "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
-                            : "linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 40%, #fdf2f8 100%)",
+                            ? gradients.bodyDark
+                            : gradients.bodyLight,
+                        backgroundAttachment: "fixed",
                         minHeight: "100vh",
                     },
                 },
@@ -87,13 +87,11 @@ export const createAppTheme = (mode: "light" | "dark") => {
                 styleOverrides: {
                     root: {
                         borderRadius: 16,
-                        border: "1px solid rgba(148, 163, 184, 0.15)",
-                        boxShadow:
-                            "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
+                        border: `1px solid ${alpha.slate15}`,
+                        boxShadow: `0 1px 3px ${alpha.black04}, 0 4px 12px ${alpha.black03}`,
                         transition: "box-shadow 0.2s ease, transform 0.2s ease",
                         "&:hover": {
-                            boxShadow:
-                                "0 4px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)",
+                            boxShadow: `0 4px 12px ${alpha.black06}, 0 8px 24px ${alpha.black04}`,
                         },
                     },
                 },
@@ -106,9 +104,9 @@ export const createAppTheme = (mode: "light" | "dark") => {
                         fontSize: "0.9rem",
                     },
                     contained: {
-                        boxShadow: "0 2px 8px rgba(79, 70, 229, 0.2)",
+                        boxShadow: `0 2px 8px ${alpha.primary20}`,
                         "&:hover": {
-                            boxShadow: "0 4px 16px rgba(79, 70, 229, 0.3)",
+                            boxShadow: `0 4px 16px ${alpha.primary30}`,
                         },
                     },
                     outlined: {

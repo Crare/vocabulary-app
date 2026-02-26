@@ -14,6 +14,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import { useThemeMode } from "../../ThemeContext";
+import { colors, alpha, gradients } from "../../colors";
 
 export type NavView = "wordlists" | "settings" | "history";
 
@@ -30,21 +31,20 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
             position="static"
             elevation={0}
             sx={{
-                background: "linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%)",
+                background:
+                    mode === "dark" ? gradients.brandDark : gradients.brand,
                 borderRadius: 3,
                 mb: 3,
             }}
         >
             <Toolbar sx={{ gap: 1 }}>
-                <AutoStoriesIcon
-                    sx={{ color: "rgba(255,255,255,0.9)", mr: 1 }}
-                />
+                <AutoStoriesIcon sx={{ color: alpha.white90, mr: 1 }} />
                 <Typography
                     variant="h5"
                     fontWeight={700}
                     onClick={() => onNavigate("wordlists")}
                     sx={{
-                        color: "#fff",
+                        color: colors.white,
                         flexGrow: 1,
                         letterSpacing: 0.5,
                         cursor: "pointer",
@@ -59,7 +59,7 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                         textColor="inherit"
                         TabIndicatorProps={{
                             style: {
-                                background: "#fff",
+                                background: colors.white,
                                 height: 3,
                                 borderRadius: 2,
                             },
@@ -71,8 +71,8 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                             icon={<MenuBookIcon />}
                             iconPosition="start"
                             sx={{
-                                color: "rgba(255,255,255,0.75)",
-                                "&.Mui-selected": { color: "#fff" },
+                                color: alpha.white85,
+                                "&.Mui-selected": { color: colors.white },
                                 minHeight: 48,
                                 fontSize: "0.8rem",
                             }}
@@ -83,8 +83,8 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                             icon={<HistoryIcon />}
                             iconPosition="start"
                             sx={{
-                                color: "rgba(255,255,255,0.75)",
-                                "&.Mui-selected": { color: "#fff" },
+                                color: alpha.white85,
+                                "&.Mui-selected": { color: colors.white },
                                 minHeight: 48,
                                 fontSize: "0.8rem",
                             }}
@@ -95,8 +95,8 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                             icon={<SettingsIcon />}
                             iconPosition="start"
                             sx={{
-                                color: "rgba(255,255,255,0.75)",
-                                "&.Mui-selected": { color: "#fff" },
+                                color: alpha.white85,
+                                "&.Mui-selected": { color: colors.white },
                                 minHeight: 48,
                                 fontSize: "0.8rem",
                             }}
@@ -105,7 +105,7 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                 </Box>
                 <IconButton
                     onClick={toggleMode}
-                    sx={{ color: "rgba(255,255,255,0.85)", ml: 1 }}
+                    sx={{ color: alpha.white85, ml: 1 }}
                     aria-label="Toggle dark mode"
                 >
                     {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}

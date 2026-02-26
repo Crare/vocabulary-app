@@ -2,6 +2,7 @@ import { Box, Button, Grid, Modal, Typography } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import DownloadIcon from "@mui/icons-material/Download";
 import { LanguageSet } from "../Testing/types";
+import { alpha } from "../../colors";
 
 const modalStyle = {
     position: "absolute",
@@ -12,7 +13,7 @@ const modalStyle = {
     maxWidth: 560,
     bgcolor: "background.paper",
     borderRadius: 4,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+    boxShadow: `0 20px 60px ${alpha.black15}`,
     p: 4,
     outline: "none",
 };
@@ -81,8 +82,8 @@ export const LoadSetModal = (props: LoadSetModalProps) => {
                                     gap: 2,
                                     p: 2,
                                     borderRadius: 3,
-                                    bgcolor: "rgba(79, 70, 229, 0.04)",
-                                    border: "1px solid rgba(79, 70, 229, 0.1)",
+                                    bgcolor: alpha.primary04,
+                                    border: `1px solid ${alpha.primary10}`,
                                     flexWrap: "wrap",
                                 }}
                             >

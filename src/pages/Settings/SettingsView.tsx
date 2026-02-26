@@ -12,6 +12,7 @@ import {
 import { LanguageSet, TestSettings } from "../Testing/types";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@mui/material/styles";
+import { colors, alpha, gradients } from "../../colors";
 import ClearIcon from "@mui/icons-material/Clear";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -476,7 +477,7 @@ export const SettingsView = (props: SettingsViewProps) => {
                                 fontSize: "0.9rem",
                                 padding: 12,
                                 borderRadius: 10,
-                                border: `1.5px solid ${muiTheme.palette.divider}`,
+                                border: `1.5px solid ${alpha.slate30}`,
                                 backgroundColor:
                                     muiTheme.palette.background.paper,
                                 color: muiTheme.palette.text.primary,
@@ -519,7 +520,7 @@ export const SettingsView = (props: SettingsViewProps) => {
                                 fontSize: "0.9rem",
                                 padding: 12,
                                 borderRadius: 10,
-                                border: `1.5px solid ${muiTheme.palette.divider}`,
+                                border: `1.5px solid ${alpha.slate30}`,
                                 backgroundColor:
                                     muiTheme.palette.background.paper,
                                 color: muiTheme.palette.text.primary,
@@ -582,19 +583,21 @@ export const SettingsView = (props: SettingsViewProps) => {
                 sx={{
                     p: 3,
                     background:
-                        "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-                    color: "#fff",
+                        muiTheme.palette.mode === "dark"
+                            ? gradients.brandDark135
+                            : gradients.brand135,
+                    color: colors.white,
                     textAlign: "center",
                 }}
             >
-                <Typography variant="h3" mb={2} sx={{ color: "#fff" }}>
+                <Typography variant="h3" mb={2} sx={{ color: colors.white }}>
                     Ready?
                 </Typography>
                 {!languageSetIsValid && (
                     <Typography
                         variant="body2"
                         sx={{
-                            color: "rgba(255,255,255,0.8)",
+                            color: alpha.white80,
                             mb: 2,
                         }}
                     >
@@ -608,18 +611,18 @@ export const SettingsView = (props: SettingsViewProps) => {
                     endIcon={<PlayArrowIcon />}
                     size="large"
                     sx={{
-                        bgcolor: "#fff",
-                        color: "#4f46e5",
+                        bgcolor: colors.white,
+                        color: colors.indigo600,
                         fontWeight: 700,
                         px: 5,
                         py: 1.5,
                         fontSize: "1rem",
                         "&:hover": {
-                            bgcolor: "rgba(255,255,255,0.9)",
+                            bgcolor: alpha.white90,
                         },
                         "&.Mui-disabled": {
-                            bgcolor: "rgba(255,255,255,0.3)",
-                            color: "rgba(255,255,255,0.5)",
+                            bgcolor: alpha.white30,
+                            color: alpha.white50,
                         },
                     }}
                 >

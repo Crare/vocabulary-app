@@ -5,6 +5,7 @@ import DoneAllIcon from "@mui/icons-material/DoneAll";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { TestState } from "./types";
+import { alpha } from "../../colors";
 
 interface TestBottomButtonsProps {
     testState: TestState | undefined;
@@ -55,8 +56,8 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
                             px: 2.5,
                             py: 1,
                             borderRadius: 2,
-                            bgcolor: "rgba(79, 70, 229, 0.08)",
-                            border: "1px solid rgba(79, 70, 229, 0.2)",
+                            bgcolor: alpha.primary08,
+                            border: `1px solid ${alpha.primary20}`,
                         }}
                     >
                         <Typography

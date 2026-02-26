@@ -14,6 +14,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useEffect, useState } from "react";
 import { WordSet } from "../../wordsets/types";
+import { alpha } from "../../colors";
 
 const modalStyle = {
     position: "absolute",
@@ -24,7 +25,7 @@ const modalStyle = {
     maxWidth: 560,
     bgcolor: "background.paper",
     borderRadius: 4,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+    boxShadow: `0 20px 60px ${alpha.black15}`,
     p: 4,
     outline: "none",
 };
@@ -111,7 +112,7 @@ export const TemplateListModal = (props: TemplateListModalProps) => {
                             disableGutters
                             elevation={0}
                             sx={{
-                                border: "1px solid rgba(79,70,229,0.15)",
+                                border: `1px solid ${alpha.primary15}`,
                                 borderRadius: "12px !important",
                                 mb: 1.5,
                                 "&:before": { display: "none" },
@@ -138,8 +139,7 @@ export const TemplateListModal = (props: TemplateListModalProps) => {
                                                     gap: 2,
                                                     p: 1.5,
                                                     borderRadius: 2,
-                                                    bgcolor:
-                                                        "rgba(79,70,229,0.04)",
+                                                    bgcolor: alpha.primary04,
                                                     flexWrap: "wrap",
                                                 }}
                                             >
