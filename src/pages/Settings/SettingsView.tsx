@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { LanguageSet, TestSettings } from "../Testing/types";
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@mui/material/styles";
 import ClearIcon from "@mui/icons-material/Clear";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -91,6 +92,7 @@ const loadPersistedSettings = (): Partial<PersistedSettings> => {
 
 export const SettingsView = (props: SettingsViewProps) => {
     const { onStartTest } = props;
+    const muiTheme = useTheme();
 
     const [language1Words, setLanguage1Words] = useState<string>(
         () => loadPersistedSettings().language1Words ?? "",
@@ -474,7 +476,10 @@ export const SettingsView = (props: SettingsViewProps) => {
                                 fontSize: "0.9rem",
                                 padding: 12,
                                 borderRadius: 10,
-                                border: "1.5px solid #e2e8f0",
+                                border: `1.5px solid ${muiTheme.palette.divider}`,
+                                backgroundColor:
+                                    muiTheme.palette.background.paper,
+                                color: muiTheme.palette.text.primary,
                                 outline: "none",
                                 resize: "vertical",
                                 transition: "border-color 0.2s",
@@ -514,7 +519,10 @@ export const SettingsView = (props: SettingsViewProps) => {
                                 fontSize: "0.9rem",
                                 padding: 12,
                                 borderRadius: 10,
-                                border: "1.5px solid #e2e8f0",
+                                border: `1.5px solid ${muiTheme.palette.divider}`,
+                                backgroundColor:
+                                    muiTheme.palette.background.paper,
+                                color: muiTheme.palette.text.primary,
                                 outline: "none",
                                 resize: "vertical",
                                 transition: "border-color 0.2s",

@@ -1,13 +1,11 @@
-import { ThemeProvider, CssBaseline } from "@mui/material";
 import Main from "./pages/Main";
-import theme from "./theme";
+import { AppThemeProvider } from "./ThemeContext";
 
 function App() {
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
+        <AppThemeProvider>
             <Main />
-        </ThemeProvider>
+        </AppThemeProvider>
     );
 }
 

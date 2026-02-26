@@ -1,8 +1,19 @@
-import { AppBar, Box, Tab, Tabs, Toolbar, Typography } from "@mui/material";
+import {
+    AppBar,
+    Box,
+    IconButton,
+    Tab,
+    Tabs,
+    Toolbar,
+    Typography,
+} from "@mui/material";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import HistoryIcon from "@mui/icons-material/History";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import SettingsIcon from "@mui/icons-material/Settings";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import { useThemeMode } from "../../ThemeContext";
 
 export type NavView = "wordlists" | "settings" | "history";
 
@@ -12,6 +23,8 @@ interface HeaderProps {
 }
 
 export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
+    const { mode, toggleMode } = useThemeMode();
+
     return (
         <AppBar
             position="static"
@@ -90,6 +103,13 @@ export const Header = ({ activeTab, onNavigate }: HeaderProps) => {
                         />
                     </Tabs>
                 </Box>
+                <IconButton
+                    onClick={toggleMode}
+                    sx={{ color: "rgba(255,255,255,0.85)", ml: 1 }}
+                    aria-label="Toggle dark mode"
+                >
+                    {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+                </IconButton>
             </Toolbar>
         </AppBar>
     );
