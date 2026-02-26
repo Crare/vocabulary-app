@@ -36,7 +36,11 @@ export const WriteTestCard = (props: WriteTestCardProps) => {
     const sendAnswer = () => (guessAnswer ? onSendAnswer(guessAnswer) : null);
 
     useEffect(() => {
-        if (testState === TestState.Success || testState === TestState.Failed || testState === TestState.TypoMatch) {
+        if (
+            testState === TestState.Success ||
+            testState === TestState.Failed ||
+            testState === TestState.TypoMatch
+        ) {
             setGuessAnswer("");
         }
         if (testState === undefined) {

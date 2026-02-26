@@ -256,31 +256,47 @@ describe("testLogic", () => {
         };
 
         it("should return 'correct' for exact match", () => {
-            expect(checkAnswer("hola", mockWord, "lang1to2", true)).toBe("correct");
-            expect(checkAnswer("hola", mockWord, "lang1to2", false)).toBe("correct");
+            expect(checkAnswer("hola", mockWord, "lang1to2", true)).toBe(
+                "correct",
+            );
+            expect(checkAnswer("hola", mockWord, "lang1to2", false)).toBe(
+                "correct",
+            );
         });
 
         it("should return 'typo' for close match when allowTypos is true", () => {
             // "hermosa" vs "hermoza" — 1 char different in 7 chars = ~86% similar
-            expect(checkAnswer("hermoza", longWord, "lang1to2", true)).toBe("typo");
+            expect(checkAnswer("hermoza", longWord, "lang1to2", true)).toBe(
+                "typo",
+            );
         });
 
         it("should return 'wrong' for close match when allowTypos is false", () => {
-            expect(checkAnswer("hermoza", longWord, "lang1to2", false)).toBe("wrong");
+            expect(checkAnswer("hermoza", longWord, "lang1to2", false)).toBe(
+                "wrong",
+            );
         });
 
         it("should return 'wrong' for distant match even when allowTypos is true", () => {
-            expect(checkAnswer("xyz", longWord, "lang1to2", true)).toBe("wrong");
+            expect(checkAnswer("xyz", longWord, "lang1to2", true)).toBe(
+                "wrong",
+            );
         });
 
         it("should be case-insensitive for typo matching", () => {
-            expect(checkAnswer("Hermoza", longWord, "lang1to2", true)).toBe("typo");
-            expect(checkAnswer("HERMOSA", longWord, "lang1to2", true)).toBe("typo");
+            expect(checkAnswer("Hermoza", longWord, "lang1to2", true)).toBe(
+                "typo",
+            );
+            expect(checkAnswer("HERMOSA", longWord, "lang1to2", true)).toBe(
+                "typo",
+            );
         });
 
         it("should return 'wrong' for swapped characters in short word (below threshold)", () => {
             // "hermosa" vs "hermoas" — 2 edits (swap) in 7 chars = ~71% similar, below 80%
-            expect(checkAnswer("hermoas", longWord, "lang1to2", true)).toBe("wrong");
+            expect(checkAnswer("hermoas", longWord, "lang1to2", true)).toBe(
+                "wrong",
+            );
         });
 
         it("should return 'typo' for swapped characters in longer word", () => {
@@ -290,17 +306,23 @@ describe("testLogic", () => {
                 ...longWord,
                 lang2Word: "encyclopedia",
             };
-            expect(checkAnswer("encyclopaedia", longWord2, "lang1to2", true)).toBe("typo");
+            expect(
+                checkAnswer("encyclopaedia", longWord2, "lang1to2", true),
+            ).toBe("typo");
         });
 
         it("should return 'typo' for missing character", () => {
             // "hermosa" vs "hermsa" — 1 char missing in 7 chars = ~86% similar
-            expect(checkAnswer("hermsa", longWord, "lang1to2", true)).toBe("typo");
+            expect(checkAnswer("hermsa", longWord, "lang1to2", true)).toBe(
+                "typo",
+            );
         });
 
         it("should return 'wrong' for very short words with any difference", () => {
             // "hola" vs "holo" — 1 char different in 4 chars = 75% similar, below 80%
-            expect(checkAnswer("holo", mockWord, "lang1to2", true)).toBe("wrong");
+            expect(checkAnswer("holo", mockWord, "lang1to2", true)).toBe(
+                "wrong",
+            );
         });
     });
 

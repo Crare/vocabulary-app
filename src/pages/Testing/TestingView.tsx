@@ -239,7 +239,11 @@ export const TestingView = (props: TestingViewProps) => {
 
     // Auto-advance after answer feedback delay
     useEffect(() => {
-        if (testState === TestState.Success || testState === TestState.Failed || testState === TestState.TypoMatch) {
+        if (
+            testState === TestState.Success ||
+            testState === TestState.Failed ||
+            testState === TestState.TypoMatch
+        ) {
             // -1 means manual mode — user must press Continue
             if (settings.answerDelayMs === -1) return;
             const timer = setTimeout(advanceToNext, settings.answerDelayMs);
@@ -259,7 +263,12 @@ export const TestingView = (props: TestingViewProps) => {
         isAnsweringRef.current = true;
         setHasInteracted(true);
 
-        const result = checkAnswer(guess, guessWord, guessDirection, settings.allowTypos);
+        const result = checkAnswer(
+            guess,
+            guessWord,
+            guessDirection,
+            settings.allowTypos,
+        );
         log.debug("answer_submitted", {
             word: guessWord.lang1Word,
             guess,

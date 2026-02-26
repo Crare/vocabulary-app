@@ -14,7 +14,11 @@ interface GuessResultProps {
 export const GuessResult = (props: GuessResultProps) => {
     const { testState, guessWord, guessDirection = "lang1to2" } = props;
 
-    if (testState !== TestState.Success && testState !== TestState.Failed && testState !== TestState.TypoMatch) {
+    if (
+        testState !== TestState.Success &&
+        testState !== TestState.Failed &&
+        testState !== TestState.TypoMatch
+    ) {
         return null;
     }
 
