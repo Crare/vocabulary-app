@@ -4,8 +4,6 @@ import {
     FormControlLabel,
     FormGroup,
     Grid,
-    Radio,
-    RadioGroup,
     Slider,
     Typography,
 } from "@mui/material";
@@ -21,7 +19,7 @@ interface PersistedSettings {
     multiSelectChoicesAmount: number;
     onlySecondLanguageWordsTested: boolean;
     everySecondTestIsMultiOrWriting: boolean;
-    testType: "both" | "multi-select" | "writing";
+    testType: { writing: boolean; multiSelect: boolean };
     [key: string]: unknown;
 }
 
@@ -69,9 +67,14 @@ export const TestConfigView = () => {
     ] = useState<boolean>(
         () => loadPersistedSettings().everySecondTestIsMultiOrWriting ?? false,
     );
-    const [testType, setTestType] = useState<
-        "both" | "multi-select" | "writing"
-    >(() => loadPersistedSettings().testType ?? "both");
+    const defaultTestType = { writing: true, multiSelect: true };
+    const loadedTestType = loadPersistedSettings().testType;
+    const [writingEnabled, setWritingEnabled] = useState<boolean>(
+        () => (loadedTestType && typeof loadedTestType === "object" ? loadedTestType.writing : true),
+    );
+    const [multiSelectEnabled, setMultiSelectEnabled] = useState<boolean>(
+        () => (loadedTestType && typeof loadedTestType === "object" ? loadedTestType.multiSelect : true),
+    );
 
     useEffect(() => {
         savePersistedSettings({
@@ -79,14 +82,15 @@ export const TestConfigView = () => {
             multiSelectChoicesAmount,
             onlySecondLanguageWordsTested,
             everySecondTestIsMultiOrWriting,
-            testType,
+            testType: { writing: writingEnabled, multiSelect: multiSelectEnabled },
         });
     }, [
         wordNeedsToGetCorrectTimes,
         multiSelectChoicesAmount,
         onlySecondLanguageWordsTested,
         everySecondTestIsMultiOrWriting,
-        testType,
+        writingEnabled,
+        multiSelectEnabled,
     ]);
 
     return (
@@ -172,35 +176,34 @@ export const TestConfigView = () => {
                             </FormGroup>
                         </Grid>
 
-                        <RadioGroup
-                            defaultValue="both"
-                            name="test-type-radio"
-                            value={testType}
-                            onChange={(e) =>
-                                setTestType(
-                                    e.target.value as
-                                        | "both"
-                                        | "multi-select"
-                                        | "writing",
-                                )
-                            }
-                        >
+                        <FormGroup>
                             <FormControlLabel
-                                value="both"
-                                control={<Radio />}
-                                label="Use both: writing test and multi-select test"
+                                control={
+                                    <Checkbox
+                                        checked={writingEnabled}
+                                        onChange={(e) =>
+                                            setWritingEnabled(
+                                                e.target.checked,
+                                            )
+                                        }
+                                    />
+                                }
+                                label="Writing test"
                             />
                             <FormControlLabel
-                                value="writing"
-                                control={<Radio />}
-                                label="Use only writing test"
+                                control={
+                                    <Checkbox
+                                        checked={multiSelectEnabled}
+                                        onChange={(e) =>
+                                            setMultiSelectEnabled(
+                                                e.target.checked,
+                                            )
+                                        }
+                                    />
+                                }
+                                label="Multi-select test"
                             />
-                            <FormControlLabel
-                                value="multi-select"
-                                control={<Radio />}
-                                label="Use only multi-select test"
-                            />
-                        </RadioGroup>
+                        </FormGroup>
                     </Grid>
                 </Grid>
             </Card>

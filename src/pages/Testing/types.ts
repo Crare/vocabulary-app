@@ -4,7 +4,7 @@ export interface TestSettings {
     multiSelectChoicesAmount: number;
     onlySecondLanguageWordsTested: boolean;
     everySecondTestIsMultiOrWriting: boolean;
-    testType: "both" | "multi-select" | "writing";
+    testType: { writing: boolean; multiSelect: boolean };
 }
 
 export interface LanguageSet {

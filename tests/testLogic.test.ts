@@ -28,7 +28,7 @@ describe("testLogic", () => {
         multiSelectChoicesAmount: 4,
         onlySecondLanguageWordsTested: false,
         everySecondTestIsMultiOrWriting: false,
-        testType: "both",
+        testType: { writing: true, multiSelect: true },
     };
 
     const mockWord: TestWord = {
@@ -63,8 +63,8 @@ describe("testLogic", () => {
     });
 
     describe("chooseTestOption", () => {
-        it("should return WriteCorrectAnswer when testType is 'writing'", () => {
-            const settings = { ...mockSettings, testType: "writing" as const };
+        it("should return WriteCorrectAnswer when only writing is enabled", () => {
+            const settings = { ...mockSettings, testType: { writing: true, multiSelect: false } };
             expect(chooseTestOption(settings, 0)).toBe(
                 TestOption.WriteCorrectAnswer,
             );
@@ -73,10 +73,10 @@ describe("testLogic", () => {
             );
         });
 
-        it("should return SelectFromMultiple when testType is 'multi-select'", () => {
+        it("should return SelectFromMultiple when only multiSelect is enabled", () => {
             const settings = {
                 ...mockSettings,
-                testType: "multi-select" as const,
+                testType: { writing: false, multiSelect: true },
             };
             expect(chooseTestOption(settings, 0)).toBe(
                 TestOption.SelectFromMultiple,
@@ -86,10 +86,10 @@ describe("testLogic", () => {
             );
         });
 
-        it("should alternate strictly when testType is 'both' and everySecondTestIsMultiOrWriting is true", () => {
+        it("should alternate strictly when both enabled and everySecondTestIsMultiOrWriting is true", () => {
             const settings = {
                 ...mockSettings,
-                testType: "both" as const,
+                testType: { writing: true, multiSelect: true },
                 everySecondTestIsMultiOrWriting: true,
             };
 
@@ -116,10 +116,10 @@ describe("testLogic", () => {
             );
         });
 
-        it("should choose randomly when testType is 'both' and everySecondTestIsMultiOrWriting is false", () => {
+        it("should choose randomly when both enabled and everySecondTestIsMultiOrWriting is false", () => {
             const settings = {
                 ...mockSettings,
-                testType: "both" as const,
+                testType: { writing: true, multiSelect: true },
                 everySecondTestIsMultiOrWriting: false,
             };
 

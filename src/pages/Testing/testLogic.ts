@@ -13,14 +13,18 @@ export function chooseTestOption(
     settings: TestSettings,
     questionIndex: number,
 ): TestOption {
-    if (settings.testType === "writing") {
+    const { writing, multiSelect } = settings.testType;
+
+    // Only writing enabled
+    if (writing && !multiSelect) {
         return TestOption.WriteCorrectAnswer;
     }
-    if (settings.testType === "multi-select") {
+    // Only multi-select enabled
+    if (!writing && multiSelect) {
         return TestOption.SelectFromMultiple;
     }
 
-    // testType === "both"
+    // Both enabled (or neither — treat as both)
     if (settings.everySecondTestIsMultiOrWriting) {
         // Strictly alternate: even index = writing, odd index = multi-select
         return questionIndex % 2 === 0

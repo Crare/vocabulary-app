@@ -128,7 +128,9 @@ export const SettingsView = (props: SettingsViewProps) => {
                 persisted.onlySecondLanguageWordsTested ?? false,
             everySecondTestIsMultiOrWriting:
                 persisted.everySecondTestIsMultiOrWriting ?? false,
-            testType: persisted.testType ?? "both",
+            testType: (persisted.testType && typeof persisted.testType === "object")
+                ? persisted.testType as { writing: boolean; multiSelect: boolean }
+                : { writing: true, multiSelect: true },
         };
         onStartTest(settings);
     };
