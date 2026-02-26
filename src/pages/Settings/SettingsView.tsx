@@ -8,7 +8,6 @@ import {
     FormGroup,
     Grid,
     Input,
-    Modal,
     Radio,
     RadioGroup,
     Slider,
@@ -26,6 +25,8 @@ import LoopIcon from "@mui/icons-material/Loop";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import DownloadIcon from "@mui/icons-material/Download";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import { LoadSetModal } from "./LoadSetModal";
+import { TemplateListModal } from "./TemplateListModal";
 
 import { WordSet } from "../../wordsets/types";
 import { LANGUAGE_OPTIONS } from "../../wordsets/languages";
@@ -56,20 +57,6 @@ const placeholderOtherLang = set1.words.map((w) => w.lang2).join("\n");
 interface SettingsViewProps {
     onStartTest: (settings: TestSettings) => void;
 }
-
-const modalStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "90%",
-    maxWidth: 560,
-    bgcolor: "background.paper",
-    borderRadius: 4,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-    p: 4,
-    outline: "none",
-};
 
 const storage_keys = {
     LANGUAGE_SETS: "LANGUAGE_SETS",
@@ -298,209 +285,21 @@ export const SettingsView = (props: SettingsViewProps) => {
 
     return (
         <Grid container className="content" gap={2} flexDirection={"column"}>
-            <Modal
+            <LoadSetModal
                 open={isLoadSetModalOpen}
                 onClose={handleLoadSetModalClose}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-            >
-                <Box sx={modalStyle} maxHeight={"70%"} overflow={"auto"}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: 2,
-                        }}
-                    >
-                        <Typography variant="h3">
-                            {languageSets.length === 0
-                                ? "No saved sets"
-                                : "Your saved sets"}
-                        </Typography>
-                        <Button
-                            onClick={handleLoadSetModalClose}
-                            endIcon={<ClearIcon />}
-                            size="small"
-                        >
-                            Close
-                        </Button>
-                    </Box>
-                    {languageSets.length === 0 ? (
-                        <Typography color="text.secondary">
-                            You don't have any saved language sets yet.
-                        </Typography>
-                    ) : (
-                        <Grid container flexDirection={"column"} gap={1.5}>
-                            {languageSets.map((set, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        gap: 2,
-                                        p: 2,
-                                        borderRadius: 3,
-                                        bgcolor: "rgba(79, 70, 229, 0.04)",
-                                        border: "1px solid rgba(79, 70, 229, 0.1)",
-                                        flexWrap: "wrap",
-                                    }}
-                                >
-                                    <Box>
-                                        <Typography fontWeight={600}>
-                                            {set.name}
-                                        </Typography>
-                                        <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                        >
-                                            {set.language1Words.length} words
-                                        </Typography>
-                                    </Box>
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            gap: 1,
-                                            flexWrap: "wrap",
-                                        }}
-                                    >
-                                        <Button
-                                            variant="contained"
-                                            size="small"
-                                            onClick={() =>
-                                                selectLanguageSet(index)
-                                            }
-                                        >
-                                            Select
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            startIcon={<DownloadIcon />}
-                                            onClick={() =>
-                                                downloadWordSet(
-                                                    set.name,
-                                                    set.language1Words,
-                                                    set.language2Words,
-                                                    set.language1Name,
-                                                    set.language2Name,
-                                                )
-                                            }
-                                        >
-                                            Download
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            color="error"
-                                            size="small"
-                                            onClick={() =>
-                                                deleteLanguageSet(index)
-                                            }
-                                        >
-                                            Delete
-                                        </Button>
-                                    </Box>
-                                </Box>
-                            ))}
-                        </Grid>
-                    )}
-                </Box>
-            </Modal>
-
-            <Modal
+                languageSets={languageSets}
+                onSelect={selectLanguageSet}
+                onDownload={downloadWordSet}
+                onDelete={deleteLanguageSet}
+            />
+            <TemplateListModal
                 open={isTemplateListModalOpen}
                 onClose={handleTemplateListModalClose}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-            >
-                <Box sx={modalStyle} maxHeight={"70%"} overflow={"auto"}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: 2,
-                        }}
-                    >
-                        <Typography variant="h3">Templates</Typography>
-                        <Button
-                            onClick={handleTemplateListModalClose}
-                            endIcon={<ClearIcon />}
-                            size="small"
-                        >
-                            Close
-                        </Button>
-                    </Box>
-                    <Grid container flexDirection={"column"} gap={1.5}>
-                        {templates.map((template, index) => (
-                            <Box
-                                key={index}
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    gap: 2,
-                                    p: 2,
-                                    borderRadius: 3,
-                                    bgcolor: "rgba(79, 70, 229, 0.04)",
-                                    border: "1px solid rgba(79, 70, 229, 0.1)",
-                                    flexWrap: "wrap",
-                                }}
-                            >
-                                <Box>
-                                    <Typography fontWeight={600}>
-                                        {template.name}
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                    >
-                                        {template.words.length} words
-                                    </Typography>
-                                </Box>
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        gap: 1,
-                                        flexWrap: "wrap",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        size="small"
-                                        onClick={() =>
-                                            selectLanguageSetFromTemplate(index)
-                                        }
-                                    >
-                                        Select
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        startIcon={<DownloadIcon />}
-                                        onClick={() =>
-                                            downloadWordSet(
-                                                template.name,
-                                                template.words.map(
-                                                    (w) => w.lang1,
-                                                ),
-                                                template.words.map(
-                                                    (w) => w.lang2,
-                                                ),
-                                                template.language1,
-                                                template.language2,
-                                            )
-                                        }
-                                    >
-                                        Download
-                                    </Button>
-                                </Box>
-                            </Box>
-                        ))}
-                    </Grid>
-                </Box>
-            </Modal>
+                templates={templates}
+                onSelect={selectLanguageSetFromTemplate}
+                onDownload={downloadWordSet}
+            />
 
             <Card sx={{ p: 3 }}>
                 <Typography variant="h3" mb={3} textAlign={"center"}>
