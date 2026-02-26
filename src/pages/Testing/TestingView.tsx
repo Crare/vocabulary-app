@@ -22,6 +22,7 @@ import {
     isAnswerCorrect,
 } from "./testLogic";
 import { createLogger } from "../../util/logger";
+import { useSound } from "../../SoundContext";
 
 const log = createLogger("testing");
 
@@ -33,6 +34,7 @@ interface TestingViewProps {
 
 export const TestingView = (props: TestingViewProps) => {
     const { settings, onEndTesting, onBackToStart } = props;
+    const { onCorrect, onWrong, onFinish } = useSound();
 
     // Keep latest prop values in refs so callbacks never go stale
     const settingsRef = useRef(settings);
@@ -80,13 +82,14 @@ export const TestingView = (props: TestingViewProps) => {
                 checked: w.timesCheckedAnswer,
             })),
         });
+        onFinish();
         onEndTestingRef.current({
             date: new Date(),
             timeTaken: calcTimeTakenText(startTime.current, new Date()),
             score: 0,
             wordResults: words,
         });
-    }, []); // no deps — reads everything from refs
+    }, [onFinish]); // no deps — reads everything from refs
 
     const advanceToNext = useCallback(() => {
         const s = settingsRef.current;
@@ -200,9 +203,11 @@ export const TestingView = (props: TestingViewProps) => {
         if (correct) {
             guessWord.timesCorrect += 1;
             setTestState(TestState.Success);
+            onCorrect();
         } else {
             guessWord.timesFailed += 1;
             setTestState(TestState.Failed);
+            onWrong();
         }
     };
 

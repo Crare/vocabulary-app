@@ -14,8 +14,6 @@
 
 - add drag and drop test. like we have writing test and multiselect. in drag and drop test you have a boxes in table mized around and you need to put them in order, in that way that next to each other is correct answers. for each table row there is two boxes and and two positions.
 
-- add sounds when answering correct or wrong. and another sound when finished the test and when starting the test.
-
 - add credits page with sources for each asset etc.
 
 ## BUGS:

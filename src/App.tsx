@@ -1,10 +1,13 @@
 import Main from "./pages/Main";
 import { AppThemeProvider } from "./ThemeContext";
+import { SoundProvider } from "./SoundContext";
 
 function App() {
     return (
         <AppThemeProvider>
-            <Main />
+            <SoundProvider>
+                <Main />
+            </SoundProvider>
         </AppThemeProvider>
     );
 }

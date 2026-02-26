@@ -11,10 +11,12 @@ import { HistoryView } from "../History/HistoryView";
 import { TestResults, TestSettings, TestWord } from "../Testing/types";
 import { saveTestResult } from "../../util/historyStorage";
 import { createLogger } from "../../util/logger";
+import { useSound } from "../../SoundContext";
 
 const log = createLogger("main");
 
 const Main = () => {
+    const { onStart } = useSound();
     const [view, setView] = useState<
         "wordlists" | "settings" | "testing" | "results" | "history"
     >("wordlists");
@@ -33,6 +35,7 @@ const Main = () => {
             onlySecondLang: testSettings.onlySecondLanguageWordsTested,
             alternating: testSettings.everySecondTestIsMultiOrWriting,
         });
+        onStart();
         setSettings(testSettings);
         setView("testing");
     };
