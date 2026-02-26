@@ -109,6 +109,7 @@ const Main = () => {
                     <TestingView
                         settings={settings}
                         onEndTesting={endTesting}
+                        onBackToStart={backToStart}
                     />
                 ) : null}
                 {view === "results" && results ? (

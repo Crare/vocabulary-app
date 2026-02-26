@@ -3,6 +3,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { TestState } from "./types";
 
 interface TestBottomButtonsProps {
@@ -12,6 +13,8 @@ interface TestBottomButtonsProps {
     onNext: () => void;
     onSkip: () => void;
     onEndTesting: () => void;
+    onBackToStart: () => void;
+    hasInteracted: boolean;
 }
 
 export const TestBottomButtons = (props: TestBottomButtonsProps) => {
@@ -22,6 +25,8 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
         onEndTesting,
         onNext,
         onSkip,
+        onBackToStart,
+        hasInteracted,
     } = props;
     return (
         <Card sx={{ p: 3 }}>
@@ -34,6 +39,16 @@ export const TestBottomButtons = (props: TestBottomButtonsProps) => {
                     alignItems: "center",
                 }}
             >
+                {!hasInteracted && (
+                    <Button
+                        variant="outlined"
+                        onClick={onBackToStart}
+                        startIcon={<ArrowBackIcon />}
+                        size="small"
+                    >
+                        Back to start
+                    </Button>
+                )}
                 {correctAnswerValue ? (
                     <Box
                         sx={{

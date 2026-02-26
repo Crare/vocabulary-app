@@ -28,10 +28,11 @@ const log = createLogger("testing");
 interface TestingViewProps {
     settings: TestSettings;
     onEndTesting: (results: TestResults) => void;
+    onBackToStart: () => void;
 }
 
 export const TestingView = (props: TestingViewProps) => {
-    const { settings, onEndTesting } = props;
+    const { settings, onEndTesting, onBackToStart } = props;
 
     // Keep latest prop values in refs so callbacks never go stale
     const settingsRef = useRef(settings);
@@ -63,6 +64,7 @@ export const TestingView = (props: TestingViewProps) => {
     const [correctAnswerValue, setCorrectAnswerValue] = useState<
         string | undefined
     >(undefined);
+    const [hasInteracted, setHasInteracted] = useState(false);
 
     const finishTest = useCallback(() => {
         const words = testWordsRef.current;
@@ -175,6 +177,7 @@ export const TestingView = (props: TestingViewProps) => {
             return;
         }
         isAnsweringRef.current = true;
+        setHasInteracted(true);
 
         const correct = isAnswerCorrect(guess, guessWord, guessDirection);
         log.debug("answer_submitted", {
@@ -197,6 +200,7 @@ export const TestingView = (props: TestingViewProps) => {
     const next = () => advanceToNext();
 
     const skip = () => {
+        setHasInteracted(true);
         if (guessWord) {
             guessWord.timesSkipped += 1;
             log.debug("word_skipped", {
@@ -209,6 +213,7 @@ export const TestingView = (props: TestingViewProps) => {
 
     const checkCorrectAnswer = () => {
         if (!guessWord) return;
+        setHasInteracted(true);
         guessWord.timesCheckedAnswer += 1;
         const answer = getExpectedAnswer(guessWord, guessDirection);
         log.debug("answer_checked", {
@@ -273,6 +278,8 @@ export const TestingView = (props: TestingViewProps) => {
                 onEndTesting={finishTest}
                 onNext={next}
                 onSkip={skip}
+                onBackToStart={onBackToStart}
+                hasInteracted={hasInteracted}
             />
         </Grid>
     );
