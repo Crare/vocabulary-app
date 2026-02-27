@@ -91,8 +91,8 @@ export const HistoryView = () => {
     );
 
     return (
-        <Grid container className="content" gap={2} flexDirection="column">
-            <Card sx={{ p: 3 }}>
+        <Grid container className="content" gap={2} flexDirection="column" sx={{ maxWidth: "100%", overflow: "hidden" }}>
+            <Card sx={{ p: 3, maxWidth: "100%", overflow: "hidden" }}>
                 <Box
                     sx={{
                         display: "flex",

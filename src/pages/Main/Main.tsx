@@ -117,7 +117,7 @@ const Main = () => {
         role="main"
         p={2}
         flexDirection={"row"}
-        size={{ xs: 12, lg: 8 }}
+        size={view === "results" || view === "history" ? 12 : { xs: 12, lg: 8 }}
         justifyContent={"center"}
         height={"100%"}
       >

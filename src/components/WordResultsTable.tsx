@@ -14,22 +14,22 @@ import { alpha } from "../colors";
 
 /** Full columns used in the results view (with Checked & Skipped) */
 const resultsColumns: GridColDef[] = [
-  { field: "lang1Word", headerName: "Language 1", flex: 1, minWidth: 110 },
-  { field: "lang2Word", headerName: "Language 2", flex: 1, minWidth: 110 },
-  { field: "timesCorrect", headerName: "Correct", flex: 0.7, minWidth: 80 },
-  { field: "timesFailed", headerName: "Wrong", flex: 0.7, minWidth: 75 },
+  { field: "lang1Word", headerName: "Language 1", flex: 1, minWidth: 120 },
+  { field: "lang2Word", headerName: "Language 2", flex: 1, minWidth: 120 },
+  { field: "timesCorrect", headerName: "Correct", flex: 0.7, minWidth: 120 },
+  { field: "timesFailed", headerName: "Wrong", flex: 0.7, minWidth: 120 },
   {
     field: "timesCheckedAnswer",
     headerName: "Checked",
     flex: 0.7,
-    minWidth: 80,
+    minWidth: 120,
   },
-  { field: "timesSkipped", headerName: "Skipped", flex: 0.7, minWidth: 80 },
+  { field: "timesSkipped", headerName: "Skipped", flex: 0.7, minWidth: 120 },
   {
     field: "avgTime",
     headerName: "Avg Time",
     flex: 0.7,
-    minWidth: 85,
+    minWidth: 120,
     valueGetter: (_value, row) => calculateAvgAnswerTime(row),
     valueFormatter: (value: number) => (value > 0 ? formatSeconds(value) : "-"),
   },
@@ -37,14 +37,14 @@ const resultsColumns: GridColDef[] = [
     field: "score",
     headerName: "Score",
     flex: 0.6,
-    minWidth: 70,
+    minWidth: 120,
     valueGetter: (_value, row) => calculateScore(row),
   },
   {
     field: "percentage",
     headerName: "Accuracy",
     flex: 1,
-    minWidth: 100,
+    minWidth: 120,
     valueGetter: (_value, row) => calculatePercentage(row),
     renderCell(params) {
       const value = params.value as number;
@@ -79,29 +79,29 @@ const resultsColumns: GridColDef[] = [
 
 /** Compact columns used in the history view */
 const historyColumns: GridColDef[] = [
-  { field: "lang1Word", headerName: "Language 1", flex: 1, minWidth: 100 },
-  { field: "lang2Word", headerName: "Language 2", flex: 1, minWidth: 100 },
-  { field: "timesCorrect", headerName: "Correct", flex: 0.6, minWidth: 75 },
-  { field: "timesFailed", headerName: "Wrong", flex: 0.6, minWidth: 70 },
+  { field: "lang1Word", headerName: "Language 1", flex: 1, minWidth: 120 },
+  { field: "lang2Word", headerName: "Language 2", flex: 1, minWidth: 120 },
+  { field: "timesCorrect", headerName: "Correct", flex: 0.6, minWidth: 120 },
+  { field: "timesFailed", headerName: "Wrong", flex: 0.6, minWidth: 120 },
   {
     field: "score",
     headerName: "Score",
     flex: 0.6,
-    minWidth: 70,
+    minWidth: 120,
     valueGetter: (_value, row: TestWord) => calculateScore(row),
   },
   {
     field: "percentage",
     headerName: "Accuracy",
     flex: 0.7,
-    minWidth: 85,
+    minWidth: 120,
     valueGetter: (_value, row: TestWord) => `${calculatePercentage(row)}%`,
   },
   {
     field: "avgTime",
     headerName: "Avg Time",
     flex: 0.7,
-    minWidth: 85,
+    minWidth: 120,
     valueGetter: (_value, row: TestWord) => calculateAvgAnswerTime(row),
     valueFormatter: (value: number) => (value > 0 ? formatSeconds(value) : "-"),
   },
