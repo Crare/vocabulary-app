@@ -1,13 +1,13 @@
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   Button,
   Card,
   Chip,
   Grid,
   InputAdornment,
+  List,
+  ListItemButton,
+  ListItemText,
   TextField,
   Typography,
 } from "@mui/material";
@@ -20,14 +20,10 @@ import {
   loadHistory,
 } from "../../util/historyStorage";
 import { calculateTotalScore } from "../Results/resultUtils";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
-import { WordScoreChart } from "../../components/WordScoreChart";
-import { ProgressChart } from "../../components/ProgressChart";
-import { WordResultsTable } from "../../components/WordResultsTable";
-import { TestSummaryChips } from "../../components/TestSummaryChips";
-import { SentenceTrainingResults } from "../../components/SentenceTrainingResults";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { HistoryGroupDetail } from "./HistoryGroupDetail";
 import { alpha } from "../../colors";
 
 /** Group entries by languageSetName, preserving insertion order. */
@@ -41,9 +37,18 @@ const groupBySet = (entries: HistoryEntry[]): Map<string, HistoryEntry[]> => {
   return map;
 };
 
+const formatShortDate = (iso: string) => {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+};
+
 export const HistoryView = () => {
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
   useEffect(() => {
     setEntries(loadHistory());
@@ -51,7 +56,17 @@ export const HistoryView = () => {
 
   const handleDelete = (id: string) => {
     deleteHistoryEntry(id);
-    setEntries((prev) => prev.filter((e) => e.id !== id));
+    setEntries((prev) => {
+      const next = prev.filter((e) => e.id !== id);
+      // If the group is now empty, go back to list
+      if (
+        selectedGroup &&
+        !next.some((e) => e.languageSetName === selectedGroup)
+      ) {
+        setSelectedGroup(null);
+      }
+      return next;
+    });
   };
 
   const handleDeleteGroup = (languageSetName: string) => {
@@ -59,22 +74,13 @@ export const HistoryView = () => {
     setEntries((prev) =>
       prev.filter((e) => e.languageSetName !== languageSetName),
     );
+    setSelectedGroup(null);
   };
 
   const handleClearAll = () => {
     clearHistory();
     setEntries([]);
-  };
-
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    setSelectedGroup(null);
   };
 
   const filteredEntries = useMemo(() => {
@@ -85,6 +91,37 @@ export const HistoryView = () => {
 
   const grouped = useMemo(() => groupBySet(filteredEntries), [filteredEntries]);
 
+  // Detail view for a selected group
+  if (selectedGroup) {
+    const groupEntries = entries.filter(
+      (e) => e.languageSetName === selectedGroup,
+    );
+    if (groupEntries.length === 0) {
+      // group was deleted, go back
+      return null;
+    }
+    return (
+      <Grid
+        container
+        className="content"
+        gap={2}
+        flexDirection="column"
+        sx={{ maxWidth: "100%", overflow: "hidden" }}
+      >
+        <Card sx={{ p: 3, maxWidth: "100%", overflow: "hidden" }}>
+          <HistoryGroupDetail
+            setName={selectedGroup}
+            entries={groupEntries}
+            onBack={() => setSelectedGroup(null)}
+            onDeleteEntry={handleDelete}
+            onDeleteGroup={handleDeleteGroup}
+          />
+        </Card>
+      </Grid>
+    );
+  }
+
+  // List view — shows word set groups
   return (
     <Grid
       container
@@ -148,133 +185,51 @@ export const HistoryView = () => {
             No results matching &ldquo;{search}&rdquo;.
           </Typography>
         ) : (
-          Array.from(grouped.entries()).map(([setName, groupEntries]) => (
-            <Accordion
-              key={setName}
-              defaultExpanded={false}
-              disableGutters
-              elevation={0}
-              sx={(theme) => ({
-                border: 1,
-                borderColor:
-                  theme.palette.mode === "dark"
-                    ? alpha.slate30
-                    : alpha.primary20,
-                borderRadius: "12px !important",
-                mb: 1.5,
-                "&:before": { display: "none" },
-              })}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    width: "100%",
-                    pr: 1,
-                  }}
-                >
-                  <Typography fontWeight={700} sx={{ flex: 1 }}>
-                    {setName}
-                  </Typography>
-                  <Chip
-                    label={`${groupEntries.length} test${groupEntries.length !== 1 ? "s" : ""}`}
-                    size="small"
-                    variant="outlined"
-                  />
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
+          <List disablePadding>
+            {Array.from(grouped.entries()).map(([setName, groupEntries]) => {
+              const latestEntry = groupEntries[groupEntries.length - 1];
+              const latestScore = calculateTotalScore(latestEntry.wordResults);
+              return (
+                <ListItemButton
+                  key={setName}
+                  onClick={() => setSelectedGroup(setName)}
+                  sx={(theme) => ({
+                    border: 1,
+                    borderColor:
+                      theme.palette.mode === "dark"
+                        ? alpha.slate30
+                        : alpha.primary20,
+                    borderRadius: 2,
                     mb: 1,
-                  }}
+                    px: 2,
+                    py: 1.5,
+                  })}
                 >
-                  <Button
-                    size="small"
-                    color="error"
-                    variant="outlined"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => handleDeleteGroup(setName)}
+                  <ListItemText
+                    primary={
+                      <Typography fontWeight={700}>{setName}</Typography>
+                    }
+                    secondary={`Last: ${formatShortDate(latestEntry.date)} · Score: ${latestScore}%`}
+                  />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      ml: 1,
+                    }}
                   >
-                    Delete group
-                  </Button>
-                </Box>
-                <ProgressChart entries={groupEntries} />
-                {groupEntries.map((entry) => (
-                  <Accordion
-                    key={entry.id}
-                    disableGutters
-                    elevation={0}
-                    sx={(theme) => ({
-                      border: 1,
-                      borderColor:
-                        theme.palette.mode === "dark"
-                          ? alpha.slate25
-                          : alpha.primary15,
-                      borderRadius: "8px !important",
-                      mb: 1,
-                      "&:before": {
-                        display: "none",
-                      },
-                    })}
-                  >
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 2,
-                          flexWrap: "wrap",
-                          width: "100%",
-                          pr: 1,
-                        }}
-                      >
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            flex: 1,
-                            minWidth: 100,
-                          }}
-                        >
-                          {formatDate(entry.date)}
-                        </Typography>
-                        <TestSummaryChips
-                          wordResults={entry.wordResults}
-                          timeTaken={entry.timeTaken}
-                          score={calculateTotalScore(entry.wordResults)}
-                        />
-                      </Box>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <WordScoreChart wordResults={entry.wordResults} />
-                      <WordResultsTable
-                        wordResults={entry.wordResults}
-                        variant="history"
-                      />
-                      <SentenceTrainingResults
-                        wordResults={entry.wordResults}
-                        compact
-                      />
-                      <Button
-                        size="small"
-                        color="error"
-                        variant="outlined"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => handleDelete(entry.id)}
-                      >
-                        Delete entry
-                      </Button>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-              </AccordionDetails>
-            </Accordion>
-          ))
+                    <Chip
+                      label={`${groupEntries.length} test${groupEntries.length !== 1 ? "s" : ""}`}
+                      size="small"
+                      variant="outlined"
+                    />
+                    <ChevronRightIcon color="action" />
+                  </Box>
+                </ListItemButton>
+              );
+            })}
+          </List>
         )}
       </Card>
     </Grid>
