@@ -157,7 +157,10 @@ const EntryAccordion = ({
         {hasOpened ? (
           <>
             <WordScoreChart wordResults={entry.wordResults} />
-            <WordResultsTable wordResults={entry.wordResults} variant="history" />
+            <WordResultsTable
+              wordResults={entry.wordResults}
+              variant="history"
+            />
             <SentenceTrainingResults wordResults={entry.wordResults} compact />
             <Button
               size="small"
