@@ -65,7 +65,6 @@ const templates: WordSet[] = [
 const placeholderYourLang = set1.words.map((w) => w.lang1).join("\n");
 const placeholderOtherLang = set1.words.map((w) => w.lang2).join("\n");
 
-
 interface SettingsViewProps {
   onStartTest: (settings: TestSettings) => void;
 }
@@ -236,6 +235,8 @@ export const SettingsView = (props: SettingsViewProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textarea1Ref = useRef<HTMLTextAreaElement>(null);
   const textarea2Ref = useRef<HTMLTextAreaElement>(null);
+  const sentenceTextarea1Ref = useRef<HTMLTextAreaElement>(null);
+  const sentenceTextarea2Ref = useRef<HTMLTextAreaElement>(null);
 
   const syncScroll = (source: "lang1" | "lang2") => {
     const from =
@@ -243,6 +244,28 @@ export const SettingsView = (props: SettingsViewProps) => {
     const to = source === "lang1" ? textarea2Ref.current : textarea1Ref.current;
     if (from && to) to.scrollTop = from.scrollTop;
   };
+
+  const syncSentenceScroll = (source: "lang1" | "lang2") => {
+    const from =
+      source === "lang1"
+        ? sentenceTextarea1Ref.current
+        : sentenceTextarea2Ref.current;
+    const to =
+      source === "lang1"
+        ? sentenceTextarea2Ref.current
+        : sentenceTextarea1Ref.current;
+    if (from && to) to.scrollTop = from.scrollTop;
+  };
+
+  // Keep both sentence textareas the same height (max 15 rows)
+  const sentenceRowCount = Math.min(
+    15,
+    Math.max(
+      4,
+      language1Sentences.split("\n").length,
+      language2Sentences.split("\n").length,
+    ),
+  );
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -739,6 +762,8 @@ export const SettingsView = (props: SettingsViewProps) => {
                       Sentences ({lang1Name || "Language 1"})
                     </Typography>
                     <TextareaAutosize
+                      ref={sentenceTextarea1Ref}
+                      onScroll={() => syncSentenceScroll("lang1")}
                       style={{
                         width: "100%",
                         fontFamily: "'Inter', sans-serif",
@@ -754,8 +779,8 @@ export const SettingsView = (props: SettingsViewProps) => {
                         lineHeight: 1.6,
                         textAlign: "right",
                       }}
-                      minRows={4}
-                      maxRows={8}
+                      minRows={sentenceRowCount}
+                      maxRows={15}
                       value={language1Sentences}
                       onChange={(e) => setLanguage1Sentences(e.target.value)}
                       placeholder={"e.g. Minä menen kouluun\nHän lukee kirjaa"}
@@ -770,6 +795,8 @@ export const SettingsView = (props: SettingsViewProps) => {
                       Sentences ({lang2Name || "Language 2"})
                     </Typography>
                     <TextareaAutosize
+                      ref={sentenceTextarea2Ref}
+                      onScroll={() => syncSentenceScroll("lang2")}
                       style={{
                         width: "100%",
                         fontFamily: "'Inter', sans-serif",
@@ -784,8 +811,8 @@ export const SettingsView = (props: SettingsViewProps) => {
                         transition: "border-color 0.2s",
                         lineHeight: 1.6,
                       }}
-                      minRows={4}
-                      maxRows={8}
+                      minRows={sentenceRowCount}
+                      maxRows={15}
                       value={language2Sentences}
                       onChange={(e) => setLanguage2Sentences(e.target.value)}
                       placeholder={"e.g. Jag går till skolan\nHan läser en bok"}
