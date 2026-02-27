@@ -36,7 +36,7 @@ interface TestingViewProps {
 
 export const TestingView = (props: TestingViewProps) => {
   const { settings, onEndTesting, onBackToStart } = props;
-  const { onCorrect, onWrong, onFinish } = useSound();
+  const { onCorrect, onWrong, onFinish, onReveal, onSkip: onSkipSound } = useSound();
 
   // Keep latest prop values in refs so callbacks never go stale
   const settingsRef = useRef(settings);
@@ -340,6 +340,7 @@ export const TestingView = (props: TestingViewProps) => {
   };
 
   const skip = () => {
+    onSkipSound();
     setHasInteracted(true);
     if (guessWord) {
       const elapsed = Date.now() - wordStartTimeRef.current;
@@ -356,6 +357,7 @@ export const TestingView = (props: TestingViewProps) => {
 
   const checkCorrectAnswer = () => {
     if (!guessWord) return;
+    onReveal();
     setHasInteracted(true);
     const elapsed = Date.now() - wordStartTimeRef.current;
     guessWord.totalAnswerTimeMs += elapsed;

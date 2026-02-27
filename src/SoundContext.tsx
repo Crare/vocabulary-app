@@ -8,7 +8,7 @@ import {
     useRef,
     ReactNode,
 } from "react";
-import { playCorrect, playWrong, playStart, playFinish } from "./util/sounds";
+import { playCorrect, playWrong, playStart, playFinish, playReveal, playSkip } from "./util/sounds";
 
 interface SoundContextValue {
     volume: number;
@@ -17,6 +17,8 @@ interface SoundContextValue {
     onWrong: () => void;
     onStart: () => void;
     onFinish: () => void;
+    onReveal: () => void;
+    onSkip: () => void;
 }
 
 const STORAGE_KEY = "SOUND_VOLUME";
@@ -28,6 +30,8 @@ const SoundContext = createContext<SoundContextValue>({
     onWrong: () => {},
     onStart: () => {},
     onFinish: () => {},
+    onReveal: () => {},
+    onSkip: () => {},
 });
 
 export const useSound = () => useContext(SoundContext);
@@ -73,10 +77,16 @@ export const SoundProvider = ({ children }: { children: ReactNode }) => {
     const onFinish = useCallback(() => {
         if (volumeRef.current > 0) playFinish(volumeRef.current);
     }, []);
+    const onReveal = useCallback(() => {
+        if (volumeRef.current > 0) playReveal(volumeRef.current);
+    }, []);
+    const onSkip = useCallback(() => {
+        if (volumeRef.current > 0) playSkip(volumeRef.current);
+    }, []);
 
     const value = useMemo(
-        () => ({ volume, setVolume, onCorrect, onWrong, onStart, onFinish }),
-        [volume, setVolume, onCorrect, onWrong, onStart, onFinish],
+        () => ({ volume, setVolume, onCorrect, onWrong, onStart, onFinish, onReveal, onSkip }),
+        [volume, setVolume, onCorrect, onWrong, onStart, onFinish, onReveal, onSkip],
     );
 
     return (

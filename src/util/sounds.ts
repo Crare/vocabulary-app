@@ -69,6 +69,42 @@ export const playFinish = (volume = 1) => {
     });
 };
 
+/** Soft descending tone — reveal answer */
+export const playReveal = (volume = 1) => {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+    const v = 0.12 * volume;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(350, now + 0.25);
+    gain.gain.setValueAtTime(v, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.3);
+};
+
+/** Quick whoosh — skip word */
+export const playSkip = (volume = 1) => {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+    const v = 0.1 * volume;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.15);
+    gain.gain.setValueAtTime(v, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.18);
+};
+
 /** Quick "ready" beep — test started */
 export const playStart = (volume = 1) => {
     const ctx = getCtx();
