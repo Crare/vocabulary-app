@@ -82,6 +82,7 @@ interface PersistedSettings {
   sentenceTestAllWords: boolean;
   answerDelayMs: number;
   allowTypos: boolean;
+  progressOnMistakes: boolean;
   language1Words: string;
   language2Words: string;
   lang1Name: string;
@@ -165,6 +166,7 @@ export const SettingsView = (props: SettingsViewProps) => {
       sentenceTestAllWords: persisted.sentenceTestAllWords ?? true,
       answerDelayMs: persisted.answerDelayMs ?? 1500,
       allowTypos: persisted.allowTypos ?? true,
+      progressOnMistakes: persisted.progressOnMistakes ?? false,
       testType:
         persisted.testType && typeof persisted.testType === "object"
           ? {
@@ -717,8 +719,12 @@ export const SettingsView = (props: SettingsViewProps) => {
               }
               disableGutters
               sx={{
-                backgroundColor: "transparent",
+                backgroundColor: (theme) =>
+                  theme.palette.mode === "light"
+                    ? "rgba(0, 0, 0, 0.04)"
+                    : "transparent",
                 boxShadow: "none",
+                borderRadius: 1,
                 "&::before": { display: "none" },
               }}
             >

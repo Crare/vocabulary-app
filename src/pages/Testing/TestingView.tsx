@@ -95,9 +95,12 @@ export const TestingView = (props: TestingViewProps) => {
 
   const advanceToNext = useCallback(() => {
     const s = settingsRef.current;
-    const remaining = testWordsRef.current.filter(
-      (w) => w.timesCorrect < s.wordNeedsToGetCorrectTimes,
-    );
+    const remaining = testWordsRef.current.filter((w) => {
+      const progress = s.progressOnMistakes
+        ? w.timesCorrect + w.timesFailed
+        : w.timesCorrect;
+      return progress < s.wordNeedsToGetCorrectTimes;
+    });
     if (remaining.length === 0) {
       finishTest();
       return;
@@ -187,9 +190,12 @@ export const TestingView = (props: TestingViewProps) => {
       testType: s.testType,
     });
 
-    const remaining = words.filter(
-      (w) => w.timesCorrect < s.wordNeedsToGetCorrectTimes,
-    );
+    const remaining = words.filter((w) => {
+      const progress = s.progressOnMistakes
+        ? w.timesCorrect + w.timesFailed
+        : w.timesCorrect;
+      return progress < s.wordNeedsToGetCorrectTimes;
+    });
     if (remaining.length === 0) {
       finishTest();
       return;
