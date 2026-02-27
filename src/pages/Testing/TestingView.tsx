@@ -36,7 +36,13 @@ interface TestingViewProps {
 
 export const TestingView = (props: TestingViewProps) => {
   const { settings, onEndTesting, onBackToStart } = props;
-  const { onCorrect, onWrong, onFinish, onReveal, onSkip: onSkipSound } = useSound();
+  const {
+    onCorrect,
+    onWrong,
+    onFinish,
+    onReveal,
+    onSkip: onSkipSound,
+  } = useSound();
 
   // Keep latest prop values in refs so callbacks never go stale
   const settingsRef = useRef(settings);
