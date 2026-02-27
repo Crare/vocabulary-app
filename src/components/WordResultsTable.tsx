@@ -14,8 +14,6 @@ import { alpha } from "../colors";
 
 /** Simplified columns for the results view — words + accuracy */
 const resultsColumns: GridColDef[] = [
-  { field: "lang1Word", headerName: "Language 1", flex: 1, minWidth: 120 },
-  { field: "lang2Word", headerName: "Language 2", flex: 1, minWidth: 120 },
   {
     field: "percentage",
     headerName: "Accuracy",
@@ -51,6 +49,8 @@ const resultsColumns: GridColDef[] = [
       );
     },
   },
+  { field: "lang1Word", headerName: "Language 1", flex: 1, minWidth: 120 },
+  { field: "lang2Word", headerName: "Language 2", flex: 1, minWidth: 120 },
 ];
 
 /** Compact columns used in the history view */

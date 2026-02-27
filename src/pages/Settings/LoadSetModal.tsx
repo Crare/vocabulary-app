@@ -114,6 +114,8 @@ export const LoadSetModal = (props: LoadSetModalProps) => {
                   <Typography fontWeight={600}>{set.name}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     {set.language1Words.length} words
+                    {(set.language1Sentences?.length ?? 0) > 0 &&
+                      ` · ${set.language1Sentences!.length} sentences`}
                   </Typography>
                 </Box>
                 <Box
