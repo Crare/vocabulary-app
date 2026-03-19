@@ -256,7 +256,9 @@ describe("testLogic", () => {
 
     it("should be case-insensitive for exact matching", () => {
       // "HERMOSA" is an exact case-insensitive match, so it's "correct" not "typo"
-      expect(checkAnswer("HERMOSA", longWord, "lang1to2", true)).toBe("correct");
+      expect(checkAnswer("HERMOSA", longWord, "lang1to2", true)).toBe(
+        "correct",
+      );
       expect(checkAnswer("Hola", mockWord, "lang1to2", true)).toBe("correct");
     });
 
