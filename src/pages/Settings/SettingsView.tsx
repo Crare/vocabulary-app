@@ -47,6 +47,7 @@ import set7 from "../../wordsets/words7.json";
 import set8 from "../../wordsets/words8.json";
 import set9 from "../../wordsets/words9.json";
 import set10 from "../../wordsets/words10.json";
+import set11 from "../../wordsets/words11.json";
 
 const log = createLogger("settings");
 const templates: WordSet[] = [
@@ -60,6 +61,7 @@ const templates: WordSet[] = [
   set8,
   set9,
   set10,
+  set11,
 ];
 
 // Resolve ?template=<index|name> once at module load time so useState
