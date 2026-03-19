@@ -457,12 +457,11 @@ export const SettingsView = (props: SettingsViewProps) => {
     setLanguageSetIsValid(valid);
   }, [language1Words, language2Words]);
 
-  // On first mount: clean template/autostart params from the URL and, if
+  // On first mount: clean autostart param from the URL and, if
   // ?autostart=true was present, kick off the test immediately.
   useEffect(() => {
     if (_urlTemplate) {
       const url = new URL(window.location.href);
-      url.searchParams.delete("template");
       url.searchParams.delete("autostart");
       window.history.replaceState({}, "", url.toString());
       if (_urlAutostart) {
