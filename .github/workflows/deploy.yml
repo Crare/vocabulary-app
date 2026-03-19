@@ -30,6 +30,66 @@ jobs:
 
       - run: yarn install --frozen-lockfile
 
+      - name: Check for outdated packages
+        run: |
+          OUTDATED=$(yarn outdated --json 2>/dev/null | node -e "
+            const chunks = []; process.stdin.on('data', d => chunks.push(d)); process.stdin.on('end', () => {
+              const lines = Buffer.concat(chunks).toString().trim().split('\n');
+              for (const line of lines) {
+                try {
+                  const obj = JSON.parse(line);
+                  if (obj.type === 'table') {
+                    const rows = obj.data.body;
+                    if (rows.length === 0) { process.stdout.write('none'); return; }
+                    const list = rows.map(r => \`\${r[0]} (\${r[1]} -> \${r[3]})\`).join(', ');
+                    process.stdout.write(\`\${rows.length}|\${list}\`);
+                    return;
+                  }
+                } catch {}
+              }
+              process.stdout.write('none');
+            });
+          " || echo "none")
+          if [ "$OUTDATED" != "none" ] && [ -n "$OUTDATED" ]; then
+            COUNT=$(echo "$OUTDATED" | cut -d'|' -f1)
+            LIST=$(echo "$OUTDATED" | cut -d'|' -f2-)
+            echo "::warning::$COUNT outdated package(s): $LIST"
+          fi
+        continue-on-error: true
+
+      - name: Audit dependencies
+        run: |
+          AUDIT_OUT=$(yarn audit --json 2>/dev/null | node -e "
+            const chunks = []; process.stdin.on('data', d => chunks.push(d)); process.stdin.on('end', () => {
+              const lines = Buffer.concat(chunks).toString().trim().split('\n');
+              let total = 0; const items = []; const seen = new Set();
+              for (const line of lines) {
+                try {
+                  const obj = JSON.parse(line);
+                  if (obj.type === 'auditAdvisory') {
+                    const adv = obj.data.advisory;
+                    if (!seen.has(adv.id)) {
+                      seen.add(adv.id);
+                      total++;
+                      items.push(\`\${adv.module_name} (\${adv.severity})\`);
+                    }
+                  }
+                } catch {}
+              }
+              if (total === 0) process.stdout.write('none');
+              else process.stdout.write(\`\${total}|\${items.join(', ')}\`);
+            });
+          " || echo "none")
+          if [ "$AUDIT_OUT" != "none" ] && [ -n "$AUDIT_OUT" ]; then
+            COUNT=$(echo "$AUDIT_OUT" | cut -d'|' -f1)
+            LIST=$(echo "$AUDIT_OUT" | cut -d'|' -f2-)
+            echo "::warning::$COUNT audit vulnerability/vulnerabilities found: $LIST"
+          fi
+        continue-on-error: true
+
+      - name: Run tests
+        run: yarn test --run
+
       - run: yarn build
 
       - uses: actions/configure-pages@v5
