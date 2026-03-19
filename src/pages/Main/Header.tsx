@@ -33,7 +33,9 @@ import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import FormatSizeIcon from "@mui/icons-material/FormatSize";
 import TextDecreaseIcon from "@mui/icons-material/TextDecrease";
 import TextIncreaseIcon from "@mui/icons-material/TextIncrease";
+import QrCode2Icon from "@mui/icons-material/QrCode2";
 import { useState } from "react";
+import { QrCodeModal } from "../../components/QrCodeModal";
 import { useThemeMode } from "../../ThemeContext";
 import { useSound } from "../../SoundContext";
 import {
@@ -70,6 +72,7 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
   const [textSizeAnchor, setTextSizeAnchor] =
     useState<HTMLButtonElement | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const muiTheme = useTheme();
   const isMobile = useMediaQuery("(max-width: 1199px)");
 
@@ -361,6 +364,15 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
             <VolumeOffIcon fontSize="small" color="action" />
           </Stack>
         </Popover>
+        <Tooltip title="QR code — open on phone" arrow>
+          <IconButton
+            onClick={() => setQrOpen(true)}
+            sx={{ color: alpha.white85, ml: 0.5 }}
+            aria-label="Share via QR code"
+          >
+            <QrCode2Icon />
+          </IconButton>
+        </Tooltip>
         <IconButton
           onClick={toggleMode}
           sx={{ color: alpha.white85, ml: 0.5 }}
@@ -369,6 +381,12 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
           {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
         </IconButton>
       </Toolbar>
+
+      <QrCodeModal
+        open={qrOpen}
+        onClose={() => setQrOpen(false)}
+        url={window.location.href}
+      />
     </AppBar>
   );
 };
