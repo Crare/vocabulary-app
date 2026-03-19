@@ -12,6 +12,7 @@ import {
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { TestResults, TestWord } from "../Testing/types";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import SkipNextIcon from "@mui/icons-material/SkipNext";
 import { useState, useMemo } from "react";
 import { loadHistory } from "../../util/historyStorage";
 import { ProgressChart } from "../../components/ProgressChart";
@@ -28,10 +29,21 @@ interface ResultsViewProps {
   languageSetName: string;
   onBackToStart: () => void;
   onRetestWords: (words: TestWord[]) => void;
+  onRetryPart?: () => void;
+  onNextPart?: () => void;
+  partitionInfo?: { partIndex: number; totalParts: number };
 }
 
 export const ResultsView = (props: ResultsViewProps) => {
-  const { results, languageSetName, onBackToStart, onRetestWords } = props;
+  const {
+    results,
+    languageSetName,
+    onBackToStart,
+    onRetestWords,
+    onRetryPart,
+    onNextPart,
+    partitionInfo,
+  } = props;
 
   const historyEntries = useMemo(
     () => loadHistory().filter((e) => e.languageSetName === languageSetName),
@@ -60,6 +72,9 @@ export const ResultsView = (props: ResultsViewProps) => {
       <Card sx={{ p: 3, maxWidth: "100%", overflow: "hidden" }}>
         <Typography variant="h3" mb={3} textAlign={"center"}>
           Results
+          {partitionInfo
+            ? ` — Part ${partitionInfo.partIndex + 1} / ${partitionInfo.totalParts}`
+            : ""}
         </Typography>
 
         <Box
@@ -135,6 +150,38 @@ export const ResultsView = (props: ResultsViewProps) => {
             </Button>
           </span>
         </Tooltip>
+        {onRetryPart && (
+          <Tooltip title="Retry the same part of the word set" arrow>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={onRetryPart}
+              startIcon={<ReplayIcon />}
+              size="large"
+              sx={{ px: 5, py: 1.5 }}
+            >
+              Retry this part
+            </Button>
+          </Tooltip>
+        )}
+        {onNextPart && (
+          <Tooltip
+            title={`Continue to part ${(partitionInfo?.partIndex ?? 0) + 2} of ${partitionInfo?.totalParts}`}
+            arrow
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={onNextPart}
+              endIcon={<SkipNextIcon />}
+              size="large"
+              sx={{ px: 5, py: 1.5 }}
+            >
+              Next part ({(partitionInfo?.partIndex ?? 0) + 2} /{" "}
+              {partitionInfo?.totalParts})
+            </Button>
+          </Tooltip>
+        )}
         <Tooltip title="Return to the word list setup screen" arrow>
           <Button
             variant="contained"

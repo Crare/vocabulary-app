@@ -64,6 +64,16 @@ export interface TestResults {
   score: number;
 }
 
+export interface PartitionContext {
+  /** The complete, un-sliced language set. */
+  fullLanguageSet: LanguageSet;
+  totalParts: number;
+  /** 0-based index of the current part. */
+  partIndex: number;
+  /** Number of words per part. */
+  partSize: number;
+}
+
 export interface HistoryEntry {
   id: string;
   date: string; // ISO string

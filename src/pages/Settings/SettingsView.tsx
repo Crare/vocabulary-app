@@ -13,13 +13,15 @@ import {
   Input,
   TextareaAutosize,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { LanguageSet, TestSettings } from "../Testing/types";
+import { LanguageSet, PartitionContext, TestSettings } from "../Testing/types";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import { colors, alpha, gradients } from "../../colors";
@@ -86,7 +88,7 @@ const placeholderYourLang = set1.words.map((w) => w.lang1).join("\n");
 const placeholderOtherLang = set1.words.map((w) => w.lang2).join("\n");
 
 interface SettingsViewProps {
-  onStartTest: (settings: TestSettings) => void;
+  onStartTest: (settings: TestSettings, partition?: PartitionContext) => void;
 }
 
 const storage_keys = {
@@ -174,21 +176,42 @@ export const SettingsView = (props: SettingsViewProps) => {
 
   const startTest = () => {
     const persisted = loadPersistedSettings();
-    const languageSet: LanguageSet = {
+    const allLang1 = language1Words.split("\n");
+    const allLang2 = language2Words.split("\n");
+    const allLang1Sentences = language1Sentences
+      ? language1Sentences.split("\n")
+      : undefined;
+    const allLang2Sentences = language2Sentences
+      ? language2Sentences.split("\n")
+      : undefined;
+
+    const totalWords = allLang1.length;
+    const partSize = Math.ceil(totalWords / partSplit);
+    const sliceEnd = Math.min(partSize, totalWords);
+
+    const fullLanguageSet: LanguageSet = {
       name: langSetName.length > 0 ? langSetName : "unnamed language set",
-      language1Words: language1Words.split("\n"),
-      language2Words: language2Words.split("\n"),
+      language1Words: allLang1,
+      language2Words: allLang2,
       language1Name: lang1Name || undefined,
       language2Name: lang2Name || undefined,
-      language1Sentences: language1Sentences
-        ? language1Sentences.split("\n")
-        : undefined,
-      language2Sentences: language2Sentences
-        ? language2Sentences.split("\n")
-        : undefined,
+      language1Sentences: allLang1Sentences,
+      language2Sentences: allLang2Sentences,
     };
+
+    const slicedLanguageSet: LanguageSet =
+      partSplit === 1
+        ? fullLanguageSet
+        : {
+            ...fullLanguageSet,
+            language1Words: allLang1.slice(0, sliceEnd),
+            language2Words: allLang2.slice(0, sliceEnd),
+            language1Sentences: allLang1Sentences?.slice(0, sliceEnd),
+            language2Sentences: allLang2Sentences?.slice(0, sliceEnd),
+          };
+
     const settings: TestSettings = {
-      languageSet: languageSet,
+      languageSet: slicedLanguageSet,
       wordNeedsToGetCorrectTimes: persisted.wordNeedsToGetCorrectTimes ?? 3,
       multiSelectChoicesAmount: persisted.multiSelectChoicesAmount ?? 4,
       onlySecondLanguageWordsTested:
@@ -215,7 +238,16 @@ export const SettingsView = (props: SettingsViewProps) => {
               sentenceFillBlank: true,
             },
     };
-    onStartTest(settings);
+    const partitionCtx: PartitionContext | undefined =
+      partSplit > 1
+        ? {
+            fullLanguageSet,
+            totalParts: partSplit,
+            partIndex: 0,
+            partSize,
+          }
+        : undefined;
+    onStartTest(settings, partitionCtx);
   };
 
   const flip = () => {
@@ -439,6 +471,7 @@ export const SettingsView = (props: SettingsViewProps) => {
 
   const [languageSetIsValid, setLanguageSetIsValid] = useState<boolean>(false);
   const [hasTestType, setHasTestType] = useState<boolean>(true);
+  const [partSplit, setPartSplit] = useState<1 | 2 | 4>(1);
 
   // Validate word counts whenever the word fields change
   useEffect(() => {
@@ -960,6 +993,79 @@ export const SettingsView = (props: SettingsViewProps) => {
         <Typography variant="h3" mb={2} sx={{ color: colors.white }}>
           Ready?
         </Typography>
+
+        {languageSetIsValid &&
+          (() => {
+            const totalWords = language1Words.split("\n").length;
+            const partSize = Math.ceil(totalWords / partSplit);
+            const wordsInPart =
+              partSplit === 1 ? totalWords : Math.min(partSize, totalWords);
+            return (
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: alpha.white80, mb: 1 }}
+                >
+                  Split set into parts:
+                </Typography>
+                <ToggleButtonGroup
+                  value={partSplit}
+                  exclusive
+                  onChange={(_e, val) => {
+                    if (val) setPartSplit(val as 1 | 2 | 4);
+                  }}
+                  size="small"
+                  sx={{ mb: 1.5 }}
+                >
+                  <ToggleButton
+                    value={1}
+                    sx={{
+                      color: colors.white,
+                      borderColor: alpha.white30,
+                      "&.Mui-selected": {
+                        bgcolor: alpha.white30,
+                        color: colors.white,
+                      },
+                    }}
+                  >
+                    Full ({totalWords})
+                  </ToggleButton>
+                  <ToggleButton
+                    value={2}
+                    sx={{
+                      color: colors.white,
+                      borderColor: alpha.white30,
+                      "&.Mui-selected": {
+                        bgcolor: alpha.white30,
+                        color: colors.white,
+                      },
+                    }}
+                  >
+                    ½ ({Math.ceil(totalWords / 2)})
+                  </ToggleButton>
+                  <ToggleButton
+                    value={4}
+                    sx={{
+                      color: colors.white,
+                      borderColor: alpha.white30,
+                      "&.Mui-selected": {
+                        bgcolor: alpha.white30,
+                        color: colors.white,
+                      },
+                    }}
+                  >
+                    ¼ ({Math.ceil(totalWords / 4)})
+                  </ToggleButton>
+                </ToggleButtonGroup>
+                {partSplit > 1 && (
+                  <Typography variant="body2" sx={{ color: alpha.white80 }}>
+                    Will test {wordsInPart} of {totalWords} words (part 1 of{" "}
+                    {partSplit})
+                  </Typography>
+                )}
+              </Box>
+            );
+          })()}
         {!languageSetIsValid && (
           <Typography
             variant="body2"

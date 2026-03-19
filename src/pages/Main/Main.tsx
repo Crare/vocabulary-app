@@ -9,7 +9,12 @@ import { TestingView } from "../Testing/TestingView";
 import { ResultsView } from "../Results/ResultsView";
 import { HistoryView } from "../History/HistoryView";
 import { CreditsView } from "../Credits/CreditsView";
-import { TestResults, TestSettings, TestWord } from "../Testing/types";
+import {
+  TestResults,
+  TestSettings,
+  TestWord,
+  PartitionContext,
+} from "../Testing/types";
 import { saveTestResult } from "../../util/historyStorage";
 import { createLogger } from "../../util/logger";
 import { useSound } from "../../SoundContext";
@@ -23,8 +28,14 @@ const Main = () => {
   >("wordlists");
   const [settings, setSettings] = useState<TestSettings | undefined>(undefined);
   const [results, setResults] = useState<TestResults | undefined>(undefined);
+  const [partitionCtx, setPartitionCtx] = useState<PartitionContext | null>(
+    null,
+  );
 
-  const startTest = (testSettings: TestSettings) => {
+  const startTest = (
+    testSettings: TestSettings,
+    partition?: PartitionContext,
+  ) => {
     log.info("test_started", {
       wordCount: testSettings.languageSet.language1Words.length,
       languageSet: testSettings.languageSet.name,
@@ -36,6 +47,7 @@ const Main = () => {
     });
     onStart();
     setSettings(testSettings);
+    setPartitionCtx(partition ?? null);
     setView("testing");
   };
 
@@ -62,6 +74,47 @@ const Main = () => {
   const backToStart = () => {
     setView("wordlists");
     setResults(undefined);
+    setPartitionCtx(null);
+  };
+
+  const retryPart = () => {
+    if (!settings) return;
+    log.info("retry_part", {
+      partIndex: partitionCtx?.partIndex ?? 0,
+      wordCount: settings.languageSet.language1Words.length,
+    });
+    setResults(undefined);
+    onStart();
+    setView("testing");
+  };
+
+  const nextPart = () => {
+    if (!partitionCtx || !settings) return;
+    const { fullLanguageSet, totalParts, partIndex, partSize } = partitionCtx;
+    const nextPartIndex = partIndex + 1;
+    const start = nextPartIndex * partSize;
+    const end = Math.min(
+      start + partSize,
+      fullLanguageSet.language1Words.length,
+    );
+    log.info("next_part", { partIndex: nextPartIndex, start, end, totalParts });
+    const slicedSettings: TestSettings = {
+      ...settings,
+      languageSet: {
+        ...fullLanguageSet,
+        language1Words: fullLanguageSet.language1Words.slice(start, end),
+        language2Words: fullLanguageSet.language2Words.slice(start, end),
+        language1Sentences: fullLanguageSet.language1Sentences?.slice(
+          start,
+          end,
+        ),
+        language2Sentences: fullLanguageSet.language2Sentences?.slice(
+          start,
+          end,
+        ),
+      },
+    };
+    startTest(slicedSettings, { ...partitionCtx, partIndex: nextPartIndex });
   };
 
   const retestWords = (words: TestWord[]) => {
@@ -136,6 +189,21 @@ const Main = () => {
             languageSetName={settings?.languageSet.name ?? ""}
             onBackToStart={backToStart}
             onRetestWords={retestWords}
+            onRetryPart={partitionCtx ? retryPart : undefined}
+            onNextPart={
+              partitionCtx &&
+              partitionCtx.partIndex + 1 < partitionCtx.totalParts
+                ? nextPart
+                : undefined
+            }
+            partitionInfo={
+              partitionCtx
+                ? {
+                    partIndex: partitionCtx.partIndex,
+                    totalParts: partitionCtx.totalParts,
+                  }
+                : undefined
+            }
           />
         ) : null}
         {view === "history" ? <HistoryView /> : null}
