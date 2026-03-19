@@ -252,7 +252,12 @@ describe("testLogic", () => {
 
     it("should be case-insensitive for typo matching", () => {
       expect(checkAnswer("Hermoza", longWord, "lang1to2", true)).toBe("typo");
-      expect(checkAnswer("HERMOSA", longWord, "lang1to2", true)).toBe("typo");
+    });
+
+    it("should be case-insensitive for exact matching", () => {
+      // "HERMOSA" is an exact case-insensitive match, so it's "correct" not "typo"
+      expect(checkAnswer("HERMOSA", longWord, "lang1to2", true)).toBe("correct");
+      expect(checkAnswer("Hola", mockWord, "lang1to2", true)).toBe("correct");
     });
 
     it("should return 'wrong' for swapped characters in short word (below threshold)", () => {
