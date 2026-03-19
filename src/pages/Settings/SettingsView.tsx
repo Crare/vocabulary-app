@@ -62,6 +62,24 @@ const templates: WordSet[] = [
   set10,
 ];
 
+// Resolve ?template=<index|name> once at module load time so useState
+// initializers can use the value synchronously.
+const _urlTemplateParam = new URLSearchParams(window.location.search).get(
+  "template",
+);
+const _urlTemplate: WordSet | null = (() => {
+  if (!_urlTemplateParam) return null;
+  const idx = parseInt(_urlTemplateParam, 10) - 1; // 1-based → 0-based
+  if (!isNaN(idx) && idx >= 0 && idx < templates.length) return templates[idx];
+  return (
+    templates.find(
+      (t) => t.name.toLowerCase() === _urlTemplateParam.toLowerCase(),
+    ) ?? null
+  );
+})();
+const _urlAutostart =
+  new URLSearchParams(window.location.search).get("autostart") === "true";
+
 const placeholderYourLang = set1.words.map((w) => w.lang1).join("\n");
 const placeholderOtherLang = set1.words.map((w) => w.lang2).join("\n");
 
@@ -115,22 +133,34 @@ export const SettingsView = (props: SettingsViewProps) => {
   );
 
   const [language1Words, setLanguage1Words] = useState<string>(
-    () => loadPersistedSettings().language1Words ?? "",
+    () =>
+      _urlTemplate?.words.map((w) => w.lang1).join("\n") ??
+      loadPersistedSettings().language1Words ??
+      "",
   );
   const [language2Words, setLanguage2Words] = useState<string>(
-    () => loadPersistedSettings().language2Words ?? "",
+    () =>
+      _urlTemplate?.words.map((w) => w.lang2).join("\n") ??
+      loadPersistedSettings().language2Words ??
+      "",
   );
   const [lang1Name, setLang1Name] = useState<string>(
-    () => loadPersistedSettings().lang1Name ?? "",
+    () => _urlTemplate?.language1 ?? loadPersistedSettings().lang1Name ?? "",
   );
   const [lang2Name, setLang2Name] = useState<string>(
-    () => loadPersistedSettings().lang2Name ?? "",
+    () => _urlTemplate?.language2 ?? loadPersistedSettings().lang2Name ?? "",
   );
   const [language1Sentences, setLanguage1Sentences] = useState<string>(
-    () => loadPersistedSettings().language1Sentences ?? "",
+    () =>
+      _urlTemplate?.sentences?.map((s) => s.lang1).join("\n") ??
+      loadPersistedSettings().language1Sentences ??
+      "",
   );
   const [language2Sentences, setLanguage2Sentences] = useState<string>(
-    () => loadPersistedSettings().language2Sentences ?? "",
+    () =>
+      _urlTemplate?.sentences?.map((s) => s.lang2).join("\n") ??
+      loadPersistedSettings().language2Sentences ??
+      "",
   );
 
   const clear = () => {
@@ -305,7 +335,7 @@ export const SettingsView = (props: SettingsViewProps) => {
   };
 
   const [langSetName, setLangSetName] = useState<string>(
-    () => loadPersistedSettings().langSetName ?? "",
+    () => _urlTemplate?.name ?? loadPersistedSettings().langSetName ?? "",
   );
   const [savedIndicator, setSavedIndicator] = useState(false);
   const saveSet = () => {
@@ -399,6 +429,9 @@ export const SettingsView = (props: SettingsViewProps) => {
     setLangSetName(t.name);
     setLanguage1Sentences(t.sentences?.map((s) => s.lang1).join("\n") ?? "");
     setLanguage2Sentences(t.sentences?.map((s) => s.lang2).join("\n") ?? "");
+    const url = new URL(window.location.href);
+    url.searchParams.set("template", String(index + 1));
+    window.history.replaceState({}, "", url.toString());
     handleTemplateListModalClose();
   };
 
@@ -421,6 +454,23 @@ export const SettingsView = (props: SettingsViewProps) => {
     }
     setLanguageSetIsValid(valid);
   }, [language1Words, language2Words]);
+
+  // On first mount: clean template/autostart params from the URL and, if
+  // ?autostart=true was present, kick off the test immediately.
+  useEffect(() => {
+    if (_urlTemplate) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("template");
+      url.searchParams.delete("autostart");
+      window.history.replaceState({}, "", url.toString());
+      if (_urlAutostart) {
+        startTest();
+      }
+    }
+    // startTest is stable within this first render — we intentionally only
+    // run this once after mount to avoid repeated auto-starts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Re-check test type validity periodically and on focus
   // (test config changes are persisted to localStorage by TestConfigView)
