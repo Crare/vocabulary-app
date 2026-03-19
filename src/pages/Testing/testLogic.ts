@@ -83,7 +83,10 @@ export function isAnswerCorrect(
   word: TestWord,
   direction: GuessDirection,
 ): boolean {
-  return guess === getExpectedAnswer(word, direction);
+  return (
+    guess.toLowerCase().trim() ===
+    getExpectedAnswer(word, direction).toLowerCase().trim()
+  );
 }
 
 export type AnswerResult = "correct" | "typo" | "wrong";
@@ -103,7 +106,8 @@ export function checkAnswer(
   allowTypos: boolean,
 ): AnswerResult {
   const expected = getExpectedAnswer(word, direction);
-  if (guess === expected) return "correct";
+  if (guess.toLowerCase().trim() === expected.toLowerCase().trim())
+    return "correct";
   if (
     allowTypos &&
     stringSimilarity(
