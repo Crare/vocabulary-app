@@ -13,6 +13,7 @@ import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import StorageIcon from "@mui/icons-material/Storage";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { trackEvent } from "../../util/analytics";
 
 interface CreditEntry {
   name: string;
@@ -141,6 +142,9 @@ const Section = ({
                 href={entry.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  trackEvent("link_click", { url: entry.url, name: entry.name })
+                }
                 underline="hover"
                 fontWeight={600}
                 sx={{
@@ -207,6 +211,12 @@ export const CreditsView = () => (
           href="https://crare.github.io/"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() =>
+            trackEvent("link_click", {
+              url: "https://crare.github.io/",
+              name: "Crare (Juho Heikkinen)",
+            })
+          }
           underline="hover"
           fontWeight={600}
         >
@@ -219,6 +229,12 @@ export const CreditsView = () => (
           href="https://github.com/Crare/vocabulary-app"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() =>
+            trackEvent("link_click", {
+              url: "https://github.com/Crare/vocabulary-app",
+              name: "GitHub Repository",
+            })
+          }
           underline="hover"
         >
           view on GitHub
