@@ -4,7 +4,7 @@
 
 > Learn any language vocabulary — add your own words or use built-in templates and let the app quiz you until every word sticks.
 
-https://crare.github.io/vocabulary-app/
+https://crare.github.io/vocabulary-app?ref=readme
 
 ## Features
 
