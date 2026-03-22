@@ -385,7 +385,13 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
       <QrCodeModal
         open={qrOpen}
         onClose={() => setQrOpen(false)}
-        url={window.location.href}
+        url={(() => {
+          const qrUrl = new URL(window.location.href);
+          if (!qrUrl.searchParams.has("ref")) {
+            qrUrl.searchParams.set("ref", "qr");
+          }
+          return qrUrl.toString();
+        })()}
       />
     </AppBar>
   );
