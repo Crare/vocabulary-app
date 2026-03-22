@@ -18,6 +18,8 @@ import {
 import { saveTestResult } from "../../util/historyStorage";
 import { createLogger } from "../../util/logger";
 import { useSound } from "../../SoundContext";
+import { trackEvent, trackPageView } from "../../util/analytics";
+import { useEffect } from "react";
 
 const log = createLogger("main");
 
@@ -31,6 +33,12 @@ const Main = () => {
   const [partitionCtx, setPartitionCtx] = useState<PartitionContext | null>(
     null,
   );
+
+  // Track page views
+  useEffect(() => {
+    trackPageView(view);
+    trackEvent("page_view", { page: view });
+  }, [view]);
 
   const startTest = (
     testSettings: TestSettings,
