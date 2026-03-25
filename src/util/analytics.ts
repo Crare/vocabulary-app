@@ -14,7 +14,7 @@ declare global {
 export const trackEvent = (eventName: string, props?: Record<string, any>) => {
   if (window.goatcounter?.count) {
     window.goatcounter.count({
-      path: `/vocabulary-app/event/${eventName}`,
+      path: `/event/${eventName}`,
       title: eventName,
       ...props,
     });
@@ -24,7 +24,7 @@ export const trackEvent = (eventName: string, props?: Record<string, any>) => {
 export const trackPageView = (pageName: string) => {
   if (window.goatcounter?.count) {
     window.goatcounter.count({
-      path: `/vocabulary-app/${pageName}`,
+      path: `/${pageName}`,
       title: pageName,
     });
   }
