@@ -50,27 +50,43 @@ export const QrCodeModal = ({ open, onClose, url }: QrCodeModalProps) => {
           >
             <QRCodeSVG value={url} size={220} />
           </Box>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            textAlign="center"
-            sx={{ wordBreak: "break-all", maxWidth: 280, fontSize: "0.75rem" }}
-          >
-            {url}
-          </Typography>
-          <Tooltip title={copied ? "Copied!" : "Copy link"} arrow>
-            <IconButton
+          <Tooltip title={copied ? "Copied!" : "Tap URL to copy"} arrow>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              textAlign="center"
               onClick={handleCopy}
-              size="small"
-              aria-label="Copy link"
-              sx={{ border: 1, borderColor: "divider" }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleCopy();
+                }
+              }}
+              sx={{
+                wordBreak: "break-all",
+                maxWidth: 280,
+                fontSize: "0.75rem",
+                cursor: "pointer",
+                textDecoration: "underline",
+                textDecorationStyle: "dotted",
+              }}
             >
+              {url}{" "}
               {copied ? (
-                <CheckIcon fontSize="small" color="success" />
+                <CheckIcon
+                  fontSize="small"
+                  color="success"
+                  sx={{ verticalAlign: "middle", ml: 0.5 }}
+                />
               ) : (
-                <ContentCopyIcon fontSize="small" />
+                <ContentCopyIcon
+                  fontSize="small"
+                  sx={{ verticalAlign: "middle", ml: 0.5 }}
+                />
               )}
-            </IconButton>
+            </Typography>
           </Tooltip>
         </Stack>
       </DialogContent>

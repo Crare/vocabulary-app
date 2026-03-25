@@ -91,6 +91,11 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
     setDrawerOpen(false);
   };
 
+  const handleOpenQrFromDrawer = () => {
+    setQrOpen(true);
+    setDrawerOpen(false);
+  };
+
   return (
     <AppBar
       position="static"
@@ -136,7 +141,7 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
                   open={drawerOpen}
                   onClose={() => setDrawerOpen(false)}
                   PaperProps={{
-                    sx: { width: 240, pt: 1 },
+                    sx: { width: "100vw", maxWidth: "100%", pt: 1 },
                   }}
                 >
                   <Typography
@@ -158,6 +163,86 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
                         <ListItemText primary={item.label} />
                       </ListItemButton>
                     ))}
+                  </List>
+                  <Divider />
+                  <Box sx={{ px: 2, py: 1.5 }}>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      sx={{ mb: 1 }}
+                    >
+                      Settings
+                    </Typography>
+                    <Stack spacing={2}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 0.75 }}>
+                          Text size ({Math.round(scale * 100)}%)
+                        </Typography>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <IconButton
+                            onClick={decrease}
+                            disabled={!canDecrease}
+                            size="small"
+                            aria-label="Decrease text size"
+                          >
+                            <TextDecreaseIcon fontSize="small" />
+                          </IconButton>
+                          <Slider
+                            value={scale}
+                            min={FONT_MIN_SCALE}
+                            max={FONT_MAX_SCALE}
+                            step={FONT_STEP}
+                            onChange={(_e, v) => setFontScale(v as number)}
+                            sx={{ flex: 1 }}
+                            aria-label="Text size"
+                          />
+                          <IconButton
+                            onClick={increase}
+                            disabled={!canIncrease}
+                            size="small"
+                            aria-label="Increase text size"
+                          >
+                            <TextIncreaseIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      </Box>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 0.75 }}>
+                          Volume ({Math.round(volume * 100)}%)
+                        </Typography>
+                        <Slider
+                          value={volume}
+                          min={0}
+                          max={1}
+                          step={0.05}
+                          onChange={(_e, v) => setVolume(v as number)}
+                          onChangeCommitted={(_e, v) => {
+                            const val = v as number;
+                            setVolume(val);
+                            if (val > 0) playCorrect(val);
+                          }}
+                          aria-label="Volume"
+                        />
+                      </Box>
+                    </Stack>
+                  </Box>
+                  <List>
+                    <ListItemButton onClick={handleOpenQrFromDrawer}>
+                      <ListItemIcon>
+                        <QrCode2Icon />
+                      </ListItemIcon>
+                      <ListItemText primary="Share via QR code" />
+                    </ListItemButton>
+                    <ListItemButton onClick={toggleMode}>
+                      <ListItemIcon>
+                        {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          mode === "dark" ? "Use light mode" : "Use dark mode"
+                        }
+                      />
+                    </ListItemButton>
                   </List>
                 </Drawer>
               </>
@@ -239,147 +324,151 @@ export const Header = ({ activeTab, onNavigate, disabled }: HeaderProps) => {
             )}
           </>
         )}
-        <IconButton
-          onClick={(e) => setTextSizeAnchor(e.currentTarget)}
-          sx={{ color: alpha.white85, ml: 0.5 }}
-          aria-label="Text size"
-        >
-          <FormatSizeIcon />
-        </IconButton>
-        <Popover
-          open={Boolean(textSizeAnchor)}
-          anchorEl={textSizeAnchor}
-          onClose={() => setTextSizeAnchor(null)}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-          transformOrigin={{ vertical: "top", horizontal: "center" }}
-          slotProps={{
-            paper: {
-              sx: { p: 2, borderRadius: 3, minWidth: 200 },
-            },
-          }}
-        >
-          <Stack alignItems="center" spacing={1.5}>
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1}
-              sx={{ width: "100%" }}
+        {!isMobile && (
+          <>
+            <IconButton
+              onClick={(e) => setTextSizeAnchor(e.currentTarget)}
+              sx={{ color: alpha.white85, ml: 0.5 }}
+              aria-label="Text size"
             >
-              <Tooltip title="Decrease text size">
-                <span>
-                  <IconButton
-                    onClick={decrease}
-                    disabled={!canDecrease}
-                    size="small"
-                    aria-label="Decrease text size"
-                  >
-                    <TextDecreaseIcon fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              <Slider
-                value={scale}
-                min={FONT_MIN_SCALE}
-                max={FONT_MAX_SCALE}
-                step={FONT_STEP}
-                onChange={(_e, v) => setFontScale(v as number)}
-                sx={{ flex: 1 }}
-                aria-label="Text size"
-              />
-              <Tooltip title="Increase text size">
-                <span>
-                  <IconButton
-                    onClick={increase}
-                    disabled={!canIncrease}
-                    size="small"
-                    aria-label="Increase text size"
-                  >
-                    <TextIncreaseIcon fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            </Stack>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              textAlign="center"
-              sx={{ fontSize: `${scale}rem`, lineHeight: 1.4 }}
-            >
-              Sample text — {Math.round(scale * 100)}%
-            </Typography>
-            {scale !== 1 && (
-              <Typography
-                variant="body2"
-                color="primary"
-                textAlign="center"
-                sx={{ cursor: "pointer", fontSize: "0.8rem" }}
-                onClick={() => setFontScale(1)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") setFontScale(1);
-                }}
-              >
-                Reset to 100%
-              </Typography>
-            )}
-          </Stack>
-        </Popover>
-        <IconButton
-          onClick={(e) => setVolumeAnchor(e.currentTarget)}
-          sx={{ color: alpha.white85, ml: 0.5 }}
-          aria-label="Volume"
-        >
-          <VolumeIcon />
-        </IconButton>
-        <Popover
-          open={Boolean(volumeAnchor)}
-          anchorEl={volumeAnchor}
-          onClose={() => setVolumeAnchor(null)}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-          transformOrigin={{ vertical: "top", horizontal: "center" }}
-          slotProps={{
-            paper: {
-              sx: { p: 2, borderRadius: 3, minWidth: 48 },
-            },
-          }}
-        >
-          <Stack alignItems="center" spacing={1} sx={{ height: 140 }}>
-            <VolumeUpIcon fontSize="small" color="action" />
-            <Slider
-              orientation="vertical"
-              value={volume}
-              min={0}
-              max={1}
-              step={0.05}
-              onChange={(_e, v) => setVolume(v as number)}
-              onChangeCommitted={(_e, v) => {
-                const val = v as number;
-                setVolume(val);
-                if (val > 0) playCorrect(val);
+              <FormatSizeIcon />
+            </IconButton>
+            <Popover
+              open={Boolean(textSizeAnchor)}
+              anchorEl={textSizeAnchor}
+              onClose={() => setTextSizeAnchor(null)}
+              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+              transformOrigin={{ vertical: "top", horizontal: "center" }}
+              slotProps={{
+                paper: {
+                  sx: { p: 2, borderRadius: 3, minWidth: 200 },
+                },
               }}
-              sx={{ flex: 1 }}
+            >
+              <Stack alignItems="center" spacing={1.5}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{ width: "100%" }}
+                >
+                  <Tooltip title="Decrease text size">
+                    <span>
+                      <IconButton
+                        onClick={decrease}
+                        disabled={!canDecrease}
+                        size="small"
+                        aria-label="Decrease text size"
+                      >
+                        <TextDecreaseIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Slider
+                    value={scale}
+                    min={FONT_MIN_SCALE}
+                    max={FONT_MAX_SCALE}
+                    step={FONT_STEP}
+                    onChange={(_e, v) => setFontScale(v as number)}
+                    sx={{ flex: 1 }}
+                    aria-label="Text size"
+                  />
+                  <Tooltip title="Increase text size">
+                    <span>
+                      <IconButton
+                        onClick={increase}
+                        disabled={!canIncrease}
+                        size="small"
+                        aria-label="Increase text size"
+                      >
+                        <TextIncreaseIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Stack>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  textAlign="center"
+                  sx={{ fontSize: `${scale}rem`, lineHeight: 1.4 }}
+                >
+                  Sample text — {Math.round(scale * 100)}%
+                </Typography>
+                {scale !== 1 && (
+                  <Typography
+                    variant="body2"
+                    color="primary"
+                    textAlign="center"
+                    sx={{ cursor: "pointer", fontSize: "0.8rem" }}
+                    onClick={() => setFontScale(1)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") setFontScale(1);
+                    }}
+                  >
+                    Reset to 100%
+                  </Typography>
+                )}
+              </Stack>
+            </Popover>
+            <IconButton
+              onClick={(e) => setVolumeAnchor(e.currentTarget)}
+              sx={{ color: alpha.white85, ml: 0.5 }}
               aria-label="Volume"
-            />
-            <VolumeOffIcon fontSize="small" color="action" />
-          </Stack>
-        </Popover>
-        <Tooltip title="QR code — open on phone" arrow>
-          <IconButton
-            onClick={() => setQrOpen(true)}
-            sx={{ color: alpha.white85, ml: 0.5 }}
-            aria-label="Share via QR code"
-          >
-            <QrCode2Icon />
-          </IconButton>
-        </Tooltip>
-        <IconButton
-          onClick={toggleMode}
-          sx={{ color: alpha.white85, ml: 0.5 }}
-          aria-label="Toggle dark mode"
-        >
-          {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
-        </IconButton>
+            >
+              <VolumeIcon />
+            </IconButton>
+            <Popover
+              open={Boolean(volumeAnchor)}
+              anchorEl={volumeAnchor}
+              onClose={() => setVolumeAnchor(null)}
+              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+              transformOrigin={{ vertical: "top", horizontal: "center" }}
+              slotProps={{
+                paper: {
+                  sx: { p: 2, borderRadius: 3, minWidth: 48 },
+                },
+              }}
+            >
+              <Stack alignItems="center" spacing={1} sx={{ height: 140 }}>
+                <VolumeUpIcon fontSize="small" color="action" />
+                <Slider
+                  orientation="vertical"
+                  value={volume}
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  onChange={(_e, v) => setVolume(v as number)}
+                  onChangeCommitted={(_e, v) => {
+                    const val = v as number;
+                    setVolume(val);
+                    if (val > 0) playCorrect(val);
+                  }}
+                  sx={{ flex: 1 }}
+                  aria-label="Volume"
+                />
+                <VolumeOffIcon fontSize="small" color="action" />
+              </Stack>
+            </Popover>
+            <Tooltip title="QR code — open on phone" arrow>
+              <IconButton
+                onClick={() => setQrOpen(true)}
+                sx={{ color: alpha.white85, ml: 0.5 }}
+                aria-label="Share via QR code"
+              >
+                <QrCode2Icon />
+              </IconButton>
+            </Tooltip>
+            <IconButton
+              onClick={toggleMode}
+              sx={{ color: alpha.white85, ml: 0.5 }}
+              aria-label="Toggle dark mode"
+            >
+              {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+          </>
+        )}
       </Toolbar>
 
       <QrCodeModal
