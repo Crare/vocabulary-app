@@ -1,4 +1,5 @@
 import {
+  Button,
   Card,
   Checkbox,
   FormControlLabel,
@@ -7,6 +8,7 @@ import {
   Slider,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { createLogger } from "../../util/logger";
@@ -14,6 +16,23 @@ import { createLogger } from "../../util/logger";
 const log = createLogger("test-config");
 
 const SETTINGS_KEY = "SETTINGS";
+
+const DEFAULT_SETTINGS = {
+  wordNeedsToGetCorrectTimes: 3,
+  multiSelectChoicesAmount: 4,
+  onlySecondLanguageWordsTested: false,
+  everySecondTestIsMultiOrWriting: false,
+  sentenceTestAllWords: true,
+  answerDelayMs: 1500,
+  allowTypos: true,
+  progressOnMistakes: false,
+  testType: {
+    writing: true,
+    multiSelect: true,
+    dragDrop: true,
+    sentenceFillBlank: true,
+  },
+} as const;
 
 interface PersistedSettings {
   wordNeedsToGetCorrectTimes: number;
@@ -58,57 +77,114 @@ const savePersistedSettings = (updates: Partial<PersistedSettings>) => {
 };
 
 export const TestConfigView = () => {
+  const isMobile = useMediaQuery("(max-width:600px)");
   const [wordNeedsToGetCorrectTimes, setWordNeedsToGetCorrectTimes] =
     useState<number>(
-      () => loadPersistedSettings().wordNeedsToGetCorrectTimes ?? 3,
+      () =>
+        loadPersistedSettings().wordNeedsToGetCorrectTimes ??
+        DEFAULT_SETTINGS.wordNeedsToGetCorrectTimes,
     );
   const [multiSelectChoicesAmount, setMultiSelectChoicesAmount] =
     useState<number>(
-      () => loadPersistedSettings().multiSelectChoicesAmount ?? 4,
+      () =>
+        loadPersistedSettings().multiSelectChoicesAmount ??
+        DEFAULT_SETTINGS.multiSelectChoicesAmount,
     );
   const [onlySecondLanguageWordsTested, setOnlySecondLanguageWordsTested] =
     useState<boolean>(
-      () => loadPersistedSettings().onlySecondLanguageWordsTested ?? false,
+      () =>
+        loadPersistedSettings().onlySecondLanguageWordsTested ??
+        DEFAULT_SETTINGS.onlySecondLanguageWordsTested,
     );
   const [everySecondTestIsMultiOrWriting, setEverySecondTestIsMultiOrWriting] =
     useState<boolean>(
-      () => loadPersistedSettings().everySecondTestIsMultiOrWriting ?? false,
+      () =>
+        loadPersistedSettings().everySecondTestIsMultiOrWriting ??
+        DEFAULT_SETTINGS.everySecondTestIsMultiOrWriting,
     );
-  const defaultTestType = { writing: true, multiSelect: true };
   const loadedTestType = loadPersistedSettings().testType;
   const [writingEnabled, setWritingEnabled] = useState<boolean>(() =>
     loadedTestType && typeof loadedTestType === "object"
       ? loadedTestType.writing
-      : true,
+      : DEFAULT_SETTINGS.testType.writing,
   );
   const [multiSelectEnabled, setMultiSelectEnabled] = useState<boolean>(() =>
     loadedTestType && typeof loadedTestType === "object"
       ? loadedTestType.multiSelect
-      : true,
+      : DEFAULT_SETTINGS.testType.multiSelect,
   );
   const [dragDropEnabled, setDragDropEnabled] = useState<boolean>(() =>
     loadedTestType && typeof loadedTestType === "object"
-      ? (loadedTestType.dragDrop ?? true)
-      : true,
+      ? (loadedTestType.dragDrop ?? DEFAULT_SETTINGS.testType.dragDrop)
+      : DEFAULT_SETTINGS.testType.dragDrop,
   );
   const [sentenceFillBlankEnabled, setSentenceFillBlankEnabled] =
     useState<boolean>(() =>
       loadedTestType && typeof loadedTestType === "object"
-        ? (loadedTestType.sentenceFillBlank ?? true)
-        : true,
+        ? (loadedTestType.sentenceFillBlank ??
+          DEFAULT_SETTINGS.testType.sentenceFillBlank)
+        : DEFAULT_SETTINGS.testType.sentenceFillBlank,
     );
   const [sentenceTestAllWords, setSentenceTestAllWords] = useState<boolean>(
-    () => loadPersistedSettings().sentenceTestAllWords ?? true,
+    () =>
+      loadPersistedSettings().sentenceTestAllWords ??
+      DEFAULT_SETTINGS.sentenceTestAllWords,
   );
   const [answerDelayMs, setAnswerDelayMs] = useState<number>(
-    () => loadPersistedSettings().answerDelayMs ?? 1500,
+    () =>
+      loadPersistedSettings().answerDelayMs ?? DEFAULT_SETTINGS.answerDelayMs,
   );
   const [allowTypos, setAllowTypos] = useState<boolean>(
-    () => loadPersistedSettings().allowTypos ?? true,
+    () => loadPersistedSettings().allowTypos ?? DEFAULT_SETTINGS.allowTypos,
   );
   const [progressOnMistakes, setProgressOnMistakes] = useState<boolean>(
-    () => loadPersistedSettings().progressOnMistakes ?? false,
+    () =>
+      loadPersistedSettings().progressOnMistakes ??
+      DEFAULT_SETTINGS.progressOnMistakes,
   );
+
+  const answerDelayMarks = isMobile
+    ? [
+        { value: -1, label: "Manual" },
+        { value: 0, label: "" },
+        { value: 500, label: "" },
+        { value: 1000, label: "" },
+        { value: 1500, label: "1.5s" },
+        { value: 2000, label: "2s" },
+        { value: 3000, label: "3s" },
+        { value: 5000, label: "5s" },
+      ]
+    : [
+        { value: -1, label: "Manual" },
+        { value: 0, label: "" },
+        { value: 500, label: "0.5s" },
+        { value: 1000, label: "1s" },
+        { value: 1500, label: "1.5s" },
+        { value: 2000, label: "2s" },
+        { value: 3000, label: "3s" },
+        { value: 5000, label: "5s" },
+      ];
+
+  const resetToDefaults = () => {
+    setWordNeedsToGetCorrectTimes(DEFAULT_SETTINGS.wordNeedsToGetCorrectTimes);
+    setMultiSelectChoicesAmount(DEFAULT_SETTINGS.multiSelectChoicesAmount);
+    setOnlySecondLanguageWordsTested(
+      DEFAULT_SETTINGS.onlySecondLanguageWordsTested,
+    );
+    setEverySecondTestIsMultiOrWriting(
+      DEFAULT_SETTINGS.everySecondTestIsMultiOrWriting,
+    );
+    setSentenceTestAllWords(DEFAULT_SETTINGS.sentenceTestAllWords);
+    setAnswerDelayMs(DEFAULT_SETTINGS.answerDelayMs);
+    setAllowTypos(DEFAULT_SETTINGS.allowTypos);
+    setProgressOnMistakes(DEFAULT_SETTINGS.progressOnMistakes);
+    setWritingEnabled(DEFAULT_SETTINGS.testType.writing);
+    setMultiSelectEnabled(DEFAULT_SETTINGS.testType.multiSelect);
+    setDragDropEnabled(DEFAULT_SETTINGS.testType.dragDrop);
+    setSentenceFillBlankEnabled(DEFAULT_SETTINGS.testType.sentenceFillBlank);
+
+    savePersistedSettings(DEFAULT_SETTINGS as Partial<PersistedSettings>);
+  };
 
   useEffect(() => {
     savePersistedSettings({
@@ -148,6 +224,11 @@ export const TestConfigView = () => {
         <Typography variant="h3" mb={3} textAlign={"center"}>
           Settings
         </Typography>
+        <Grid container justifyContent="flex-end" sx={{ mb: 2 }}>
+          <Button variant="outlined" color="inherit" onClick={resetToDefaults}>
+            Reset to defaults
+          </Button>
+        </Grid>
 
         <Grid
           container
@@ -212,19 +293,7 @@ export const TestConfigView = () => {
               max={5000}
               step={null}
               aria-label="Time to see the answer"
-              marks={[
-                {
-                  value: -1,
-                  label: "Manual",
-                },
-                { value: 0, label: "0s" },
-                { value: 500, label: "0.5s" },
-                { value: 1000, label: "1s" },
-                { value: 1500, label: "1.5s" },
-                { value: 2000, label: "2s" },
-                { value: 3000, label: "3s" },
-                { value: 5000, label: "5s" },
-              ]}
+              marks={answerDelayMarks}
               value={answerDelayMs}
               onChange={(_e: Event, newValue: number | number[]) =>
                 setAnswerDelayMs(newValue as number)
