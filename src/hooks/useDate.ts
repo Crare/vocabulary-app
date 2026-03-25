@@ -1,29 +1,35 @@
 import { useEffect, useState } from "react";
 
 export const getTimeBetweenDates = (startDate: Date, endDate: Date) => {
-  const seconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+  const totalSeconds = Math.max(
+    0,
+    Math.floor((endDate.getTime() - startDate.getTime()) / 1000),
+  );
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
   return { seconds, minutes, hours, days };
 };
 
 export const calcTimeTakenText = (start: Date, end: Date): string => {
-  var takenTime = getTimeBetweenDates(start, end);
-  var timeText = "";
+  const takenTime = getTimeBetweenDates(start, end);
+  const parts: string[] = [];
+
   if (takenTime.days > 0) {
-    timeText += `${takenTime.days}days `;
+    parts.push(`${takenTime.days}d`);
   }
   if (takenTime.hours > 0) {
-    timeText += `${takenTime.hours}h `;
+    parts.push(`${takenTime.hours}h`);
   }
   if (takenTime.minutes > 0) {
-    timeText += `${takenTime.minutes}min `;
+    parts.push(`${takenTime.minutes}min`);
   }
   if (takenTime.seconds > 0) {
-    timeText += `${takenTime.seconds}s`;
+    parts.push(`${takenTime.seconds}s`);
   }
-  return timeText;
+
+  return parts.join(" ");
 };
 
 export const useDate = () => {
