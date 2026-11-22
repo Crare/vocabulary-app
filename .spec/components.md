@@ -32,7 +32,8 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 | `SentenceSection.tsx`  | Collapsed sentence training section.                                                                             |
 | `SegmentedControl.tsx` | Pill-style radio group or tab list.                                                                              |
 | `styles.ts`            | Shared `sx` styles for the page.                                                                                 |
-| `TestConfigView.tsx`   | Test configuration — sliders and checkboxes for difficulty, test types, answer delay, etc.                       |
+| `TestConfigView.tsx`    | Settings tab — grouped switches, steppers and choice buttons for question types, direction, answer delay, etc., each with a plain-words explanation. |
+| `testConfig.ts`         | Test config defaults, `readTestConfig` (validates stored values), and `loadTestConfig` / `saveTestConfig`, which merge into `SETTINGS`.                       |
 
 ### Testing (`pages/Testing/`)
 
@@ -67,7 +68,7 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 
 | File              | Description                                                 |
 | ----------------- | ----------------------------------------------------------- |
-| `CreditsView.tsx` | Attribution for frameworks, UI libraries, sounds, and data. |
+| `CreditsView.tsx` | Attribution as grouped, full-width link rows (author, GitHub, libraries, sounds, data). |
 
 ## Shared components (`src/components/`)
 
@@ -79,6 +80,8 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 | `TestSummaryChips.tsx`        | Chips summarising score, time, and word counts.   |
 | `SentenceTrainingResults.tsx` | Expandable section showing sentence test details. |
 | `TimeTaken.tsx`               | Live clock component used during testing.         |
+| `SettingControls.tsx`         | Settings-list rows: `SettingsGroup`, `SwitchRow`, `StepperRow`, `ChoiceRow`. |
+| `QrCodeModal.tsx`             | QR code of the app's address with Copy and Share; a bottom sheet on phones. |
 
 ## Contexts
 
