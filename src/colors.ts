@@ -33,6 +33,7 @@ export const colors = {
 
     // Error (Red)
     red50: "#fef2f2",
+    red200: "#fecaca",
     red400: "#f87171",
     red500: "#ef4444",
     red600: "#dc2626",
@@ -40,7 +41,9 @@ export const colors = {
 
     // Neutrals (Slate)
     slate50: "#f8fafc",
+    slate100: "#f1f5f9",
     slate200: "#e2e8f0",
+    slate300: "#cbd5e1",
     slate400: "#94a3b8",
     slate500: "#64748b",
     slate600: "#475569",

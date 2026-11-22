@@ -194,11 +194,20 @@ const Main = () => {
         role="main"
         p={2}
         flexDirection={"row"}
-        size={view === "results" || view === "history" ? 12 : { xs: 12, lg: 8 }}
+        size={
+          view === "results" || view === "history" || view === "wordlists"
+            ? 12
+            : { xs: 12, lg: 8 }
+        }
         justifyContent={"center"}
         height={"100%"}
       >
-        {view === "wordlists" ? <SettingsView onStartTest={startTest} /> : null}
+        {view === "wordlists" ? (
+          <SettingsView
+            onStartTest={startTest}
+            onOpenTestSettings={() => onNavigate("settings")}
+          />
+        ) : null}
         {view === "settings" ? <TestConfigView /> : null}
         {view === "testing" && settings ? (
           <TestingView

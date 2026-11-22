@@ -23,11 +23,12 @@ beforeEach(() => {
   vi.stubGlobal("localStorage", localStorageMock);
 });
 
-test("renders title and subtitle", () => {
+test("renders the word list editor", () => {
   render(<App />);
-  const titleElement = screen.getByRole("heading", {
-    level: 3,
-    name: /Word Lists/i,
-  });
-  expect(titleElement).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { level: 2, name: "Words" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /Start test/i }),
+  ).toBeInTheDocument();
 });

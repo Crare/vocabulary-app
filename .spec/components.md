@@ -16,13 +16,27 @@ A quick reference to every component in the app and what it does.
 
 ### Settings (`pages/Settings/`)
 
-| File                    | Description                                                                                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `SettingsView.tsx`      | Word list editor — text areas for two languages, sentence training, load/save/import/export/template buttons, instructions banner, and the "Start Test" CTA. |
-| `TestConfigView.tsx`    | Settings tab — grouped switches, steppers and choice buttons for question types, direction, answer delay, etc., each with a plain-words explanation. |
-| `testConfig.ts`         | Test config defaults, `readTestConfig` (validates stored values), and `loadTestConfig` / `saveTestConfig`, which merge into `SETTINGS`.                       |
-| `LoadSetModal.tsx`      | Dialog listing saved word sets with load / download / delete actions.                                                                                        |
-| `TemplateListModal.tsx` | Dialog listing built-in template word sets.                                                                                                                  |
+The Word lists page is phone first: on phones it is one column with a sticky Start bar; from the `md` breakpoint the table gets a hint column and a side panel holds Practise and Lists.
+
+| File                   | Description                                                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `SettingsView.tsx`     | Word lists page. Wires the editor state, saved lists, import, paste, QR share and test start together.           |
+| `useWordListEditor.ts` | Holds the list being edited and writes it to `SETTINGS` in the original newline-joined format.                   |
+| `wordRows.ts`          | Pure row model: one `WordRow` per pair with its hint; converts to and from the stored formats.                   |
+| `pasteList.ts`         | Pure parser for pasted `word = translation \| hint` lines and tab-separated rows.                                |
+| `startTest.ts`         | Pure helpers that build `TestSettings` and the partition for a split test from the stored options.               |
+| `CurrentListCard.tsx`  | List name, save, the ⋯ menu (download, QR code, clear), language pickers with swap, and the count line.          |
+| `LanguagePicker.tsx`   | Button that opens a searchable language list; any typed name is accepted.                                        |
+| `WordTable.tsx`        | Table editor: English/Finnish cells, "+ hint" (phone) or a hint column (desktop), delete, Add word, Paste list.  |
+| `PasteListDialog.tsx`  | Paste dialog with preview, side swap, "Add to the end" and "Replace all rows".                                   |
+| `ListPickerSheet.tsx`  | Bottom sheet (dialog on desktop) with Templates / My lists tabs, search, use, download and delete.               |
+| `ListActions.tsx`      | Templates / My lists / Import tiles (phone) or the Lists panel (desktop), the tip banner, and the undo snackbar. |
+| `PractisePanel.tsx`    | All / Half / Quarter choice and "Start test · N words", as the phone bar or the desktop card.                    |
+| `SentenceSection.tsx`  | Collapsed sentence training section.                                                                             |
+| `SegmentedControl.tsx` | Pill-style radio group or tab list.                                                                              |
+| `styles.ts`            | Shared `sx` styles for the page.                                                                                 |
+| `TestConfigView.tsx`   | Settings tab — grouped switches, steppers and choice buttons for question types, direction, answer delay, etc.  |
+| `testConfig.ts`        | Test config defaults, validation, and load/save helpers that merge into `SETTINGS`.                             |
 
 ### Testing (`pages/Testing/`)
 

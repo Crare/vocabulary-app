@@ -36,3 +36,14 @@ export const LANGUAGES: Language[] = [
 ];
 
 export const LANGUAGE_OPTIONS = LANGUAGES.map((l) => `${l.flag} ${l.name}`);
+
+// A flag emoji is a pair of regional-indicator symbols.
+const FLAG_PREFIX = /^((?:\p{Regional_Indicator}{2})+)\s*/u;
+
+/** The language name without its flag: "🇫🇮 Finnish" → "Finnish". */
+export const languageName = (label: string): string =>
+    label.replace(FLAG_PREFIX, "").trim();
+
+/** The flag of a language label, or "" when it has none. */
+export const languageFlag = (label: string): string =>
+    FLAG_PREFIX.exec(label)?.[1] ?? "";

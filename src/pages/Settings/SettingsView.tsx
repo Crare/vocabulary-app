@@ -1,1219 +1,483 @@
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Alert,
-  Autocomplete,
-  Box,
-  Button,
-  Card,
-  Collapse,
-  Grid,
-  IconButton,
-  Input,
-  TextareaAutosize,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import CloseIcon from "@mui/icons-material/Close";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { LanguageSet, PartitionContext, TestSettings } from "../Testing/types";
-import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@mui/material/styles";
-import { colors, alpha, gradients } from "../../colors";
-import ClearIcon from "@mui/icons-material/Clear";
-import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import SaveIcon from "@mui/icons-material/Save";
-import LoopIcon from "@mui/icons-material/Loop";
-import MenuOpenIcon from "@mui/icons-material/MenuOpen";
-import DownloadIcon from "@mui/icons-material/Download";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { LoadSetModal } from "./LoadSetModal";
-import { TemplateListModal } from "./TemplateListModal";
-
-import { WordInSet, WordSet } from "../../wordsets/types";
-import { LANGUAGE_OPTIONS } from "../../wordsets/languages";
+import { WordSet } from "../../wordsets/types";
+import {
+  findTemplate,
+  setTemplateParam,
+  templates,
+} from "../../wordsets/templates";
+import { languageName } from "../../wordsets/languages";
 import { createLogger } from "../../util/logger";
-import set1 from "../../wordsets/words1.json";
-import set2 from "../../wordsets/words2.json";
-import set3 from "../../wordsets/words3.json";
-import set4 from "../../wordsets/words4.json";
-import set5 from "../../wordsets/words5.json";
-import set6 from "../../wordsets/words6.json";
-import set7 from "../../wordsets/words7.json";
-import set8 from "../../wordsets/words8.json";
-import set9 from "../../wordsets/words9.json";
-import set10 from "../../wordsets/words10.json";
-import set11 from "../../wordsets/words11.json";
-import set12 from "../../wordsets/words12.json";
-import set13 from "../../wordsets/words13.json";
+import { downloadWordSetFile } from "../../util/download";
+import {
+  hideTip,
+  isTipHidden,
+  loadLanguageSets,
+  loadPersistedSettings,
+  saveLanguageSets,
+} from "../../util/wordListStorage";
+import { QrCodeModal } from "../../components/QrCodeModal";
+import {
+  checkRows,
+  countSentences,
+  isBlankRow,
+  isCompleteRow,
+  makeRow,
+  pickRows,
+  removeRow,
+  RowValues,
+  WordRow,
+  rowsToColumns,
+  sentenceColumns,
+  swapRows,
+  toWordSet,
+  updateRow,
+} from "./wordRows";
+import {
+  EditorList,
+  findUnchangedTemplate,
+  listFromLanguageSet,
+  listFromWordSet,
+  NO_SENTENCES,
+  useWordListEditor,
+} from "./useWordListEditor";
+import { buildTestStart, hasAnyTestType } from "./startTest";
+import { CurrentListCard } from "./CurrentListCard";
+import { WordTable } from "./WordTable";
+import { PasteListDialog } from "./PasteListDialog";
+import { ListPickerSheet, ListTab } from "./ListPickerSheet";
+import {
+  plural,
+  savedSummary,
+  summarise,
+  templateSummaries,
+} from "./listSummary";
+import { PartSplit, PractisePanel } from "./PractisePanel";
+import { SentenceSection } from "./SentenceSection";
+import { TemplateSummary } from "./TemplateSummary";
+import { ListActions, Notice, NoticeSnackbar, TipBanner } from "./ListActions";
 
 const log = createLogger("settings");
-const templates: WordSet[] = [
-  set1,
-  set2,
-  set3,
-  set4,
-  set5,
-  set6,
-  set7,
-  set8,
-  set9,
-  set10,
-  set11,
-  set12,
-  set13,
-];
 
-// Resolve ?template=<index|name> once at module load time so useState
-// initializers can use the value synchronously.
-const _urlTemplateParam = new URLSearchParams(window.location.search).get(
-  "template",
-);
-const _urlTemplate: WordSet | null = (() => {
-  if (!_urlTemplateParam) return null;
-  const idx = parseInt(_urlTemplateParam, 10) - 1; // 1-based → 0-based
-  if (!isNaN(idx) && idx >= 0 && idx < templates.length) return templates[idx];
-  return (
-    templates.find(
-      (t) => t.name.toLowerCase() === _urlTemplateParam.toLowerCase(),
-    ) ?? null
-  );
-})();
-const _urlAutostart =
-  new URLSearchParams(window.location.search).get("autostart") === "true";
-
-/** Hints as editor text (one per line), or null when the set has none. */
-const hintsToText = (words: WordInSet[]): string | null =>
-  words.some((w) => w.hint?.trim())
-    ? words.map((w) => w.hint ?? "").join("\n")
-    : null;
-
-const placeholderYourLang = set1.words.map((w) => w.lang1).join("\n");
-const placeholderOtherLang = set1.words.map((w) => w.lang2).join("\n");
+// Resolve ?template=<index|name> once at module load so the first render can
+// use it synchronously.
+const _params = new URLSearchParams(window.location.search);
+const _urlTemplateIndex = findTemplate(_params.get("template"));
+const _urlTemplate =
+  _urlTemplateIndex >= 0 ? templates[_urlTemplateIndex] : null;
+const _urlAutostart = _params.get("autostart") === "true";
 
 interface SettingsViewProps {
   onStartTest: (settings: TestSettings, partition?: PartitionContext) => void;
+  onOpenTestSettings?: () => void;
 }
 
-const storage_keys = {
-  LANGUAGE_SETS: "LANGUAGE_SETS",
-  SETTINGS: "SETTINGS",
-};
+export const SettingsView = ({
+  onStartTest,
+  onOpenTestSettings,
+}: SettingsViewProps) => {
+  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"), {
+    noSsr: true,
+  });
+  const { list, setList, patch, setRows } = useWordListEditor(_urlTemplate);
+  const [showTip, setShowTip] = useState(() => !isTipHidden());
+  const [savedSets, setSavedSets] = useState<LanguageSet[]>(loadLanguageSets);
+  const [sheetTab, setSheetTab] = useState<ListTab | null>(null);
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [split, setSplit] = useState<PartSplit>(1);
+  // An unedited template opens compact; this shows the full editor anyway.
+  const [showEditor, setShowEditor] = useState(false);
+  const [hasTestType, setHasTestType] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-interface PersistedSettings {
-  wordNeedsToGetCorrectTimes: number;
-  multiSelectChoicesAmount: number;
-  onlySecondLanguageWordsTested: boolean;
-  everySecondTestIsMultiOrWriting: boolean;
-  sentenceTestAllWords: boolean;
-  answerDelayMs: number;
-  allowTypos: boolean;
-  progressOnMistakes: boolean;
-  language1Words: string;
-  language2Words: string;
-  lang1Name: string;
-  lang2Name: string;
-  langSetName: string;
-  testType: "both" | "multi-select" | "writing";
-  language1Sentences: string;
-  language2Sentences: string;
-  hints: string;
-}
+  const { complete, incomplete } = checkRows(list.rows);
+  const blockedReason =
+    complete.length === 0
+      ? "Add at least one word pair to start."
+      : incomplete.length > 0
+        ? `${incomplete.length === 1 ? "Word" : "Words"} ${incomplete.join(", ")} ${incomplete.length === 1 ? "needs" : "need"} both languages.`
+        : !hasTestType
+          ? "Select at least one test type in Settings."
+          : null;
+  const nonBlank = list.rows.filter((r) => !isBlankRow(r));
+  const summary = summarise(
+    nonBlank.length,
+    nonBlank.filter((r) => r.hint.trim()).length,
+    countSentences(list.sentences),
+  );
+  const lang1Label = languageName(list.lang1Name) || "Language 1";
+  const lang2Label = languageName(list.lang2Name) || "Language 2";
+  const compact = !showEditor && findUnchangedTemplate(list, templates) >= 0;
 
-const loadPersistedSettings = (): Partial<PersistedSettings> => {
-  try {
-    const raw = localStorage.getItem(storage_keys.SETTINGS);
-    const settings = raw ? (JSON.parse(raw) as Partial<PersistedSettings>) : {};
-    log.debug("settings_loaded", { hasPersistedSettings: !!raw });
-    return settings;
-  } catch (err) {
-    log.error("settings_load_failed", {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    return {};
-  }
-};
+  /** Replaces the whole list, offering undo when words would be lost. */
+  const replaceList = (next: EditorList, message?: string) => {
+    const previous = list;
+    setList(next);
+    if (message) setNotice({ message, undo: () => setList(previous) });
+  };
 
-export const SettingsView = (props: SettingsViewProps) => {
-  const { onStartTest } = props;
-  const muiTheme = useTheme();
-  const [showInstructions, setShowInstructions] = useState<boolean>(
-    () => localStorage.getItem("HIDE_INSTRUCTIONS") !== "true",
-  );
-
-  const [language1Words, setLanguage1Words] = useState<string>(
-    () =>
-      _urlTemplate?.words.map((w) => w.lang1).join("\n") ??
-      loadPersistedSettings().language1Words ??
-      "",
-  );
-  const [language2Words, setLanguage2Words] = useState<string>(
-    () =>
-      _urlTemplate?.words.map((w) => w.lang2).join("\n") ??
-      loadPersistedSettings().language2Words ??
-      "",
-  );
-  const [lang1Name, setLang1Name] = useState<string>(
-    () => _urlTemplate?.language1 ?? loadPersistedSettings().lang1Name ?? "",
-  );
-  const [lang2Name, setLang2Name] = useState<string>(
-    () => _urlTemplate?.language2 ?? loadPersistedSettings().lang2Name ?? "",
-  );
-  const [language1Sentences, setLanguage1Sentences] = useState<string>(
-    () =>
-      _urlTemplate?.sentences?.map((s) => s.lang1).join("\n") ??
-      loadPersistedSettings().language1Sentences ??
-      "",
-  );
-  const [language2Sentences, setLanguage2Sentences] = useState<string>(
-    () =>
-      _urlTemplate?.sentences?.map((s) => s.lang2).join("\n") ??
-      loadPersistedSettings().language2Sentences ??
-      "",
-  );
-
-  const [hints, setHints] = useState<string>(
-    () =>
-      _urlTemplate
-        ? (hintsToText(_urlTemplate.words) ?? "")
-        : (loadPersistedSettings().hints ?? ""),
-  );
-
-  const clear = () => {
-    setLanguage1Words("");
-    setLanguage2Words("");
-    setHints("");
-    setLanguage1Sentences("");
-    setLanguage2Sentences("");
+  /** The list as a `LanguageSet`, keeping only rows that pass `keep`. */
+  const languageSet = (keep: (row: WordRow) => boolean): LanguageSet => {
+    const picked = pickRows(list.rows, list.sentences, keep);
+    return {
+      name: list.name.trim() || "unnamed language set",
+      ...rowsToColumns(picked.rows),
+      language1Name: list.lang1Name || undefined,
+      language2Name: list.lang2Name || undefined,
+      ...sentenceColumns(picked.sentences),
+    };
   };
 
   const startTest = () => {
-    const persisted = loadPersistedSettings();
-    const allLang1 = language1Words.split("\n");
-    const allLang2 = language2Words.split("\n");
-    const allLang1Sentences = language1Sentences
-      ? language1Sentences.split("\n")
-      : undefined;
-    const allLang2Sentences = language2Sentences
-      ? language2Sentences.split("\n")
-      : undefined;
-    const allHints = hints.trim() ? hints.split("\n") : undefined;
-
-    const totalWords = allLang1.length;
-    const partSize = Math.ceil(totalWords / partSplit);
-    const sliceEnd = Math.min(partSize, totalWords);
-
-    const fullLanguageSet: LanguageSet = {
-      name: langSetName.length > 0 ? langSetName : "unnamed language set",
-      language1Words: allLang1,
-      language2Words: allLang2,
-      language1Name: lang1Name || undefined,
-      language2Name: lang2Name || undefined,
-      language1Sentences: allLang1Sentences,
-      language2Sentences: allLang2Sentences,
-      hints: allHints,
-    };
-
-    const slicedLanguageSet: LanguageSet =
-      partSplit === 1
-        ? fullLanguageSet
-        : {
-            ...fullLanguageSet,
-            language1Words: allLang1.slice(0, sliceEnd),
-            language2Words: allLang2.slice(0, sliceEnd),
-            language1Sentences: allLang1Sentences?.slice(0, sliceEnd),
-            language2Sentences: allLang2Sentences?.slice(0, sliceEnd),
-            hints: allHints?.slice(0, sliceEnd),
-          };
-
-    const settings: TestSettings = {
-      languageSet: slicedLanguageSet,
-      wordNeedsToGetCorrectTimes: persisted.wordNeedsToGetCorrectTimes ?? 3,
-      multiSelectChoicesAmount: persisted.multiSelectChoicesAmount ?? 4,
-      onlySecondLanguageWordsTested:
-        persisted.onlySecondLanguageWordsTested ?? false,
-      everySecondTestIsMultiOrWriting:
-        persisted.everySecondTestIsMultiOrWriting ?? false,
-      sentenceTestAllWords: persisted.sentenceTestAllWords ?? true,
-      answerDelayMs: persisted.answerDelayMs ?? 1500,
-      allowTypos: persisted.allowTypos ?? true,
-      progressOnMistakes: persisted.progressOnMistakes ?? false,
-      testType:
-        persisted.testType && typeof persisted.testType === "object"
-          ? {
-              writing: (persisted.testType as any).writing ?? true,
-              multiSelect: (persisted.testType as any).multiSelect ?? true,
-              dragDrop: (persisted.testType as any).dragDrop ?? true,
-              sentenceFillBlank:
-                (persisted.testType as any).sentenceFillBlank ?? true,
-            }
-          : {
-              writing: true,
-              multiSelect: true,
-              dragDrop: true,
-              sentenceFillBlank: true,
-            },
-    };
-    const partitionCtx: PartitionContext | undefined =
-      partSplit > 1
-        ? {
-            fullLanguageSet,
-            totalParts: partSplit,
-            partIndex: 0,
-            partSize,
-          }
-        : undefined;
-    onStartTest(settings, partitionCtx);
+    if (blockedReason) return;
+    const { settings, partition } = buildTestStart(
+      languageSet(isCompleteRow),
+      split,
+      loadPersistedSettings(),
+    );
+    onStartTest(settings, partition);
   };
 
-  const flip = () => {
-    const tempLang1 = language1Words;
-    const tempLang2 = language2Words;
-    setLanguage1Words(tempLang2);
-    setLanguage2Words(tempLang1);
-    const tempName1 = lang1Name;
-    setLang1Name(lang2Name);
-    setLang2Name(tempName1);
+  const currentWordSet = (): WordSet => {
+    const picked = pickRows(list.rows, list.sentences, (r) => !isBlankRow(r));
+    return toWordSet(
+      list.name || "word-set",
+      list.lang1Name,
+      list.lang2Name,
+      picked.rows,
+      picked.sentences,
+    );
   };
 
-  const downloadWordSet = (
-    name: string,
-    lang1: string[],
-    lang2: string[],
-    language1?: string,
-    language2?: string,
-    wordHints?: string[],
-  ) => {
-    const lang1Sents = language1Sentences ? language1Sentences.split("\n") : [];
-    const lang2Sents = language2Sentences ? language2Sentences.split("\n") : [];
-    const hasSentences = lang1Sents.some((s) => s) || lang2Sents.some((s) => s);
-    const wordSet: WordSet = {
-      name,
-      language1: language1 || undefined,
-      language2: language2 || undefined,
-      words: lang1.map((l1, i) => {
-        const hint = wordHints?.[i]?.trim();
-        return { lang1: l1, lang2: lang2[i] ?? "", ...(hint ? { hint } : {}) };
-      }),
-      ...(hasSentences
-        ? {
-            sentences: lang1Sents.map((l1, i) => ({
-              lang1: l1,
-              lang2: lang2Sents[i] ?? "",
-            })),
-          }
-        : {}),
-    };
-    const blob = new Blob([JSON.stringify(wordSet, null, 2)], {
-      type: "application/json",
+  const saveList = () => {
+    // Half-filled rows are kept so nothing typed is lost.
+    const set = languageSet((r) => !isBlankRow(r));
+    // Saving a named list again updates it; unnamed lists are always added.
+    const existing = list.name.trim()
+      ? savedSets.findIndex((s) => s.name === set.name)
+      : -1;
+    const next =
+      existing >= 0
+        ? savedSets.map((s, i) => (i === existing ? set : s))
+        : [...savedSets, set];
+    setSavedSets(next);
+    saveLanguageSets(next);
+    log.info("set_saved", {
+      name: set.name,
+      wordCount: set.language1Words.length,
+      replaced: existing >= 0,
     });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${name.replace(/[^a-z0-9]/gi, "_")}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    setNotice({
+      message:
+        existing >= 0
+          ? `Updated “${set.name}” in My lists`
+          : `Saved “${set.name}” to My lists`,
+    });
   };
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const textarea1Ref = useRef<HTMLTextAreaElement>(null);
-  const textarea2Ref = useRef<HTMLTextAreaElement>(null);
-  const sentenceTextarea1Ref = useRef<HTMLTextAreaElement>(null);
-  const sentenceTextarea2Ref = useRef<HTMLTextAreaElement>(null);
-
-  const syncScroll = (source: "lang1" | "lang2") => {
-    const from =
-      source === "lang1" ? textarea1Ref.current : textarea2Ref.current;
-    const to = source === "lang1" ? textarea2Ref.current : textarea1Ref.current;
-    if (from && to) to.scrollTop = from.scrollTop;
+  const chooseList = (tab: ListTab, index: number) => {
+    if (tab === "templates") {
+      replaceList(listFromWordSet(templates[index]));
+      setShowEditor(false);
+      setTemplateParam(index);
+    } else {
+      replaceList(listFromLanguageSet(savedSets[index]));
+      setTemplateParam(null);
+    }
+    log.info("list_selected", { source: tab, index });
+    setSheetTab(null);
   };
 
-  const syncSentenceScroll = (source: "lang1" | "lang2") => {
-    const from =
-      source === "lang1"
-        ? sentenceTextarea1Ref.current
-        : sentenceTextarea2Ref.current;
-    const to =
-      source === "lang1"
-        ? sentenceTextarea2Ref.current
-        : sentenceTextarea1Ref.current;
-    if (from && to) to.scrollTop = from.scrollTop;
+  const downloadList = (tab: ListTab, index: number) => {
+    const l =
+      tab === "templates" ? null : listFromLanguageSet(savedSets[index]);
+    const set = l
+      ? toWordSet(l.name, l.lang1Name, l.lang2Name, l.rows, l.sentences)
+      : templates[index];
+    downloadWordSetFile(set);
+    log.info("set_downloaded", { source: tab, name: set.name });
   };
 
-  // Keep both sentence textareas the same height (max 15 rows)
-  const sentenceRowCount = Math.min(
-    15,
-    Math.max(
-      4,
-      language1Sentences.split("\n").length,
-      language2Sentences.split("\n").length,
-    ),
-  );
-  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const deleteSaved = (index: number) => {
+    const next = savedSets.filter((_, i) => i !== index);
+    setSavedSets(next);
+    saveLanguageSets(next);
+    log.info("set_deleted", {
+      name: savedSets[index]?.name,
+      remainingSets: next.length,
+    });
+  };
+
+  const handleImportFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = ""; // so the same file can be imported again
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const parsed = JSON.parse(event.target?.result as string) as WordSet;
-        if (!parsed.name || !Array.isArray(parsed.words)) {
-          alert("Invalid file format.");
-          return;
-        }
-        setLangSetName(parsed.name);
-        setLanguage1Words(parsed.words.map((w) => w.lang1).join("\n"));
-        setLanguage2Words(parsed.words.map((w) => w.lang2).join("\n"));
-        setHints(hintsToText(parsed.words) ?? "");
-        setLang1Name(parsed.language1 ?? "");
-        setLang2Name(parsed.language2 ?? "");
-        setLanguage1Sentences(
-          parsed.sentences?.map((s) => s.lang1).join("\n") ?? "",
-        );
-        setLanguage2Sentences(
-          parsed.sentences?.map((s) => s.lang2).join("\n") ?? "",
-        );
-      } catch {
-        log.error("import_parse_failed", { fileName: file.name });
-        alert("Could not parse file. Make sure it is a valid JSON word set.");
-      }
-    };
     log.info("import_file_started", {
       fileName: file.name,
       fileSize: file.size,
     });
-    reader.readAsText(file);
-    // reset so the same file can be re-imported
-    e.target.value = "";
+    file
+      .text()
+      .then((text) => {
+        const parsed = JSON.parse(text) as WordSet;
+        const isPair = (w: unknown) => !!w && typeof w === "object";
+        if (
+          !parsed.name ||
+          !Array.isArray(parsed.words) ||
+          !parsed.words.every(isPair) ||
+          (parsed.sentences !== undefined &&
+            (!Array.isArray(parsed.sentences) ||
+              !parsed.sentences.every(isPair)))
+        )
+          throw new Error("not a word set");
+        replaceList(listFromWordSet(parsed), `Imported “${parsed.name}”`);
+        setTemplateParam(null);
+      })
+      .catch(() => {
+        log.error("import_parse_failed", { fileName: file.name });
+        setNotice({
+          message:
+            "That file is not a word set. Choose a .json file downloaded from this app.",
+        });
+      });
   };
 
-  const [langSetName, setLangSetName] = useState<string>(
-    () => _urlTemplate?.name ?? loadPersistedSettings().langSetName ?? "",
-  );
-  const [savedIndicator, setSavedIndicator] = useState(false);
-  const saveSet = () => {
-    const languageSet: LanguageSet = {
-      name: langSetName.length > 0 ? langSetName : "unnamed language set",
-      language1Words: language1Words.split("\n"),
-      language2Words: language2Words.split("\n"),
-      language1Name: lang1Name || undefined,
-      language2Name: lang2Name || undefined,
-      language1Sentences: language1Sentences
-        ? language1Sentences.split("\n")
-        : undefined,
-      language2Sentences: language2Sentences
-        ? language2Sentences.split("\n")
-        : undefined,
-      hints: hints.trim() ? hints.split("\n") : undefined,
-    };
-    var langSets = [...languageSets, languageSet];
-    setLanguageSets([...languageSets, languageSet]);
-    localStorage.setItem(storage_keys.LANGUAGE_SETS, JSON.stringify(langSets));
-    log.info("set_saved", {
-      name: languageSet.name,
-      wordCount: languageSet.language1Words.length,
-      totalSets: langSets.length,
-    });
-    setSavedIndicator(true);
-    setTimeout(() => setSavedIndicator(false), 2000);
-  };
-
-  const [isLoadSetModalOpen, setLoadSetIsModalOpen] = useState<boolean>(false);
-  const openLoadSetModal = () => {
-    loadSetsFromStorage();
-    setLoadSetIsModalOpen(true);
-  };
-  const handleLoadSetModalClose = () => {
-    setLoadSetIsModalOpen(false);
-  };
-
-  const [isTemplateListModalOpen, setIsTemplateListModalOpen] =
-    useState<boolean>(false);
-  const openTemplateListModal = () => {
-    setIsTemplateListModalOpen(true);
-  };
-  const handleTemplateListModalClose = () => {
-    setIsTemplateListModalOpen(false);
-  };
-
-  const [languageSets, setLanguageSets] = useState<LanguageSet[]>([]);
-  const loadSetsFromStorage = () => {
-    const sets = localStorage.getItem(storage_keys.LANGUAGE_SETS);
-    if (sets) {
-      const langSets = JSON.parse(sets) as LanguageSet[];
-      setLanguageSets(langSets);
+  const addPasted = (pasted: RowValues[], replace: boolean) => {
+    const rows = pasted.map((r) => makeRow(r));
+    if (replace) {
+      replaceList(
+        { ...list, rows, sentences: NO_SENTENCES },
+        `Replaced the list with ${plural(rows.length, "word")}`,
+      );
+      setTemplateParam(null);
+    } else {
+      setRows((prev) => [...prev.filter((r) => !isBlankRow(r)), ...rows]);
+      setNotice({ message: `Added ${plural(rows.length, "word")}` });
     }
+    log.info("list_pasted", { rows: rows.length, replace });
+    setPasteOpen(false);
   };
 
-  const deleteLanguageSet = (index: number) => {
-    const deleted = languageSets[index];
-    var newLanguageSets = languageSets.filter((set, i) => i !== index);
-    setLanguageSets(newLanguageSets);
-    localStorage.setItem(
-      storage_keys.LANGUAGE_SETS,
-      JSON.stringify(newLanguageSets),
-    );
-    log.info("set_deleted", {
-      name: deleted?.name,
-      remainingSets: newLanguageSets.length,
-    });
+  const deleteRow = (id: string) => {
+    const previous = list.rows;
+    setRows((rows) => removeRow(rows, id));
+    setNotice({ message: "Word deleted", undo: () => setRows(() => previous) });
   };
 
-  const selectLanguageSet = (index: number) => {
-    setLanguage1Words(languageSets[index].language1Words.join("\n"));
-    setLanguage2Words(languageSets[index].language2Words.join("\n"));
-    setHints(languageSets[index].hints?.join("\n") ?? "");
-    setLang1Name(languageSets[index].language1Name ?? "");
-    setLang2Name(languageSets[index].language2Name ?? "");
-    setLangSetName(languageSets[index].name);
-    setLanguage1Sentences(
-      languageSets[index].language1Sentences?.join("\n") ?? "",
-    );
-    setLanguage2Sentences(
-      languageSets[index].language2Sentences?.join("\n") ?? "",
-    );
-    handleLoadSetModalClose();
+  const addRow = () => {
+    const row = makeRow();
+    setRows((rows) => [...rows, row]);
+    return row.id;
   };
 
-  const selectLanguageSetFromTemplate = (index: number) => {
-    const t = templates[index];
-    setLanguage1Words(t.words.map((w) => w.lang1).join("\n"));
-    setLanguage2Words(t.words.map((w) => w.lang2).join("\n"));
-    setHints(hintsToText(t.words) ?? "");
-    setLang1Name(t.language1 ?? "");
-    setLang2Name(t.language2 ?? "");
-    setLangSetName(t.name);
-    setLanguage1Sentences(t.sentences?.map((s) => s.lang1).join("\n") ?? "");
-    setLanguage2Sentences(t.sentences?.map((s) => s.lang2).join("\n") ?? "");
+  // Clean ?autostart from the URL and start right away when it was set.
+  useEffect(() => {
+    if (!_urlTemplate) return;
     const url = new URL(window.location.href);
-    url.searchParams.set("template", String(index + 1));
+    url.searchParams.delete("autostart");
     window.history.replaceState({}, "", url.toString());
-    handleTemplateListModalClose();
-  };
-
-  const [languageSetIsValid, setLanguageSetIsValid] = useState<boolean>(false);
-  const [hasTestType, setHasTestType] = useState<boolean>(true);
-  const [partSplit, setPartSplit] = useState<1 | 2 | 4>(1);
-
-  // Validate word counts whenever the word fields change
-  useEffect(() => {
-    let valid = true;
-    if (language1Words.length === 0) {
-      valid = false;
-    }
-    if (language2Words.length === 0) {
-      valid = false;
-    }
-    if (
-      language1Words.split("\n").length !== language2Words.split("\n").length
-    ) {
-      valid = false;
-    }
-    setLanguageSetIsValid(valid);
-  }, [language1Words, language2Words]);
-
-  // On first mount: clean autostart param from the URL and, if
-  // ?autostart=true was present, kick off the test immediately.
-  useEffect(() => {
-    if (_urlTemplate) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("autostart");
-      window.history.replaceState({}, "", url.toString());
-      if (_urlAutostart) {
-        startTest();
-      }
-    }
-    // startTest is stable within this first render — we intentionally only
-    // run this once after mount to avoid repeated auto-starts.
+    if (_urlAutostart) startTest();
+    // Runs once after mount so the test starts only once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-check test type validity periodically and on focus
-  // (test config changes are persisted to localStorage by TestConfigView)
-  const checkTestTypeValidity = () => {
-    const persisted = loadPersistedSettings();
-    const tt = persisted.testType;
-    if (tt && typeof tt === "object") {
-      const anyEnabled =
-        (tt as any).writing ||
-        (tt as any).multiSelect ||
-        (tt as any).dragDrop ||
-        (tt as any).sentenceFillBlank;
-      setHasTestType(!!anyEnabled);
-    } else {
-      setHasTestType(true);
-    }
-  };
+  // Test types are edited on the Settings page; re-check when coming back.
   useEffect(() => {
-    checkTestTypeValidity();
-    const onFocus = () => checkTestTypeValidity();
-    window.addEventListener("focus", onFocus);
-    const interval = setInterval(checkTestTypeValidity, 1000);
+    const check = () =>
+      setHasTestType(hasAnyTestType(loadPersistedSettings().testType));
+    check();
+    window.addEventListener("focus", check);
+    const interval = setInterval(check, 1000);
     return () => {
-      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("focus", check);
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    try {
-      const existing = loadPersistedSettings();
-      const merged = {
-        ...existing,
-        language1Words,
-        language2Words,
-        lang1Name,
-        lang2Name,
-        langSetName,
-        language1Sentences,
-        language2Sentences,
-        hints,
-      };
-      localStorage.setItem(storage_keys.SETTINGS, JSON.stringify(merged));
-    } catch {
-      // ignore
-    }
-  }, [
-    language1Words,
-    language2Words,
-    lang1Name,
-    lang2Name,
-    langSetName,
-    language1Sentences,
-    language2Sentences,
-    hints,
-  ]);
+  const listActions = {
+    onTemplates: () => setSheetTab("templates"),
+    onMyLists: () => setSheetTab("saved"),
+    onImport: () => fileInputRef.current?.click(),
+  };
+
+  const practise = (variant: "bar" | "card" | "plain") => (
+    <PractisePanel
+      variant={variant}
+      total={complete.length}
+      split={split}
+      onSplitChange={setSplit}
+      onStart={startTest}
+      blockedReason={blockedReason}
+      onOpenTestSettings={onOpenTestSettings}
+    />
+  );
 
   return (
-    <Grid container className="content" gap={2} flexDirection={"column"}>
-      <LoadSetModal
-        open={isLoadSetModalOpen}
-        onClose={handleLoadSetModalClose}
-        languageSets={languageSets}
-        onSelect={selectLanguageSet}
-        onDownload={downloadWordSet}
-        onDelete={deleteLanguageSet}
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: compact ? 560 : 1200,
+        mx: "auto",
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "minmax(0, 1fr)",
+          md: compact ? "minmax(0, 1fr)" : "minmax(0, 1fr) 300px",
+        },
+        gap: { xs: "14px", md: 3 },
+        alignItems: "start",
+        pb: { xs: compact ? 2 : "190px", md: 0 },
+      }}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        hidden
+        onChange={handleImportFile}
+        aria-label="Import word set JSON file"
       />
-      <TemplateListModal
-        open={isTemplateListModalOpen}
-        onClose={handleTemplateListModalClose}
-        templates={templates}
-        onSelect={selectLanguageSetFromTemplate}
-        onDownload={downloadWordSet}
-      />
-
-      <Collapse in={showInstructions}>
-        <Alert
-          severity="info"
-          icon={<HelpOutlineIcon />}
-          action={
-            <IconButton
-              aria-label="Dismiss instructions"
-              size="small"
-              onClick={() => {
-                setShowInstructions(false);
-                localStorage.setItem("HIDE_INSTRUCTIONS", "true");
-              }}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          }
-          sx={{ mb: 2, borderRadius: 3 }}
-        >
-          <Typography variant="subtitle2" gutterBottom>
-            How to use Vocabulary Trainer
-          </Typography>
-          <Typography variant="body2" component="ol" sx={{ pl: 2, m: 0 }}>
-            <li>
-              Enter words in two languages below (one word per line, same
-              order).
-            </li>
-            <li>Or load a saved set / use a built-in template.</li>
-            <li>Optionally add sentences for fill-in-the-blank practice.</li>
-            <li>
-              Press <strong>Start Test</strong> and practise until every word is
-              mastered!
-            </li>
-          </Typography>
-        </Alert>
-      </Collapse>
-
-      <Card sx={{ p: 3 }}>
-        <Typography variant="h3" mb={3} textAlign={"center"}>
-          Word Lists
-        </Typography>
-
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 1,
-            mb: 3,
-            justifyContent: "center",
-          }}
-        >
-          <Tooltip
-            title="Load a previously saved word set from local storage"
-            arrow
-          >
-            <Button
-              variant="outlined"
-              onClick={openLoadSetModal}
-              endIcon={<MenuOpenIcon />}
-              size="small"
-            >
-              Load set
-            </Button>
-          </Tooltip>
-          <Tooltip
-            title="Pick a built-in word set template to get started quickly"
-            arrow
-          >
-            <Button
-              variant="outlined"
-              onClick={openTemplateListModal}
-              endIcon={<PlaylistAddIcon />}
-              size="small"
-            >
-              Use template
-            </Button>
-          </Tooltip>
-          <Tooltip title="Swap language 1 and language 2 columns" arrow>
-            <Button
-              variant="outlined"
-              onClick={flip}
-              endIcon={<LoopIcon />}
-              size="small"
-            >
-              Flip
-            </Button>
-          </Tooltip>
-          <Tooltip title="Clear all word and sentence inputs" arrow>
-            <Button
-              variant="outlined"
-              onClick={clear}
-              endIcon={<ClearIcon />}
-              size="small"
-            >
-              Clear
-            </Button>
-          </Tooltip>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            style={{ display: "none" }}
-            onChange={handleImportFile}
-            aria-label="Import word set JSON file"
+      {compact ? (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <TemplateSummary
+            name={list.name}
+            lang1Name={list.lang1Name}
+            lang2Name={list.lang2Name}
+            wordCount={nonBlank.length}
+            hintCount={nonBlank.filter((r) => r.hint.trim()).length}
+            onShowWords={() => setShowEditor(true)}
+            onChangeList={() => setSheetTab("templates")}
           />
-          <Tooltip title="Import a word set from a JSON file" arrow>
-            <Button
-              variant="outlined"
-              onClick={() => fileInputRef.current?.click()}
-              endIcon={<UploadFileIcon />}
-              size="small"
-            >
-              Import file
-            </Button>
-          </Tooltip>
+          {practise("plain")}
         </Box>
-
-        <Typography
-          variant="body1"
-          textAlign="center"
-          mb={2}
-          color="text.secondary"
-          fontSize="0.85rem"
-        >
-          Add words in two languages in the same order. One word per line.
-        </Typography>
-        <Grid container flexDirection={"row"} gap={2} justifyContent={"center"}>
-          <Grid size={{ xs: 12, sm: 5 }}>
-            <Autocomplete
-              freeSolo
-              options={LANGUAGE_OPTIONS}
-              value={lang1Name}
-              onInputChange={(_e, val) => setLang1Name(val)}
-              onChange={(_e, val) => setLang1Name(val ?? "")}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Your language"
-                  size="small"
-                  placeholder="e.g. 🇫🇮 Finnish"
-                  sx={{ mb: 1 }}
-                  inputProps={{
-                    ...params.inputProps,
-                    style: { textAlign: "right" },
-                  }}
-                />
-              )}
-            />
-            <TextareaAutosize
-              ref={textarea1Ref}
-              onScroll={() => syncScroll("lang1")}
-              aria-label={`Words in ${lang1Name || "language 1"}, one per line`}
-              style={{
-                width: "100%",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: "0.9rem",
-                padding: 12,
-                borderRadius: 10,
-                border: `1.5px solid ${alpha.slate30}`,
-                backgroundColor: muiTheme.palette.background.paper,
-                color: muiTheme.palette.text.primary,
-                outline: "none",
-                resize: "vertical",
-                transition: "border-color 0.2s",
-                lineHeight: 1.6,
-                textAlign: "right",
-              }}
-              minRows={8}
-              maxRows={10}
-              value={language1Words}
-              onChange={(e) => setLanguage1Words(e.target.value)}
-              placeholder={placeholderYourLang}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 5 }}>
-            <Autocomplete
-              freeSolo
-              options={LANGUAGE_OPTIONS}
-              value={lang2Name}
-              onInputChange={(_e, val) => setLang2Name(val)}
-              onChange={(_e, val) => setLang2Name(val ?? "")}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Other language"
-                  size="small"
-                  placeholder="e.g. 🇸🇪 Swedish"
-                  sx={{ mb: 1 }}
-                />
-              )}
-            />
-            <TextareaAutosize
-              ref={textarea2Ref}
-              onScroll={() => syncScroll("lang2")}
-              aria-label={`Words in ${lang2Name || "language 2"}, one per line`}
-              style={{
-                width: "100%",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: "0.9rem",
-                padding: 12,
-                borderRadius: 10,
-                border: `1.5px solid ${alpha.slate30}`,
-                backgroundColor: muiTheme.palette.background.paper,
-                color: muiTheme.palette.text.primary,
-                outline: "none",
-                resize: "vertical",
-                transition: "border-color 0.2s",
-                lineHeight: 1.6,
-              }}
-              minRows={8}
-              maxRows={10}
-              value={language2Words}
-              onChange={(e) => setLanguage2Words(e.target.value)}
-              placeholder={placeholderOtherLang}
-            />
-          </Grid>
-
-          {/* Hints Section */}
-          <Grid size={12}>
-            <Accordion
-              defaultExpanded={!!hints.trim()}
-              disableGutters
-              sx={{
-                backgroundColor: (theme) =>
-                  theme.palette.mode === "light"
-                    ? "rgba(0, 0, 0, 0.04)"
-                    : "transparent",
-                boxShadow: "none",
-                borderRadius: 1,
-                "&::before": { display: "none" },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                sx={{
-                  px: 1,
-                  minHeight: 36,
-                  "& .MuiAccordionSummary-content": {
-                    my: 0.5,
-                    justifyContent: "center",
-                  },
-                }}
-              >
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  fontSize="0.85rem"
-                >
-                  <strong>Hints (optional)</strong>
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ px: 0, pt: 0 }}>
-                <Typography
-                  variant="body2"
-                  textAlign="center"
-                  mb={1}
-                  color="text.secondary"
-                  fontSize="0.8rem"
-                >
-                  One hint per line, matching the word order above. A hint is
-                  shown with the question but is never part of the answer.
-                  Leave a line empty for no hint.
-                </Typography>
-                <TextareaAutosize
-                  aria-label="Hints, one per line matching the word order"
-                  style={{
-                    width: "100%",
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: "0.9rem",
-                    padding: 12,
-                    borderRadius: 10,
-                    border: `1.5px solid ${alpha.slate30}`,
-                    backgroundColor: muiTheme.palette.background.paper,
-                    color: muiTheme.palette.text.primary,
-                    outline: "none",
-                    resize: "vertical",
-                    transition: "border-color 0.2s",
-                    lineHeight: 1.6,
-                  }}
-                  minRows={4}
-                  maxRows={15}
-                  value={hints}
-                  onChange={(e) => setHints(e.target.value)}
-                  placeholder={"e.g.\n\ngame\ninstrument"}
-                />
-              </AccordionDetails>
-            </Accordion>
-          </Grid>
-
-          {/* Sentence Training Section */}
-          <Grid size={12}>
-            <Accordion
-              defaultExpanded={
-                !!(language1Sentences.trim() || language2Sentences.trim())
-              }
-              disableGutters
-              sx={{
-                backgroundColor: (theme) =>
-                  theme.palette.mode === "light"
-                    ? "rgba(0, 0, 0, 0.04)"
-                    : "transparent",
-                boxShadow: "none",
-                borderRadius: 1,
-                "&::before": { display: "none" },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                sx={{
-                  px: 1,
-                  minHeight: 36,
-                  "& .MuiAccordionSummary-content": {
-                    my: 0.5,
-                    justifyContent: "center",
-                  },
-                }}
-              >
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  fontSize="0.85rem"
-                >
-                  <strong>Sentence training (optional)</strong>
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ px: 0, pt: 0 }}>
-                <Typography
-                  variant="body2"
-                  textAlign="center"
-                  mb={1}
-                  color="text.secondary"
-                  fontSize="0.8rem"
-                >
-                  Add sentences containing each word. One sentence per line,
-                  matching the word order above.
-                </Typography>
-                <Grid container spacing={2} justifyContent="center">
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mb: 0.5, display: "block" }}
-                    >
-                      Sentences ({lang1Name || "Language 1"})
-                    </Typography>
-                    <TextareaAutosize
-                      ref={sentenceTextarea1Ref}
-                      onScroll={() => syncSentenceScroll("lang1")}
-                      style={{
-                        width: "100%",
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: "0.9rem",
-                        padding: 12,
-                        borderRadius: 10,
-                        border: `1.5px solid ${alpha.slate30}`,
-                        backgroundColor: muiTheme.palette.background.paper,
-                        color: muiTheme.palette.text.primary,
-                        outline: "none",
-                        resize: "vertical",
-                        transition: "border-color 0.2s",
-                        lineHeight: 1.6,
-                        textAlign: "right",
-                      }}
-                      minRows={sentenceRowCount}
-                      maxRows={15}
-                      value={language1Sentences}
-                      onChange={(e) => setLanguage1Sentences(e.target.value)}
-                      placeholder={"e.g. Minä menen kouluun\nHän lukee kirjaa"}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mb: 0.5, display: "block" }}
-                    >
-                      Sentences ({lang2Name || "Language 2"})
-                    </Typography>
-                    <TextareaAutosize
-                      ref={sentenceTextarea2Ref}
-                      onScroll={() => syncSentenceScroll("lang2")}
-                      style={{
-                        width: "100%",
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: "0.9rem",
-                        padding: 12,
-                        borderRadius: 10,
-                        border: `1.5px solid ${alpha.slate30}`,
-                        backgroundColor: muiTheme.palette.background.paper,
-                        color: muiTheme.palette.text.primary,
-                        outline: "none",
-                        resize: "vertical",
-                        transition: "border-color 0.2s",
-                        lineHeight: 1.6,
-                      }}
-                      minRows={sentenceRowCount}
-                      maxRows={15}
-                      value={language2Sentences}
-                      onChange={(e) => setLanguage2Sentences(e.target.value)}
-                      placeholder={"e.g. Jag går till skolan\nHan läser en bok"}
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </Grid>
-
-          <Grid
-            size={12}
-            gap={1.5}
-            justifyContent={"center"}
-            alignItems={"center"}
-            display={"flex"}
-            flexWrap={"wrap"}
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: { xs: "14px", md: 2 },
+              minWidth: 0,
+            }}
           >
-            <Input
-              placeholder="Name for this set..."
-              value={langSetName}
-              onChange={(e) => setLangSetName(e.target.value)}
-              sx={{ minWidth: 200 }}
-              aria-label="Name for this word set"
-            />
-            <Tooltip
-              title="Save this word set to local storage for later use"
-              arrow
-            >
-              <Button
-                variant="outlined"
-                onClick={saveSet}
-                endIcon={<SaveIcon />}
-                size="small"
-              >
-                Save set
-              </Button>
-            </Tooltip>
-            {savedIndicator && (
-              <Typography
-                variant="body2"
-                color="success.main"
-                fontWeight={600}
-                sx={{ ml: 0.5 }}
-              >
-                ✓ Set saved!
-              </Typography>
+            {showTip && (
+              <TipBanner
+                onDismiss={() => {
+                  setShowTip(false);
+                  hideTip();
+                }}
+              />
             )}
-            <Tooltip
-              title="Download this word set as a JSON file you can share or import later"
-              arrow
+
+            <CurrentListCard
+              name={list.name}
+              onNameChange={(name) => patch({ name })}
+              lang1Name={list.lang1Name}
+              lang2Name={list.lang2Name}
+              onLang1Change={(lang1Name) => patch({ lang1Name })}
+              onLang2Change={(lang2Name) => patch({ lang2Name })}
+              onSwap={() =>
+                setList((prev) => ({
+                  ...prev,
+                  lang1Name: prev.lang2Name,
+                  lang2Name: prev.lang1Name,
+                  rows: swapRows(prev.rows),
+                  sentences: {
+                    language1Sentences: prev.sentences.language2Sentences,
+                    language2Sentences: prev.sentences.language1Sentences,
+                  },
+                }))
+              }
+              summary={summary}
+              hasWords={nonBlank.length > 0}
+              onSave={saveList}
+              onDownload={() => downloadWordSetFile(currentWordSet())}
+              onShareQr={() => setQrOpen(true)}
+              onClear={() => {
+                replaceList(
+                  { ...list, name: "", rows: [], sentences: NO_SENTENCES },
+                  "List cleared",
+                );
+                setTemplateParam(null);
+              }}
+            />
+
+            {!isDesktop && <ListActions variant="tiles" {...listActions} />}
+
+            <WordTable
+              rows={list.rows}
+              lang1Label={lang1Label}
+              lang2Label={lang2Label}
+              onUpdate={(id, changes) =>
+                setRows((rows) => updateRow(rows, id, changes))
+              }
+              onDelete={deleteRow}
+              onAdd={addRow}
+              onPaste={() => setPasteOpen(true)}
+            />
+
+            <SentenceSection
+              sentences={list.sentences}
+              onChange={(sentences) => patch({ sentences })}
+              lang1Label={lang1Label}
+              lang2Label={lang2Label}
+            />
+          </Box>
+
+          {isDesktop ? (
+            <Box
+              component="aside"
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                position: "sticky",
+                top: 16,
+              }}
             >
-              <span>
-                <Button
-                  variant="outlined"
-                  onClick={() =>
-                    downloadWordSet(
-                      langSetName || "word-set",
-                      language1Words.split("\n"),
-                      language2Words.split("\n"),
-                      lang1Name,
-                      lang2Name,
-                    )
-                  }
-                  endIcon={<DownloadIcon />}
-                  size="small"
-                  disabled={!languageSetIsValid}
-                >
-                  Download
-                </Button>
-              </span>
-            </Tooltip>
-          </Grid>
-        </Grid>
-      </Card>
+              {practise("card")}
+              <ListActions
+                variant="panel"
+                {...listActions}
+                onSave={saveList}
+                canSave={nonBlank.length > 0}
+              />
+            </Box>
+          ) : (
+            practise("bar")
+          )}
+        </>
+      )}
 
-      <Card
-        sx={{
-          p: 3,
-          background:
-            muiTheme.palette.mode === "dark"
-              ? gradients.brandDark135
-              : gradients.brand135,
-          color: colors.white,
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="h3" mb={2} sx={{ color: colors.white }}>
-          Ready?
-        </Typography>
-
-        {languageSetIsValid &&
-          (() => {
-            const totalWords = language1Words.split("\n").length;
-            const partSize = Math.ceil(totalWords / partSplit);
-            const wordsInPart =
-              partSplit === 1 ? totalWords : Math.min(partSize, totalWords);
-            return (
-              <Box sx={{ mb: 2 }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: alpha.white80, mb: 1 }}
-                >
-                  Split set into parts:
-                </Typography>
-                <ToggleButtonGroup
-                  value={partSplit}
-                  exclusive
-                  onChange={(_e, val) => {
-                    if (val) setPartSplit(val as 1 | 2 | 4);
-                  }}
-                  size="small"
-                  sx={{ mb: 1.5 }}
-                >
-                  <ToggleButton
-                    value={1}
-                    sx={{
-                      color: colors.white,
-                      borderColor: alpha.white30,
-                      "&.Mui-selected": {
-                        bgcolor: alpha.white30,
-                        color: colors.white,
-                      },
-                    }}
-                  >
-                    Full ({totalWords})
-                  </ToggleButton>
-                  <ToggleButton
-                    value={2}
-                    sx={{
-                      color: colors.white,
-                      borderColor: alpha.white30,
-                      "&.Mui-selected": {
-                        bgcolor: alpha.white30,
-                        color: colors.white,
-                      },
-                    }}
-                  >
-                    ½ ({Math.ceil(totalWords / 2)})
-                  </ToggleButton>
-                  <ToggleButton
-                    value={4}
-                    sx={{
-                      color: colors.white,
-                      borderColor: alpha.white30,
-                      "&.Mui-selected": {
-                        bgcolor: alpha.white30,
-                        color: colors.white,
-                      },
-                    }}
-                  >
-                    ¼ ({Math.ceil(totalWords / 4)})
-                  </ToggleButton>
-                </ToggleButtonGroup>
-                {partSplit > 1 && (
-                  <Typography variant="body2" sx={{ color: alpha.white80 }}>
-                    Will test {wordsInPart} of {totalWords} words (part 1 of{" "}
-                    {partSplit})
-                  </Typography>
-                )}
-              </Box>
-            );
-          })()}
-        {!languageSetIsValid && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: alpha.white80,
-              mb: 2,
-            }}
-          >
-            Add the same number of words in both fields to start.
-          </Typography>
-        )}
-        {!hasTestType && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: alpha.white80,
-              mb: 2,
-            }}
-          >
-            Select at least one testing type in settings.
-          </Typography>
-        )}
-        <Button
-          variant="contained"
-          onClick={startTest}
-          disabled={!languageSetIsValid || !hasTestType}
-          endIcon={<PlayArrowIcon />}
-          size="large"
-          sx={{
-            bgcolor: colors.white,
-            color: colors.indigo600,
-            fontWeight: 700,
-            px: 5,
-            py: 1.5,
-            fontSize: "1rem",
-            "&:hover": {
-              bgcolor: alpha.white90,
-            },
-            "&.Mui-disabled": {
-              bgcolor: alpha.white30,
-              color: alpha.white50,
-            },
-          }}
-        >
-          Start Test
-        </Button>
-      </Card>
-    </Grid>
+      <ListPickerSheet
+        open={sheetTab !== null}
+        tab={sheetTab ?? "templates"}
+        onTabChange={setSheetTab}
+        onClose={() => setSheetTab(null)}
+        templates={templateSummaries}
+        saved={savedSets.map(savedSummary)}
+        currentName={list.name}
+        onUse={chooseList}
+        onDownload={downloadList}
+        onDeleteSaved={deleteSaved}
+      />
+      <PasteListDialog
+        open={pasteOpen}
+        onClose={() => setPasteOpen(false)}
+        lang1Label={list.lang1Name || "Language 1"}
+        lang2Label={list.lang2Name || "Language 2"}
+        hasRows={nonBlank.length > 0}
+        onAppend={(rows) => addPasted(rows, false)}
+        onReplace={(rows) => addPasted(rows, true)}
+      />
+      <QrCodeModal
+        open={qrOpen}
+        onClose={() => setQrOpen(false)}
+        url={window.location.href}
+      />
+      <NoticeSnackbar notice={notice} onClose={() => setNotice(null)} />
+    </Box>
   );
 };
