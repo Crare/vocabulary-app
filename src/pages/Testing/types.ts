@@ -27,6 +27,8 @@ export interface LanguageSet {
   language2Name?: string;
   language1Sentences?: string[];
   language2Sentences?: string[];
+  /** Optional per-word hints, aligned with the word lists. */
+  hints?: string[];
 }
 
 export interface SentenceTestResult {
@@ -39,6 +41,8 @@ export interface TestWord {
   id: number;
   lang1Word: string;
   lang2Word: string;
+  /** Optional clarification shown with the question; never part of the answer. */
+  hint?: string;
   timesCorrect: number;
   timesFailed: number;
   timesSkipped: number;

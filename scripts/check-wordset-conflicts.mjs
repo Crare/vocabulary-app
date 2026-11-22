@@ -30,10 +30,12 @@ for (const file of files) {
   const seenLang2 = new Map();
 
   for (let i = 0; i < words.length; i++) {
-    const { lang1, lang2 } = words[i];
+    const { lang1, lang2, hint } = words[i];
 
-    const l1key = lang1.trim().toLowerCase();
-    const l2key = lang2.trim().toLowerCase();
+    // A hint tells apart pairs that share a word, e.g. "play" (game) / "play" (instrument).
+    const hintKey = hint ? `\u0000${hint.trim().toLowerCase()}` : "";
+    const l1key = lang1.trim().toLowerCase() + hintKey;
+    const l2key = lang2.trim().toLowerCase() + hintKey;
 
     if (seenLang1.has(l1key)) {
       console.error(

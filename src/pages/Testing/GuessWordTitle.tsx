@@ -63,6 +63,15 @@ export const GuessWordTitle = (props: GuessWordTitleProps) => {
             >
                 {displayWord}
             </Typography>
+            {guessWord?.hint && (
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 0.5, fontStyle: "italic" }}
+                >
+                    ({guessWord.hint})
+                </Typography>
+            )}
         </Box>
     );
 };

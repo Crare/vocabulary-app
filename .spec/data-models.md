@@ -37,6 +37,7 @@ interface LanguageSet {
     language2Name?: string; // e.g. "🇸🇪 Swedish"
     language1Sentences?: string[]; // optional, for fill-blank tests
     language2Sentences?: string[];
+    hints?: string[]; // optional, aligned with the word lists
 }
 ```
 
@@ -49,6 +50,7 @@ interface TestWord {
     id: number;
     lang1Word: string;
     lang2Word: string;
+    hint?: string; // shown with the question, not part of the answer
     timesCorrect: number;
     timesFailed: number;
     timesSkipped: number;
@@ -91,7 +93,8 @@ interface WordSet {
     name: string;
     language1?: string;
     language2?: string;
-    words: { lang1: string; lang2: string }[];
+    // hint: optional clarification shown with the question, never part of the answer
+    words: { lang1: string; lang2: string; hint?: string }[];
 }
 ```
 
