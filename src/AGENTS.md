@@ -16,11 +16,12 @@ All code must be optimized, readable, secure, and testable. Prefer clarity over 
 
 - **No router** — view switching is a `useState` in `Main.tsx`, not React Router. Don't try to add route paths.
 - **Refs for mutable test state** — `TestingView` stores `testWords`, `questionIndex`, and `isAnswering` in `useRef` (not `useState`) to avoid stale closures. Always read from the ref, not from a captured variable.
-- **Two settings files** — `SettingsView.tsx` handles word list input + some persisted settings; `TestConfigView.tsx` handles test configuration. Both read/write the same `SETTINGS` localStorage key. Be careful not to overwrite each other's fields.
+- **Two settings files** — `SettingsView.tsx` (with `useWordListEditor.ts`) handles word list input + some persisted settings; `TestConfigView.tsx` handles test configuration. Both read/write the same `SETTINGS` localStorage key. Be careful not to overwrite each other's fields.
 - **testType changed from string to object** — `testType` was originally `"both" | "multi-select" | "writing"`. It is now an object `{ writing, multiSelect, dragDrop, sentenceFillBlank }`. Old persisted values may still be strings; the code guards against this.
 - **Sentence training is optional** — sentence arrays may be `undefined` on `LanguageSet`. Always null-check.
 - **Drag-and-drop uses both mouse and click** — `DragDropTestCard` supports HTML5 drag and a click-to-swap fallback. Keyboard support is via Enter/Space on each answer box.
-- **Built-in word sets are imported statically** — `words1.json`–`words9.json` are bundled at build time. Adding a new set requires adding the import and pushing it into the `templates` array in `SettingsView`.
+- **Built-in word sets are imported statically** — `words1.json`–`words13.json` are bundled at build time. Adding a new set requires adding the import and appending it to the `templates` array in `src/wordsets/templates.ts`. Only append: `?template=N` links use the 1-based position.
+- **Word rows, not line-aligned text** — the editor keeps one `WordRow` (words + hint) per pair so hints cannot drift onto other words. `SETTINGS` and `LANGUAGE_SETS` still store line-aligned strings/arrays for compatibility; convert with the helpers in `pages/Settings/wordRows.ts` instead of splitting text by hand.
 - **No backend** — everything is localStorage. There is no API layer to worry about.
 - **MUI version 7** — some APIs changed from v5/v6 (e.g., `Grid` uses `size` prop instead of `xs`/`md`). Check the MUI 7 docs.
 - **GitHub Pages base path** — the app is served under `/vocabulary-app/`, configured via `base` in `vite.config.ts` and `homepage` in `package.json`.

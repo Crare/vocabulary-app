@@ -102,7 +102,7 @@ interface WordSet {
 
 | Key                 | Type              | Description                          |
 | ------------------- | ----------------- | ------------------------------------ |
-| `SETTINGS`          | JSON object       | Persisted user settings + word input |
+| `SETTINGS`          | JSON object       | Persisted user settings + word input (`language1Words`, `language2Words` and `hints` stay newline-joined strings; the editor turns them into rows on load) |
 | `LANGUAGE_SETS`     | JSON array        | Saved LanguageSet[]                  |
 | `TEST_HISTORY`      | JSON array        | HistoryEntry[]                       |
 | `HIDE_INSTRUCTIONS` | `"true"` / absent | Dismiss the instructions banner      |
