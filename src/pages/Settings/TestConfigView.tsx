@@ -1,461 +1,277 @@
 import {
+  Box,
   Button,
-  Card,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  Grid,
-  Slider,
-  Tooltip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Typography,
-  useMediaQuery,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { useState } from "react";
+import { colors } from "../../colors";
 import { createLogger } from "../../util/logger";
+import { ChoiceRow, SettingsGroup, StepperRow, SwitchRow } from "../../components/SettingControls";
+import {
+  ANSWER_DELAY_OPTIONS,
+  CHOICES_RANGE,
+  CORRECT_TIMES_RANGE,
+  DEFAULT_TEST_CONFIG,
+  TestConfig,
+  TestTypes,
+  answerDelayHelp,
+  directionHelp,
+  hasAnyTestType,
+  loadTestConfig,
+  saveTestConfig,
+} from "./testConfig";
 
 const log = createLogger("test-config");
 
-const SETTINGS_KEY = "SETTINGS";
+const destructive = { color: colors.red600 } as const;
 
-const DEFAULT_SETTINGS = {
-  wordNeedsToGetCorrectTimes: 3,
-  multiSelectChoicesAmount: 4,
-  onlySecondLanguageWordsTested: false,
-  everySecondTestIsMultiOrWriting: false,
-  sentenceTestAllWords: true,
-  answerDelayMs: 1500,
-  allowTypos: true,
-  progressOnMistakes: false,
-  testType: {
-    writing: true,
-    multiSelect: true,
-    dragDrop: true,
-    sentenceFillBlank: true,
+const QUESTION_TYPES: { key: keyof TestTypes; label: string; help: string }[] = [
+  {
+    key: "writing",
+    label: "Writing",
+    help: "Type the translation yourself. Hardest, and it sticks best.",
   },
-} as const;
+  {
+    key: "multiSelect",
+    label: "Multiple choice",
+    help: "Pick the right translation from a few options.",
+  },
+  {
+    key: "dragDrop",
+    label: "Matching",
+    help: "Pair words with their translations by dragging or tapping.",
+  },
+  {
+    key: "sentenceFillBlank",
+    label: "Fill in the blank",
+    help: "Type the missing word in a sentence. Only for lists that have sentences.",
+  },
+];
 
-interface PersistedSettings {
-  wordNeedsToGetCorrectTimes: number;
-  multiSelectChoicesAmount: number;
-  onlySecondLanguageWordsTested: boolean;
-  everySecondTestIsMultiOrWriting: boolean;
-  sentenceTestAllWords: boolean;
-  answerDelayMs: number;
-  allowTypos: boolean;
-  progressOnMistakes: boolean;
-  testType: {
-    writing: boolean;
-    multiSelect: boolean;
-    dragDrop: boolean;
-    sentenceFillBlank: boolean;
-  };
-  [key: string]: unknown;
-}
-
-const loadPersistedSettings = (): Partial<PersistedSettings> => {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    return raw ? (JSON.parse(raw) as Partial<PersistedSettings>) : {};
-  } catch (err) {
-    log.error("settings_load_failed", {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    return {};
-  }
-};
-
-const savePersistedSettings = (updates: Partial<PersistedSettings>) => {
-  try {
-    const existing = loadPersistedSettings();
-    const merged = { ...existing, ...updates };
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
-  } catch (err) {
-    log.error("settings_save_failed", {
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-};
-
+/** The Settings tab: how tests are run. Saves every change at once. */
 export const TestConfigView = () => {
-  const isMobile = useMediaQuery("(max-width:600px)");
-  const [wordNeedsToGetCorrectTimes, setWordNeedsToGetCorrectTimes] =
-    useState<number>(
-      () =>
-        loadPersistedSettings().wordNeedsToGetCorrectTimes ??
-        DEFAULT_SETTINGS.wordNeedsToGetCorrectTimes,
-    );
-  const [multiSelectChoicesAmount, setMultiSelectChoicesAmount] =
-    useState<number>(
-      () =>
-        loadPersistedSettings().multiSelectChoicesAmount ??
-        DEFAULT_SETTINGS.multiSelectChoicesAmount,
-    );
-  const [onlySecondLanguageWordsTested, setOnlySecondLanguageWordsTested] =
-    useState<boolean>(
-      () =>
-        loadPersistedSettings().onlySecondLanguageWordsTested ??
-        DEFAULT_SETTINGS.onlySecondLanguageWordsTested,
-    );
-  const [everySecondTestIsMultiOrWriting, setEverySecondTestIsMultiOrWriting] =
-    useState<boolean>(
-      () =>
-        loadPersistedSettings().everySecondTestIsMultiOrWriting ??
-        DEFAULT_SETTINGS.everySecondTestIsMultiOrWriting,
-    );
-  const loadedTestType = loadPersistedSettings().testType;
-  const [writingEnabled, setWritingEnabled] = useState<boolean>(() =>
-    loadedTestType && typeof loadedTestType === "object"
-      ? loadedTestType.writing
-      : DEFAULT_SETTINGS.testType.writing,
-  );
-  const [multiSelectEnabled, setMultiSelectEnabled] = useState<boolean>(() =>
-    loadedTestType && typeof loadedTestType === "object"
-      ? loadedTestType.multiSelect
-      : DEFAULT_SETTINGS.testType.multiSelect,
-  );
-  const [dragDropEnabled, setDragDropEnabled] = useState<boolean>(() =>
-    loadedTestType && typeof loadedTestType === "object"
-      ? (loadedTestType.dragDrop ?? DEFAULT_SETTINGS.testType.dragDrop)
-      : DEFAULT_SETTINGS.testType.dragDrop,
-  );
-  const [sentenceFillBlankEnabled, setSentenceFillBlankEnabled] =
-    useState<boolean>(() =>
-      loadedTestType && typeof loadedTestType === "object"
-        ? (loadedTestType.sentenceFillBlank ??
-          DEFAULT_SETTINGS.testType.sentenceFillBlank)
-        : DEFAULT_SETTINGS.testType.sentenceFillBlank,
-    );
-  const [sentenceTestAllWords, setSentenceTestAllWords] = useState<boolean>(
-    () =>
-      loadPersistedSettings().sentenceTestAllWords ??
-      DEFAULT_SETTINGS.sentenceTestAllWords,
-  );
-  const [answerDelayMs, setAnswerDelayMs] = useState<number>(
-    () =>
-      loadPersistedSettings().answerDelayMs ?? DEFAULT_SETTINGS.answerDelayMs,
-  );
-  const [allowTypos, setAllowTypos] = useState<boolean>(
-    () => loadPersistedSettings().allowTypos ?? DEFAULT_SETTINGS.allowTypos,
-  );
-  const [progressOnMistakes, setProgressOnMistakes] = useState<boolean>(
-    () =>
-      loadPersistedSettings().progressOnMistakes ??
-      DEFAULT_SETTINGS.progressOnMistakes,
-  );
+  const [config, setConfig] = useState<TestConfig>(loadTestConfig);
+  const [confirmReset, setConfirmReset] = useState(false);
 
-  const answerDelayMarks = isMobile
-    ? [
-        { value: -1, label: "Manual" },
-        { value: 0, label: "" },
-        { value: 500, label: "" },
-        { value: 1000, label: "" },
-        { value: 1500, label: "1.5s" },
-        { value: 2000, label: "2s" },
-        { value: 3000, label: "3s" },
-        { value: 5000, label: "5s" },
-      ]
-    : [
-        { value: -1, label: "Manual" },
-        { value: 0, label: "" },
-        { value: 500, label: "0.5s" },
-        { value: 1000, label: "1s" },
-        { value: 1500, label: "1.5s" },
-        { value: 2000, label: "2s" },
-        { value: 3000, label: "3s" },
-        { value: 5000, label: "5s" },
-      ];
-
-  const resetToDefaults = () => {
-    setWordNeedsToGetCorrectTimes(DEFAULT_SETTINGS.wordNeedsToGetCorrectTimes);
-    setMultiSelectChoicesAmount(DEFAULT_SETTINGS.multiSelectChoicesAmount);
-    setOnlySecondLanguageWordsTested(
-      DEFAULT_SETTINGS.onlySecondLanguageWordsTested,
-    );
-    setEverySecondTestIsMultiOrWriting(
-      DEFAULT_SETTINGS.everySecondTestIsMultiOrWriting,
-    );
-    setSentenceTestAllWords(DEFAULT_SETTINGS.sentenceTestAllWords);
-    setAnswerDelayMs(DEFAULT_SETTINGS.answerDelayMs);
-    setAllowTypos(DEFAULT_SETTINGS.allowTypos);
-    setProgressOnMistakes(DEFAULT_SETTINGS.progressOnMistakes);
-    setWritingEnabled(DEFAULT_SETTINGS.testType.writing);
-    setMultiSelectEnabled(DEFAULT_SETTINGS.testType.multiSelect);
-    setDragDropEnabled(DEFAULT_SETTINGS.testType.dragDrop);
-    setSentenceFillBlankEnabled(DEFAULT_SETTINGS.testType.sentenceFillBlank);
-
-    savePersistedSettings(DEFAULT_SETTINGS as Partial<PersistedSettings>);
+  const update = (changes: Partial<TestConfig>) => {
+    const next = { ...config, ...changes };
+    setConfig(next);
+    saveTestConfig(next);
+    log.info("test_config_changed", changes);
   };
 
-  useEffect(() => {
-    savePersistedSettings({
-      wordNeedsToGetCorrectTimes,
-      multiSelectChoicesAmount,
-      onlySecondLanguageWordsTested,
-      everySecondTestIsMultiOrWriting,
-      sentenceTestAllWords,
-      answerDelayMs,
-      allowTypos,
-      progressOnMistakes,
-      testType: {
-        writing: writingEnabled,
-        multiSelect: multiSelectEnabled,
-        dragDrop: dragDropEnabled,
-        sentenceFillBlank: sentenceFillBlankEnabled,
-      },
-    });
-  }, [
-    wordNeedsToGetCorrectTimes,
-    multiSelectChoicesAmount,
-    onlySecondLanguageWordsTested,
-    everySecondTestIsMultiOrWriting,
-    sentenceTestAllWords,
-    answerDelayMs,
-    allowTypos,
-    progressOnMistakes,
-    writingEnabled,
-    multiSelectEnabled,
-    dragDropEnabled,
-    sentenceFillBlankEnabled,
-  ]);
+  const setType = (key: keyof TestTypes, on: boolean) =>
+    update({ testType: { ...config.testType, [key]: on } });
+
+  const reset = () => {
+    setConfirmReset(false);
+    setConfig(DEFAULT_TEST_CONFIG);
+    saveTestConfig(DEFAULT_TEST_CONFIG);
+    log.info("test_config_reset");
+  };
+
+  const resetButton = (
+    <Button
+      onClick={() => setConfirmReset(true)}
+      startIcon={<RestartAltIcon />}
+      sx={{ ...destructive, minHeight: 44, px: 2, alignSelf: "center" }}
+    >
+      Reset all to defaults
+    </Button>
+  );
 
   return (
-    <Grid container className="content" gap={2} flexDirection={"column"}>
-      <Card sx={{ p: 3 }}>
-        <Typography variant="h3" mb={3} textAlign={"center"}>
-          Settings
-        </Typography>
-        <Grid container justifyContent="flex-end" sx={{ mb: 2 }}>
-          <Button variant="outlined" color="inherit" onClick={resetToDefaults}>
-            Reset to defaults
-          </Button>
-        </Grid>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: 1040,
+        mx: "auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2.5,
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          gap: 1.5,
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+          <Typography
+            component="h1"
+            sx={{ fontSize: { xs: "1.5rem", md: "1.75rem" }, fontWeight: 700 }}
+          >
+            Test settings
+          </Typography>
+          <Typography sx={{ fontSize: "0.9rem", color: "text.secondary" }}>
+            Changes save on their own and apply to your next test.
+          </Typography>
+        </Box>
+        <Box sx={{ display: { xs: "none", md: "flex" } }}>{resetButton}</Box>
+      </Box>
 
-        <Grid
-          container
-          flexDirection={"row"}
-          gap={2}
-          justifyContent={"space-evenly"}
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, alignItems: "flex-start" }}>
+        <Box sx={{ flex: "1 1 360px", minWidth: 0 }}>
+          <SettingsGroup title="Question types">
+            {QUESTION_TYPES.map((t) =>
+              t.key === "sentenceFillBlank" ? (
+                <Box key={t.key}>
+                  <SwitchRow
+                    label={t.label}
+                    help={t.help}
+                    checked={config.testType[t.key]}
+                    onChange={(on) => setType(t.key, on)}
+                  />
+                  {config.testType.sentenceFillBlank && (
+                    <SwitchRow
+                      nested
+                      label="Ask every word in a sentence"
+                      help="Each word of a sentence gets a turn as the blank."
+                      checked={config.sentenceTestAllWords}
+                      onChange={(on) => update({ sentenceTestAllWords: on })}
+                    />
+                  )}
+                </Box>
+              ) : (
+                <SwitchRow
+                  key={t.key}
+                  label={t.label}
+                  help={t.help}
+                  checked={config.testType[t.key]}
+                  onChange={(on) => setType(t.key, on)}
+                />
+              ),
+            )}
+            {!hasAnyTestType(config.testType) && (
+              <Typography
+                role="status"
+                sx={{
+                  px: 1.75,
+                  py: 1.5,
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  ...destructive,
+                }}
+              >
+                Turn on at least one question type to start a test.
+              </Typography>
+            )}
+          </SettingsGroup>
+        </Box>
+
+        <Box
+          sx={{
+            flex: "1 1 360px",
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+          }}
         >
-          <Grid size={{ xs: 12, md: 5 }}>
-            <Tooltip
-              title="Each word must be answered correctly this many times before it is removed from the pool"
-              arrow
-              placement="top"
-            >
-              <Typography variant="h5">
-                Amount of times needed word needs to be get correct:{" "}
-                {wordNeedsToGetCorrectTimes}
-              </Typography>
-            </Tooltip>
-            <Slider
-              min={1}
-              max={10}
-              value={wordNeedsToGetCorrectTimes}
-              aria-label="Times word needs to be answered correctly"
-              onChange={(_e: Event, newValue: number | number[]) =>
-                setWordNeedsToGetCorrectTimes(newValue as number)
-              }
+          <SettingsGroup title="How the test runs">
+            <ChoiceRow
+              variant="segmented"
+              label="Direction"
+              help={directionHelp(config.onlySecondLanguageWordsTested)}
+              value={config.onlySecondLanguageWordsTested}
+              options={[
+                { value: false, label: "Both ways" },
+                { value: true, label: "Into the new language" },
+              ]}
+              onChange={(v) => update({ onlySecondLanguageWordsTested: v })}
             />
-            <Tooltip
-              title="Number of answer options shown during multi-select tests"
-              arrow
-              placement="top"
-            >
-              <Typography variant="h5">
-                Amount of choices shown in multi-select test:{" "}
-                {multiSelectChoicesAmount}
-              </Typography>
-            </Tooltip>
-            <Slider
-              min={2}
-              max={10}
-              value={multiSelectChoicesAmount}
-              aria-label="Number of multi-select choices"
-              onChange={(_e: Event, newValue: number | number[]) =>
-                setMultiSelectChoicesAmount(newValue as number)
-              }
+            <StepperRow
+              label="Right answers per word"
+              help="A word is done after you get it right this many times. More means a longer test."
+              unit="right answers"
+              value={config.wordNeedsToGetCorrectTimes}
+              {...CORRECT_TIMES_RANGE}
+              onChange={(v) => update({ wordNeedsToGetCorrectTimes: v })}
             />
+            <ChoiceRow
+              variant="chips"
+              label="Show the right answer for"
+              help={answerDelayHelp(config.answerDelayMs)}
+              value={config.answerDelayMs}
+              options={ANSWER_DELAY_OPTIONS}
+              onChange={(v) => update({ answerDelayMs: v })}
+            />
+          </SettingsGroup>
 
-            <Tooltip
-              title="How long the correct/incorrect result is displayed before the next word appears. 'Manual' requires pressing Continue."
-              arrow
-              placement="top"
-            >
-              <Typography variant="h5">
-                Time to see the answer:{" "}
-                {answerDelayMs === -1
-                  ? "Press button"
-                  : `${(answerDelayMs / 1000).toFixed(1)}s`}
-              </Typography>
-            </Tooltip>
-            <Slider
-              min={-1}
-              max={5000}
-              step={null}
-              aria-label="Time to see the answer"
-              marks={answerDelayMarks}
-              value={answerDelayMs}
-              onChange={(_e: Event, newValue: number | number[]) =>
-                setAnswerDelayMs(newValue as number)
-              }
+          <SettingsGroup title="Fine-tuning">
+            <SwitchRow
+              label="Forgive small typos"
+              help="A near miss still counts as right, and you see the correct spelling."
+              checked={config.allowTypos}
+              onChange={(on) => update({ allowTypos: on })}
             />
-          </Grid>
-          <Grid size={{ xs: 12, md: 5 }} gap={2}>
-            <Grid mb={2}>
-              <FormGroup>
-                <Tooltip
-                  title="When enabled, you will only be asked to translate from language 1 to language 2 (never the reverse)"
-                  arrow
-                >
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={onlySecondLanguageWordsTested}
-                        onChange={(e) =>
-                          setOnlySecondLanguageWordsTested(e.target.checked)
-                        }
-                      />
-                    }
-                    label="Only second language words tested."
-                  />
-                </Tooltip>
-                <Tooltip
-                  title="Alternate strictly between writing and multi-select questions"
-                  arrow
-                >
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={everySecondTestIsMultiOrWriting}
-                        onChange={(e) =>
-                          setEverySecondTestIsMultiOrWriting(e.target.checked)
-                        }
-                      />
-                    }
-                    label="Every second test contains writing and then multi-select test."
-                  />
-                </Tooltip>
-                <Tooltip
-                  title="When enabled, answers that are close but not exact (e.g. small typos, swapped or missing characters) still count as correct — but the correct spelling is shown"
-                  arrow
-                >
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={allowTypos}
-                        onChange={(e) => setAllowTypos(e.target.checked)}
-                      />
-                    }
-                    label="Allow small typos in writing test"
-                  />
-                </Tooltip>
-                <Tooltip
-                  title="When enabled, wrong answers still count toward completing a word — the test finishes in bounded time even if you make lots of mistakes"
-                  arrow
-                >
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={progressOnMistakes}
-                        onChange={(e) =>
-                          setProgressOnMistakes(e.target.checked)
-                        }
-                      />
-                    }
-                    label="Progress on mistakes (faster test)"
-                  />
-                </Tooltip>
-              </FormGroup>
-            </Grid>
+            <SwitchRow
+              label="Wrong answers count too"
+              help="Every answer moves a word toward done, so the test ends sooner even with mistakes."
+              checked={config.progressOnMistakes}
+              onChange={(on) => update({ progressOnMistakes: on })}
+            />
+            <SwitchRow
+              label="Take question types in turn"
+              help="Question types come in a fixed order instead of at random."
+              checked={config.everySecondTestIsMultiOrWriting}
+              onChange={(on) => update({ everySecondTestIsMultiOrWriting: on })}
+            />
+            <StepperRow
+              label="Options in multiple choice"
+              help="How many answers you pick from. More options make it harder."
+              unit="options"
+              value={config.multiSelectChoicesAmount}
+              {...CHOICES_RANGE}
+              onChange={(v) => update({ multiSelectChoicesAmount: v })}
+            />
+          </SettingsGroup>
+        </Box>
+      </Box>
 
-            <FormGroup>
-              <Typography variant="subtitle2" mb={0.5}>
-                Testing types
-              </Typography>
-              {!writingEnabled &&
-                !multiSelectEnabled &&
-                !dragDropEnabled &&
-                !sentenceFillBlankEnabled && (
-                  <Typography variant="body2" color="error.main" mb={0.5}>
-                    Please select at least one testing type.
-                  </Typography>
-                )}
-              <Tooltip
-                title="Type the translation yourself — the hardest but most effective practice"
-                arrow
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={writingEnabled}
-                      onChange={(e) => setWritingEnabled(e.target.checked)}
-                    />
-                  }
-                  label="Writing test"
-                />
-              </Tooltip>
-              <Tooltip
-                title="Choose the correct translation from several options"
-                arrow
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={multiSelectEnabled}
-                      onChange={(e) => setMultiSelectEnabled(e.target.checked)}
-                    />
-                  }
-                  label="Multi-select test"
-                />
-              </Tooltip>
-              <Tooltip
-                title="Drag words to match them with their translations"
-                arrow
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={dragDropEnabled}
-                      onChange={(e) => setDragDropEnabled(e.target.checked)}
-                    />
-                  }
-                  label="Drag and drop matching test"
-                />
-              </Tooltip>
-              <Tooltip
-                title="Fill in the missing word in a sentence (requires sentences in the word set)"
-                arrow
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sentenceFillBlankEnabled}
-                      onChange={(e) =>
-                        setSentenceFillBlankEnabled(e.target.checked)
-                      }
-                    />
-                  }
-                  label="Sentence fill-in-the-blank test"
-                />
-              </Tooltip>
-              {sentenceFillBlankEnabled && (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sentenceTestAllWords}
-                      onChange={(e) =>
-                        setSentenceTestAllWords(e.target.checked)
-                      }
-                    />
-                  }
-                  label="Test every word in the sentence at least once"
-                  sx={{ ml: 2 }}
-                />
-              )}
-            </FormGroup>
-          </Grid>
-        </Grid>
-      </Card>
-    </Grid>
+      <Box sx={{ display: { xs: "flex", md: "none" }, justifyContent: "center" }}>
+        {resetButton}
+      </Box>
+
+      <Dialog
+        open={confirmReset}
+        onClose={() => setConfirmReset(false)}
+        aria-labelledby="reset-title"
+      >
+        <DialogTitle id="reset-title">Reset test settings?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Every test setting goes back to its default. Your word lists stay
+            as they are.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setConfirmReset(false)} sx={{ minHeight: 44 }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={reset}
+            sx={{
+              minHeight: 44,
+              bgcolor: colors.red600,
+              "&:hover": { bgcolor: colors.red600, filter: "brightness(0.92)" },
+            }}
+          >
+            Reset
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };

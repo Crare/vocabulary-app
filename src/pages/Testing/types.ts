@@ -45,7 +45,13 @@ export interface TestWord {
   hint?: string;
   timesCorrect: number;
   timesFailed: number;
-  timesSkipped: number;
+  /**
+   * @deprecated Skip was merged into "I don't know" (timesCheckedAnswer).
+   * Only present on history saved before that change; read it through
+   * `timesDidntKnow()` so old results score the same.
+   */
+  timesSkipped?: number;
+  /** Times the learner pressed "I don't know" (the answer was shown). */
   timesCheckedAnswer: number;
   totalAnswerTimeMs: number;
   answerAttempts: number;

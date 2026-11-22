@@ -91,7 +91,7 @@ export const PractisePanel = (props: PractisePanelProps) => {
           position: "fixed",
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: "var(--bottom-nav-height, 0px)",
           zIndex: theme.zIndex.appBar,
           bgcolor: "background.paper",
           borderTop: `1px solid ${theme.palette.mode === "dark" ? alpha.slate15 : colors.slate200}`,

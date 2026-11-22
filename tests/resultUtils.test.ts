@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
     calculateScore,
     calculatePercentage,
+    calculateTotalScore,
+    timesDidntKnow,
 } from "../src/pages/Results/resultUtils";
 import { TestWord } from "../src/pages/Testing/types";
 
@@ -62,6 +64,28 @@ describe("resultUtils", () => {
         it("should count failed, skipped, and checked as wrong", () => {
             // 4 correct, 1 failed, 1 skipped, 1 checked = 4/7 ≈ 57.14 → 57
             expect(calculatePercentage(makeWord(4, 1, 1, 1))).toBe(57);
+        });
+    });
+
+    describe("timesDidntKnow", () => {
+        it("counts I-don't-know presses", () => {
+            expect(timesDidntKnow(makeWord(0, 0, 0, 2))).toBe(2);
+        });
+
+        it("adds skips from history saved before skip was merged", () => {
+            expect(timesDidntKnow(makeWord(0, 0, 3, 2))).toBe(5);
+        });
+
+        it("treats a missing skip count as zero", () => {
+            const { timesSkipped: _unused, ...word } = makeWord(1, 0, 0, 1);
+            expect(timesDidntKnow(word)).toBe(1);
+        });
+    });
+
+    describe("calculateTotalScore", () => {
+        it("counts old skips and new I-don't-know presses as attempts", () => {
+            const words = [makeWord(2, 1, 1, 0), makeWord(1, 0, 0, 1)];
+            expect(calculateTotalScore(words)).toEqual({ correct: 3, total: 6 });
         });
     });
 });
