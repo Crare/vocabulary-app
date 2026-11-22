@@ -1,6 +1,8 @@
 import "./Main.css";
-import { Grid } from "@mui/material";
-import { Header, NavView } from "./Header";
+import { Grid, useMediaQuery } from "@mui/material";
+import { Header } from "./Header";
+import { BottomNav } from "./BottomNav";
+import { BOTTOM_NAV_HEIGHT, NavView, PHONE_NAV_QUERY } from "./navConfig";
 
 import { SettingsView } from "../Settings/SettingsView";
 import { TestConfigView } from "../Settings/TestConfigView";
@@ -25,6 +27,7 @@ const log = createLogger("main");
 
 const Main = () => {
   const { onStart } = useSound();
+  const isPhone = useMediaQuery(PHONE_NAV_QUERY);
   const [view, setView] = useState<
     "wordlists" | "settings" | "testing" | "results" | "history" | "credits"
   >("wordlists");
@@ -162,8 +165,19 @@ const Main = () => {
     setResults(undefined);
   };
 
+  const showBottomNav = isPhone && view !== "testing";
+  // Pages with their own sticky bottom bar sit on top of the tab bar via this variable.
+  const bottomNavHeight = showBottomNav
+    ? `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom))`
+    : "0px";
+
   return (
-    <Grid container className="container" justifyContent={"center"}>
+    <Grid
+      container
+      className="container"
+      justifyContent={"center"}
+      style={{ "--bottom-nav-height": bottomNavHeight } as React.CSSProperties}
+    >
       <a href="#main-content" className="skip-to-content">
         Skip to content
       </a>
@@ -219,6 +233,9 @@ const Main = () => {
         {view === "history" ? <HistoryView /> : null}
         {view === "credits" ? <CreditsView /> : null}
       </Grid>
+      {showBottomNav && (
+        <BottomNav activeTab={activeTab} onNavigate={onNavigate} />
+      )}
     </Grid>
   );
 };

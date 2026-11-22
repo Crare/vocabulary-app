@@ -6,10 +6,13 @@ A quick reference to every component in the app and what it does.
 
 ### Main (`pages/Main/`)
 
-| File         | Description                                                                      |
-| ------------ | -------------------------------------------------------------------------------- |
-| `Main.tsx`   | Application shell. Owns top-level view state and switches between child views.   |
-| `Header.tsx` | AppBar with navigation tabs, dark-mode toggle, volume control, and credits link. |
+| File               | Description                                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `Main.tsx`         | Application shell. Owns top-level view state, switches between child views, shows `BottomNav` on phones and sets `--bottom-nav-height`. |
+| `Header.tsx`       | Solid indigo app bar. Desktop: page links (Word lists, History, Settings, Credits) and an Options button with a popover. Phone: an Options icon button that opens a bottom sheet. During a test the links hide and a mute toggle shows. |
+| `BottomNav.tsx`    | Phone-only (< 900px) tab bar fixed to the bottom: Word lists, History, Settings. Hidden during a test.                             |
+| `OptionsPanel.tsx` | Content of the Options sheet/popover: text size, sound volume with mute, dark mode, QR share and (phone only) Credits.            |
+| `navConfig.ts`     | `NavView` type, the phone media query, tab bar height and pure helpers (`nextMuteVolume`, `buildQrUrl`).                          |
 
 ### Settings (`pages/Settings/`)
 
