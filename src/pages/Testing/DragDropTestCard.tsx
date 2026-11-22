@@ -1,19 +1,23 @@
-import { useCallback, useRef, useState } from "react";
-import { Box, Button, Card, Chip, Typography } from "@mui/material";
-import SwapVertIcon from "@mui/icons-material/SwapVert";
+import { useEffect, useRef, useState } from "react";
+import { Box, Button, Typography } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { TestWord } from "./types";
 import { GuessDirection, getDisplayWord, getExpectedAnswer } from "./testLogic";
+import { Hint, ModeLabel, QuestionCard } from "./GuessWordTitle";
+import { AnswerPanel, toneStyle } from "./AnswerPanel";
+import { Feedback, buildPairsFeedback } from "./feedback";
 import { shuffle } from "../../util/helpers";
-import { colors, alpha } from "../../colors";
+import { useSound } from "../../SoundContext";
+import { colors } from "../../colors";
 
 /** Maximum words to show in a single drag-and-drop round. */
 export const DRAG_DROP_BATCH_SIZE = 4;
 
 export interface DragDropResult {
   word: TestWord;
-  correct: boolean;
+  outcome: "correct" | "wrong" | "dontKnow";
 }
 
 interface DragDropTestCardProps {
@@ -21,364 +25,329 @@ interface DragDropTestCardProps {
   guessDirection: GuessDirection;
   targetLanguageName?: string;
   onComplete: (results: DragDropResult[]) => void;
+  /** Auto-continue this many ms after checking; manual when undefined. */
+  autoAdvanceMs?: number;
 }
 
+interface DragState {
+  from: number;
+  over: number;
+  moved: boolean;
+  x: number;
+  y: number;
+}
+
+/** Pixels the pointer must travel before a press becomes a drag. */
+const DRAG_THRESHOLD = 6;
+
+/** Shuffle so at least one answer is out of place (unless all are equal). */
+const shuffledAnswers = (expected: string[]) => {
+  const answers = [...expected];
+  do {
+    shuffle(answers);
+  } while (
+    new Set(answers).size > 1 &&
+    answers.every((a, i) => a === expected[i])
+  );
+  return answers;
+};
+
+/**
+ * Match-the-pairs question. Answers swap by tapping two of them, or by
+ * dragging one onto another; while dragging, a lifted copy follows the
+ * pointer or finger and the tile it would land on lights up.
+ */
 export const DragDropTestCard = ({
   words,
   guessDirection,
   targetLanguageName,
   onComplete,
+  autoAdvanceMs,
 }: DragDropTestCardProps) => {
-  // Left column: display words (fixed)
-  const displayWords = words.map((w) => getDisplayWord(w, guessDirection));
-
-  // Expected correct answers for each row
-  const expectedAnswers = words.map((w) =>
-    getExpectedAnswer(w, guessDirection),
+  const expected = words.map((w) => getExpectedAnswer(w, guessDirection));
+  const [answers, setAnswers] = useState(() => shuffledAnswers(expected));
+  const [selected, setSelected] = useState<number | null>(null);
+  const [phase, setPhase] = useState<"answering" | "checked" | "revealed">(
+    "answering",
   );
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const { onCorrect, onWrong } = useSound();
+  const startRef = useRef({ x: 0, y: 0 });
+  const suppressClickRef = useRef(false);
 
-  // Right column: answer words, shuffled on mount
-  const [answers, setAnswers] = useState<string[]>(() => {
-    const shuffled = [...expectedAnswers];
-    // Shuffle until at least one position differs from correct
-    do {
-      shuffle(shuffled);
-    } while (
-      new Set(shuffled).size > 1 &&
-      shuffled.every((a, i) => a === expectedAnswers[i])
-    );
-    return shuffled;
-  });
+  const answering = phase === "answering";
+  const shown = phase === "revealed" ? expected : answers;
+  const rightCount = answers.filter((a, i) => a === expected[i]).length;
 
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [checked, setChecked] = useState(false);
-  const [correctMap, setCorrectMap] = useState<boolean[]>([]);
-  const dragIndexRef = useRef<number | null>(null);
-  const answerRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const touchDragIndexRef = useRef<number | null>(null);
-  const [touchDragIdx, setTouchDragIdx] = useState<number | null>(null);
-  const [touchOverIdx, setTouchOverIdx] = useState<number | null>(null);
+  const results = (): DragDropResult[] =>
+    words.map((word, i) => ({
+      word,
+      outcome:
+        phase === "revealed"
+          ? "dontKnow"
+          : answers[i] === expected[i]
+            ? "correct"
+            : "wrong",
+    }));
 
-  const swapAnswers = useCallback((i: number, j: number) => {
+  const finish = () => onComplete(results());
+
+  useEffect(() => {
+    if (phase !== "checked" || autoAdvanceMs === undefined) return;
+    const timer = setTimeout(finish, autoAdvanceMs);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, autoAdvanceMs]);
+
+  const swap = (i: number, j: number) =>
     setAnswers((prev) => {
       const next = [...prev];
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
-  }, []);
 
-  // Click-to-swap: tap one answer, then another to swap them (works on mobile)
-  const handleClick = (index: number) => {
-    if (checked) return;
-    if (selectedIndex === null) {
-      setSelectedIndex(index);
-    } else if (selectedIndex === index) {
-      setSelectedIndex(null);
-    } else {
-      swapAnswers(selectedIndex, index);
-      setSelectedIndex(null);
+  const tap = (i: number) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    if (!answering) return;
+    if (selected === null) setSelected(i);
+    else if (selected === i) setSelected(null);
+    else {
+      swap(selected, i);
+      setSelected(null);
     }
   };
 
-  // HTML5 Drag-and-Drop handlers (desktop)
-  const handleDragStart = (index: number) => {
-    dragIndexRef.current = index;
+  const onPointerDown = (i: number, e: React.PointerEvent<HTMLElement>) => {
+    if (!answering || e.button !== 0) return;
+    startRef.current = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setDrag({ from: i, over: -1, moved: false, x: e.clientX, y: e.clientY });
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
+  const onPointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (!drag) return;
+    const moved =
+      drag.moved ||
+      Math.abs(e.clientX - startRef.current.x) +
+        Math.abs(e.clientY - startRef.current.y) >
+        DRAG_THRESHOLD;
+    const hit = document.elementFromPoint(e.clientX, e.clientY);
+    const tile = hit?.closest<HTMLElement>("[data-pair]");
+    const over = tile ? Number(tile.dataset.pair) : -1;
+    setDrag({
+      from: drag.from,
+      over: over === drag.from ? -1 : over,
+      moved,
+      x: e.clientX,
+      y: e.clientY,
+    });
   };
 
-  const handleDrop = (index: number) => {
-    const from = dragIndexRef.current;
-    if (from !== null && from !== index) {
-      swapAnswers(from, index);
+  const onPointerUp = () => {
+    if (!drag) return;
+    if (drag.moved) {
+      suppressClickRef.current = true;
+      if (drag.over >= 0) swap(drag.from, drag.over);
+      setSelected(null);
     }
-    dragIndexRef.current = null;
-    setSelectedIndex(null);
+    setDrag(null);
   };
 
-  // Touch drag handlers for mobile
-  const handleTouchStart = (index: number) => {
-    if (checked) return;
-    touchDragIndexRef.current = index;
-    setTouchDragIdx(index);
-    setTouchOverIdx(null);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchDragIndexRef.current === null) return;
-    const touch = e.touches[0];
-    // Find which answer box the finger is over
-    for (let i = 0; i < answerRefs.current.length; i++) {
-      const el = answerRefs.current[i];
-      if (!el) continue;
-      const rect = el.getBoundingClientRect();
-      if (
-        touch.clientX >= rect.left &&
-        touch.clientX <= rect.right &&
-        touch.clientY >= rect.top &&
-        touch.clientY <= rect.bottom
-      ) {
-        setTouchOverIdx(i !== touchDragIndexRef.current ? i : null);
-        return;
-      }
-    }
-    setTouchOverIdx(null);
-  };
-
-  const handleTouchEnd = () => {
-    const from = touchDragIndexRef.current;
-    const to = touchOverIdx;
-    if (from !== null && to !== null && from !== to) {
-      swapAnswers(from, to);
-    }
-    touchDragIndexRef.current = null;
-    setTouchDragIdx(null);
-    setTouchOverIdx(null);
-  };
-
-  const checkAnswers = () => {
-    const results: DragDropResult[] = words.map((word, i) => ({
-      word,
-      correct: answers[i] === expectedAnswers[i],
-    }));
-    setCorrectMap(results.map((r) => r.correct));
-    setChecked(true);
-    // Show results briefly, then call onComplete
-    setTimeout(() => onComplete(results), 2500);
-  };
-
-  const allCorrect = checked && correctMap.every(Boolean);
-  const correctCount = correctMap.filter(Boolean).length;
+  const feedback: Feedback | undefined =
+    phase === "checked"
+      ? buildPairsFeedback(rightCount, words.length)
+      : phase === "revealed"
+        ? {
+            tone: "revealed",
+            title: "Answers shown",
+            text: "Each pair counts as a miss and comes back later.",
+          }
+        : undefined;
 
   return (
-    <Card sx={{ p: 3 }}>
-      <Box sx={{ textAlign: "center", mb: 3 }}>
-        <Chip
-          icon={<SwapVertIcon />}
-          label="Match the correct pairs"
-          variant="outlined"
-          size="small"
-          sx={{ mb: 1, color: "text.secondary" }}
-        />
-        {targetLanguageName && (
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: "block", mb: 0.5, fontSize: "0.8rem" }}
-          >
-            Answer in:{" "}
-            <strong style={{ fontWeight: 600 }}>{targetLanguageName}</strong>
-          </Typography>
-        )}
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ display: "block", mb: 1.5, fontSize: "0.75rem" }}
-        >
-          Drag and drop, touch-drag, or click two items on the right to swap
-          them
+    <>
+      <QuestionCard label="Match the pairs">
+        <ModeLabel>
+          Match the {targetLanguageName ? `${targetLanguageName} ` : ""}words
+        </ModeLabel>
+        <Typography variant="body2" color="text.secondary">
+          Tap two answers to swap them, or drag one onto another.
         </Typography>
-      </Box>
-
-      {/* Column labels */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 1.5,
-          alignItems: "center",
-          mb: 1,
-        }}
-      >
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          fontWeight={600}
-          sx={{ flex: 1, textAlign: "center" }}
+        <Box
+          sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 1, mt: 1 }}
         >
-          Question
-        </Typography>
-        <Box sx={{ width: "1.2rem", flexShrink: 0 }} />
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          fontWeight={600}
-          sx={{ flex: 1, textAlign: "center" }}
-        >
-          ↕ Drag to reorder
-        </Typography>
-      </Box>
-
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-        {displayWords.map((display, i) => (
-          <Box
-            key={i}
-            sx={{
-              display: "flex",
-              gap: 1.5,
-              alignItems: "center",
-            }}
-          >
-            {/* Left side — fixed question word */}
-            <Box
-              sx={{
-                flex: 1,
-                p: 1.5,
-                borderRadius: 2,
-                bgcolor: alpha.primary04,
-                border: "1.5px solid",
-                borderColor: "divider",
-                textAlign: "center",
-              }}
-            >
-              <Typography variant="body1" fontWeight={600}>
-                {display}
-              </Typography>
-              {words[i].hint && (
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: "block", fontStyle: "italic" }}
+          {words.map((word, i) => {
+            const isRight = phase === "checked" && answers[i] === expected[i];
+            const isWrong = phase === "checked" && !isRight;
+            const isDragged = drag?.moved && drag.from === i;
+            const isTarget = drag?.moved && drag.over === i;
+            const isSelected = selected === i || isTarget;
+            return (
+              <Box
+                key={word.id}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: 1,
+                }}
+              >
+                <Box
+                  sx={(theme) => ({
+                    minHeight: 64,
+                    px: 1.25,
+                    py: 1,
+                    borderRadius: 3,
+                    bgcolor:
+                      theme.palette.mode === "dark"
+                        ? "action.hover"
+                        : colors.slate50,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflowWrap: "anywhere",
+                  })}
                 >
-                  ({words[i].hint})
-                </Typography>
-              )}
-            </Box>
-
-            {/* Arrow */}
-            <Typography
-              color="text.secondary"
-              sx={{
-                fontSize: "1.2rem",
-                userSelect: "none",
-                flexShrink: 0,
-              }}
-            >
-              ↔
-            </Typography>
-
-            {/* Right side — draggable / clickable answer */}
-            <Box
-              ref={(el: HTMLDivElement | null) => {
-                answerRefs.current[i] = el;
-              }}
-              draggable={!checked}
-              onDragStart={() => handleDragStart(i)}
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(i)}
-              onTouchStart={() => handleTouchStart(i)}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onClick={() => handleClick(i)}
-              role="button"
-              tabIndex={checked ? -1 : 0}
-              aria-label={`Answer option: ${answers[i]}. ${selectedIndex === i ? "Selected. Click another to swap." : "Click to select for swapping."}`}
-              onKeyDown={(e: React.KeyboardEvent) => {
-                if (!checked && (e.key === "Enter" || e.key === " ")) {
-                  e.preventDefault();
-                  handleClick(i);
-                }
-              }}
-              sx={{
-                flex: 1,
-                p: 1.5,
-                borderRadius: 2,
-                textAlign: "center",
-                cursor: checked ? "default" : "grab",
-                userSelect: "none",
-                touchAction: "none",
-                transition: "all 0.2s ease",
-                border: "2px solid",
-                borderColor: checked
-                  ? correctMap[i]
-                    ? colors.emerald500
-                    : colors.red500
-                  : touchDragIdx === i
-                    ? colors.indigo600
-                    : touchOverIdx === i
-                      ? colors.indigo400
-                      : selectedIndex === i
-                        ? colors.indigo600
-                        : colors.indigo300,
-                bgcolor: checked
-                  ? correctMap[i]
-                    ? alpha.success10
-                    : alpha.error10
-                  : touchDragIdx === i
-                    ? alpha.primary15
-                    : touchOverIdx === i
-                      ? alpha.primary10
-                      : selectedIndex === i
-                        ? alpha.primary10
-                        : alpha.primary04,
-                boxShadow: checked
-                  ? "none"
-                  : touchDragIdx === i
-                    ? "0 4px 12px rgba(79,70,229,0.3)"
-                    : selectedIndex === i
-                      ? "0 2px 8px rgba(79,70,229,0.25)"
-                      : "0 1px 4px rgba(0,0,0,0.1)",
-                transform: touchDragIdx === i ? "scale(1.05)" : "scale(1)",
-                "&:hover": !checked
-                  ? {
-                      borderColor: colors.indigo400,
-                      bgcolor: alpha.primary10,
-                      boxShadow: "0 2px 8px rgba(79,70,229,0.2)",
-                    }
-                  : undefined,
-                "&:active": !checked ? { cursor: "grabbing" } : undefined,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 0.5,
-              }}
-            >
-              {!checked && (
-                <DragIndicatorIcon
-                  sx={{
-                    fontSize: 18,
-                    color: "text.secondary",
-                    opacity: 0.6,
+                  <Typography sx={{ fontWeight: 600 }}>
+                    {getDisplayWord(word, guessDirection)}
+                  </Typography>
+                  <Hint hint={word.hint} small />
+                </Box>
+                <Button
+                  data-pair={i}
+                  variant="outlined"
+                  onClick={() => tap(i)}
+                  onPointerDown={(e) => onPointerDown(i, e)}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  onPointerCancel={() => setDrag(null)}
+                  aria-pressed={selected === i}
+                  aria-disabled={!answering}
+                  aria-label={`Answer for ${getDisplayWord(word, guessDirection)}: ${shown[i]}`}
+                  startIcon={
+                    answering ? (
+                      <DragIndicatorIcon />
+                    ) : isRight ? (
+                      <CheckIcon />
+                    ) : isWrong ? (
+                      <CloseIcon />
+                    ) : undefined
+                  }
+                  sx={(theme) => {
+                    const tone = isRight
+                      ? toneStyle("correct", theme)
+                      : isWrong
+                        ? toneStyle("wrong", theme)
+                        : phase === "revealed"
+                          ? toneStyle("revealed", theme)
+                          : undefined;
+                    return {
+                      minHeight: 64,
+                      flexDirection: "column",
+                      gap: 0.25,
+                      fontSize: "0.95rem",
+                      fontWeight: 600,
+                      touchAction: answering ? "none" : undefined,
+                      cursor: answering ? "grab" : "default",
+                      pointerEvents: answering ? undefined : "none",
+                      overflowWrap: "anywhere",
+                      transition:
+                        "background-color .15s ease, border-color .15s ease, opacity .15s ease",
+                      borderWidth: 2,
+                      borderStyle: isDragged ? "dashed" : "solid",
+                      borderColor: tone
+                        ? tone.line
+                        : isSelected
+                          ? "primary.main"
+                          : colors.indigo200,
+                      bgcolor: tone
+                        ? tone.bg
+                        : isSelected
+                          ? colors.indigo100
+                          : "background.paper",
+                      color: tone ? tone.ink : "primary.main",
+                      opacity: isDragged ? 0.5 : 1,
+                      "& .MuiButton-startIcon": { m: 0 },
+                      "&:hover": { borderWidth: 2 },
+                    };
                   }}
-                />
-              )}
-              <Typography variant="body1" fontWeight={600}>
-                {answers[i]}
-              </Typography>
-            </Box>
-          </Box>
-        ))}
-      </Box>
+                >
+                  <Box component="span" sx={{ display: "flex", alignItems: "center" }}>
+                    {shown[i]}
+                  </Box>
+                  {isWrong && (
+                    <Box
+                      component="span"
+                      sx={(theme) => ({
+                        fontSize: "0.8125rem",
+                        color: toneStyle("correct", theme).ink,
+                      })}
+                    >
+                      → {expected[i]}
+                    </Box>
+                  )}
+                </Button>
+              </Box>
+            );
+          })}
+        </Box>
+      </QuestionCard>
 
-      {!checked && (
-        <Box sx={{ textAlign: "center", mt: 3 }}>
-          <Button
-            variant="contained"
-            startIcon={<CheckIcon />}
-            onClick={checkAnswers}
-            size="large"
-          >
-            Check Answers
-          </Button>
+      {drag?.moved && (
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: "fixed",
+            left: drag.x - 84,
+            top: drag.y - 32,
+            zIndex: 1500,
+            width: 168,
+            minHeight: 60,
+            px: 1,
+            borderRadius: 3,
+            border: 2,
+            borderColor: "primary.main",
+            bgcolor: "background.paper",
+            color: "primary.dark",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.5,
+            fontWeight: 600,
+            pointerEvents: "none",
+            transform: "rotate(-2deg) scale(1.05)",
+            boxShadow: "0 14px 30px rgba(79,70,229,0.35)",
+          }}
+        >
+          <DragIndicatorIcon fontSize="small" />
+          {answers[drag.from]}
         </Box>
       )}
 
-      {checked && (
-        <Box sx={{ textAlign: "center", mt: 2 }}>
-          <Typography
-            variant="body1"
-            fontWeight={600}
-            role="status"
-            aria-live="assertive"
-            color={allCorrect ? "success.main" : "error.main"}
-          >
-            {allCorrect
-              ? "All correct! 🎉"
-              : `${correctCount} / ${correctMap.length} correct`}
-          </Typography>
-        </Box>
-      )}
-    </Card>
+      <AnswerPanel
+        feedback={feedback}
+        onDontKnow={() => setPhase("revealed")}
+        dontKnowLabel="I don't know – show answers"
+        onContinue={finish}
+        autoAdvanceMs={phase === "checked" ? autoAdvanceMs : undefined}
+      >
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<CheckIcon />}
+          onClick={() => {
+            if (rightCount === words.length) onCorrect();
+            else onWrong();
+            setPhase("checked");
+          }}
+          sx={{ minHeight: 52, fontSize: "1rem", fontWeight: 700 }}
+        >
+          Check pairs
+        </Button>
+      </AnswerPanel>
+    </>
   );
 };

@@ -33,7 +33,7 @@ tests/                    # Vitest unit tests (mirrors src structure)
 
 ## Routing
 
-There is no client-side router. `Main.tsx` holds a `view` state that toggles between `"wordlists" | "settings" | "testing" | "results" | "history" | "credits"`. The `Header` renders MUI `Tabs` that drive navigation.
+There is no client-side router. `Main.tsx` holds a `view` state that toggles between `"wordlists" | "settings" | "testing" | "results" | "history" | "credits"`. The `Header` renders page links on desktop; on phones (< 900px) `BottomNav` renders a bottom tab bar and Credits lives in the Options sheet. Pages with their own sticky bottom bar should use `bottom: var(--bottom-nav-height, 0px)` so they sit above the tab bar.
 
 ## State management
 

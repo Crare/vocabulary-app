@@ -1,14 +1,20 @@
 import { TestWord } from "../Testing/types";
 
 /**
+ * Times a word was not known: "I don't know" presses plus skips recorded
+ * by older versions of the app (skip was merged into "I don't know").
+ */
+export const timesDidntKnow = (word: TestWord): number =>
+    word.timesCheckedAnswer + (word.timesSkipped ?? 0);
+
+/**
  * Calculate a word's net score: correct answers minus all negative events.
  */
 export const calculateScore = (word: TestWord): string => {
     const score =
         word.timesCorrect -
         word.timesFailed -
-        word.timesSkipped -
-        word.timesCheckedAnswer;
+        timesDidntKnow(word);
     return score.toString();
 };
 
@@ -17,8 +23,7 @@ export const calculateScore = (word: TestWord): string => {
  * Returns 0 when the word has never been tested.
  */
 export const calculatePercentage = (word: TestWord): number => {
-    const wrongTimes =
-        word.timesCheckedAnswer + word.timesFailed + word.timesSkipped;
+    const wrongTimes = timesDidntKnow(word) + word.timesFailed;
     const rightTimes = word.timesCorrect;
     const total = wrongTimes + rightTimes;
     if (total === 0) return 0;
@@ -66,12 +71,7 @@ export const calculateTotalScore = (
 ): { correct: number; total: number } => {
     const correct = words.reduce((sum, w) => sum + w.timesCorrect, 0);
     const total = words.reduce(
-        (sum, w) =>
-            sum +
-            w.timesCorrect +
-            w.timesFailed +
-            w.timesSkipped +
-            w.timesCheckedAnswer,
+        (sum, w) => sum + w.timesCorrect + w.timesFailed + timesDidntKnow(w),
         0,
     );
     return { correct, total };
