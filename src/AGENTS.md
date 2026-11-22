@@ -15,8 +15,9 @@ All code must be optimized, readable, secure, and testable. Prefer clarity over 
 ## Gotchas & Pitfalls
 
 - **No router** — view switching is a `useState` in `Main.tsx`, not React Router. Don't try to add route paths.
+- **`sx` numbers between 0 and 1 are fractions** — `width: 1` in `sx` means 100%, not 1px. Write `"1px"` for visually hidden elements.
 - **Refs for mutable test state** — `TestingView` stores `testWords`, `questionIndex`, and `isAnswering` in `useRef` (not `useState`) to avoid stale closures. Always read from the ref, not from a captured variable.
-- **Two settings files** — `SettingsView.tsx` handles word list input + some persisted settings; `TestConfigView.tsx` handles test configuration. Both read/write the same `SETTINGS` localStorage key. Be careful not to overwrite each other's fields.
+- **Two settings files** — `SettingsView.tsx` handles word list input + some persisted settings; `TestConfigView.tsx` handles test configuration. Both read/write the same `SETTINGS` localStorage key. Be careful not to overwrite each other's fields. The Settings tab's fields go through `pages/Settings/testConfig.ts` (`saveTestConfig` merges, never replaces).
 - **testType changed from string to object** — `testType` was originally `"both" | "multi-select" | "writing"`. It is now an object `{ writing, multiSelect, dragDrop, sentenceFillBlank }`. Old persisted values may still be strings; the code guards against this.
 - **Sentence training is optional** — sentence arrays may be `undefined` on `LanguageSet`. Always null-check.
 - **Drag-and-drop uses both mouse and click** — `DragDropTestCard` supports HTML5 drag and a click-to-swap fallback. Keyboard support is via Enter/Space on each answer box.

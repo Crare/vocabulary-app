@@ -1,19 +1,9 @@
-import {
-  Box,
-  Card,
-  Chip,
-  Divider,
-  Grid,
-  Link,
-  Typography,
-} from "@mui/material";
-import CodeIcon from "@mui/icons-material/Code";
-import BrushIcon from "@mui/icons-material/Brush";
-import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
-import StorageIcon from "@mui/icons-material/Storage";
-import BarChartIcon from "@mui/icons-material/BarChart";
+import { Box, Link, Typography } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { ReactNode } from "react";
+import { alpha, colors } from "../../colors";
 import { trackEvent } from "../../util/analytics";
+import { SettingsGroup } from "../../components/SettingControls";
 
 interface CreditEntry {
   name: string;
@@ -22,228 +12,221 @@ interface CreditEntry {
   description: string;
 }
 
-const frameworkCredits: CreditEntry[] = [
-  {
-    name: "React",
-    url: "https://react.dev/",
-    license: "MIT",
-    description: "UI library for building component-based interfaces",
-  },
-  {
-    name: "Vite",
-    url: "https://vite.dev/",
-    license: "MIT",
-    description: "Next-generation frontend build tool",
-  },
-  {
-    name: "TypeScript",
-    url: "https://www.typescriptlang.org/",
-    license: "Apache-2.0",
-    description: "Typed superset of JavaScript",
-  },
-];
-
-const uiCredits: CreditEntry[] = [
-  {
-    name: "MUI (Material UI)",
-    url: "https://mui.com/",
-    license: "MIT",
-    description: "React component library following Material Design",
-  },
-  {
-    name: "MUI X Data Grid",
-    url: "https://mui.com/x/react-data-grid/",
-    license: "MIT",
-    description: "Advanced data table component",
-  },
-  {
-    name: "Material Icons",
-    url: "https://mui.com/material-ui/material-icons/",
-    license: "Apache-2.0",
-    description: "Icon set used throughout the application",
-  },
-  {
-    name: "Emotion",
-    url: "https://emotion.sh/",
-    license: "MIT",
-    description: "CSS-in-JS styling engine used by MUI",
-  },
-  {
-    name: "Recharts",
-    url: "https://recharts.org/",
-    license: "MIT",
-    description: "Charting library for progress and score charts",
-  },
-  {
-    name: "Inter (Google Fonts)",
-    url: "https://fonts.google.com/specimen/Inter",
-    license: "OFL-1.1",
-    description: "Primary typeface used in the UI",
-  },
-];
-
-const soundCredits: CreditEntry[] = [
-  {
-    name: "Web Audio API",
-    url: "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API",
-    license: "Browser built-in",
-    description:
-      "All sound effects are synthesised at runtime — no audio files are bundled",
-  },
-];
-
-const dataCredits: CreditEntry[] = [
-  {
-    name: "Built-in word sets",
-    url: "https://github.com/Crare/vocabulary-app",
-    license: "Project",
-    description: "Finnish–Swedish vocabulary sets curated for the application",
-  },
-];
-
-const analyticsCredits: CreditEntry[] = [
-  {
-    name: "GoatCounter",
-    url: "https://goatcounter.com/",
-    license: "EUPL-1.2",
-    description:
-      "Privacy-friendly web analytics. No cookies, no personal data tracking.",
-  },
-];
-
-const Section = ({
-  icon,
-  title,
-  entries,
-}: {
-  icon: React.ReactNode;
+interface CreditGroup {
   title: string;
   entries: CreditEntry[];
-}) => (
-  <Card sx={{ p: 3 }}>
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-      {icon}
-      <Typography variant="h3">{title}</Typography>
+}
+
+const credit = (
+  name: string,
+  url: string,
+  license: string,
+  description: string,
+): CreditEntry => ({ name, url, license, description });
+
+export const creditGroups: CreditGroup[] = [
+  {
+    title: "Built with",
+    entries: [
+      credit("React", "https://react.dev/", "MIT", "Builds the user interface"),
+      credit("Vite", "https://vite.dev/", "MIT", "Builds and serves the app"),
+      credit(
+        "TypeScript",
+        "https://www.typescriptlang.org/",
+        "Apache-2.0",
+        "JavaScript with types",
+      ),
+    ],
+  },
+  {
+    title: "Look and feel",
+    entries: [
+      credit(
+        "MUI (Material UI)",
+        "https://mui.com/",
+        "MIT",
+        "Buttons, dialogs and other components",
+      ),
+      credit(
+        "MUI X Data Grid",
+        "https://mui.com/x/react-data-grid/",
+        "MIT",
+        "Result tables",
+      ),
+      credit(
+        "Material Icons",
+        "https://mui.com/material-ui/material-icons/",
+        "Apache-2.0",
+        "Icons",
+      ),
+      credit("Emotion", "https://emotion.sh/", "MIT", "Styling engine behind MUI"),
+      credit("Recharts", "https://recharts.org/", "MIT", "Progress and score charts"),
+      credit(
+        "Inter",
+        "https://fonts.google.com/specimen/Inter",
+        "OFL-1.1",
+        "Typeface",
+      ),
+    ],
+  },
+  {
+    title: "Sound, words and stats",
+    entries: [
+      credit(
+        "Web Audio API",
+        "https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API",
+        "Built in",
+        "Sounds are made in the browser; no audio files",
+      ),
+      credit(
+        "Built-in word lists",
+        "https://github.com/Crare/vocabulary-app",
+        "Project",
+        "Word lists curated for this app",
+      ),
+      credit(
+        "GoatCounter",
+        "https://goatcounter.com/",
+        "EUPL-1.2",
+        "Privacy-friendly visit counts",
+      ),
+    ],
+  },
+];
+
+interface LinkRowProps {
+  href: string;
+  /** Name sent with the click event. */
+  trackName: string;
+  children: ReactNode;
+}
+
+/** A full-width row that opens an outside page in a new tab. */
+const LinkRow = ({ href, trackName, children }: LinkRowProps) => (
+  <Link
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    underline="none"
+    onClick={() => trackEvent("link_click", { url: href, name: trackName })}
+    sx={{
+      minHeight: 60,
+      px: 1.75,
+      py: 1.25,
+      display: "flex",
+      alignItems: "center",
+      gap: 1.5,
+      "&:hover": { bgcolor: alpha.primary04 },
+      "&.Mui-focusVisible, &:focus-visible": {
+        outline: "2px solid",
+        outlineColor: "primary.main",
+        outlineOffset: -2,
+      },
+    }}
+  >
+    <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 0.25 }}>
+      {children}
     </Box>
-    <Divider sx={{ mb: 2 }} />
-    <Grid container spacing={2}>
-      {entries.map((entry) => (
-        <Grid key={entry.name} size={{ xs: 12, sm: 6 }}>
-          <Box>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                mb: 0.5,
-              }}
-            >
-              <Link
-                href={entry.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() =>
-                  trackEvent("link_click", { url: entry.url, name: entry.name })
-                }
-                underline="hover"
-                fontWeight={600}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                }}
-              >
-                {entry.name}
-                <OpenInNewIcon sx={{ fontSize: 14 }} />
-              </Link>
-              <Chip label={entry.license} size="small" variant="outlined" />
-            </Box>
-            <Typography variant="body2" color="text.secondary">
-              {entry.description}
-            </Typography>
-          </Box>
-        </Grid>
-      ))}
-    </Grid>
-  </Card>
+    <OpenInNewIcon sx={{ fontSize: 18, color: "primary.main", flex: "none" }} />
+    <Box component="span" sx={srOnly}>
+      (opens in a new tab)
+    </Box>
+  </Link>
 );
 
+const srOnly = {
+  position: "absolute",
+  // Strings: in `sx` a bare 1 means 100%.
+  width: "1px",
+  height: "1px",
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+} as const;
+
+const secondary = { fontSize: "0.82rem", lineHeight: 1.4, color: "text.secondary" };
+const primaryText = { fontSize: "0.95rem", fontWeight: 600, color: "primary.main" };
+
 export const CreditsView = () => (
-  <Grid container gap={2} flexDirection="column">
-    <Typography variant="h1" gutterBottom>
-      Credits
-    </Typography>
-    <Typography variant="body1" color="text.secondary" mb={1}>
-      This application is built with the following open-source projects and
-      resources.
-    </Typography>
+  <Box
+    sx={{
+      width: "100%",
+      maxWidth: 640,
+      mx: "auto",
+      display: "flex",
+      flexDirection: "column",
+      gap: 2.5,
+    }}
+  >
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+      <Typography
+        component="h1"
+        sx={{ fontSize: { xs: "1.5rem", md: "1.75rem" }, fontWeight: 700 }}
+      >
+        Credits
+      </Typography>
+      <Typography sx={{ fontSize: "0.9rem", color: "text.secondary" }}>
+        Vocabulary Trainer is free and open source, built on these projects.
+      </Typography>
+    </Box>
 
-    <Section
-      icon={<CodeIcon color="primary" />}
-      title="Frameworks & Languages"
-      entries={frameworkCredits}
-    />
-    <Section
-      icon={<BrushIcon color="primary" />}
-      title="UI & Design"
-      entries={uiCredits}
-    />
-    <Section
-      icon={<LibraryMusicIcon color="primary" />}
-      title="Sound Effects"
-      entries={soundCredits}
-    />
-    <Section
-      icon={<StorageIcon color="primary" />}
-      title="Data & Word Sets"
-      entries={dataCredits}
-    />
-    <Section
-      icon={<BarChartIcon color="primary" />}
-      title="Analytics"
-      entries={analyticsCredits}
-    />
-
-    <Card sx={{ p: 3, textAlign: "center" }}>
-      <Typography variant="body2" color="text.secondary" gutterBottom>
-        Created by{" "}
-        <Link
-          href="https://crare.github.io/"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() =>
-            trackEvent("link_click", {
-              url: "https://crare.github.io/",
-              name: "Crare (Juho Heikkinen)",
-            })
-          }
-          underline="hover"
-          fontWeight={600}
-        >
+    <SettingsGroup title="About">
+      <LinkRow href="https://crare.github.io/" trackName="Crare (Juho Heikkinen)">
+        <Typography component="span" sx={secondary}>
+          Made by
+        </Typography>
+        <Typography component="span" sx={primaryText}>
           Crare (Juho Heikkinen)
-        </Link>
-      </Typography>
-      <Typography variant="body2" color="text.secondary" mb={1}>
-        Vocabulary Trainer is open source —{" "}
-        <Link
-          href="https://github.com/Crare/vocabulary-app"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() =>
-            trackEvent("link_click", {
-              url: "https://github.com/Crare/vocabulary-app",
-              name: "GitHub Repository",
-            })
-          }
-          underline="hover"
-        >
-          view on GitHub
-        </Link>
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        This site uses privacy-friendly analytics to understand usage. No
-        personal data is collected.
-      </Typography>
-    </Card>
-  </Grid>
+        </Typography>
+      </LinkRow>
+      <LinkRow
+        href="https://github.com/Crare/vocabulary-app"
+        trackName="GitHub Repository"
+      >
+        <Typography component="span" sx={secondary}>
+          Source code
+        </Typography>
+        <Typography component="span" sx={primaryText}>
+          View on GitHub
+        </Typography>
+      </LinkRow>
+    </SettingsGroup>
+
+    {creditGroups.map((group) => (
+      <SettingsGroup key={group.title} title={group.title}>
+        {group.entries.map((entry) => (
+          <LinkRow key={entry.name} href={entry.url} trackName={entry.name}>
+            <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+              <Typography component="span" sx={primaryText}>
+                {entry.name}
+              </Typography>
+              <Box
+                component="span"
+                sx={(theme) => ({
+                  px: 0.875,
+                  py: 0.125,
+                  borderRadius: "6px",
+                  fontSize: "0.7rem",
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  bgcolor:
+                    theme.palette.mode === "dark" ? alpha.slate15 : colors.indigo50,
+                })}
+              >
+                {entry.license}
+              </Box>
+            </Box>
+            <Typography component="span" sx={secondary}>
+              {entry.description}
+            </Typography>
+          </LinkRow>
+        ))}
+      </SettingsGroup>
+    ))}
+
+    <Typography sx={{ ...secondary, mx: 0.5, lineHeight: 1.5 }}>
+      This site counts visits with GoatCounter: no cookies and no personal data.
+      Your word lists and results stay on this device.
+    </Typography>
+  </Box>
 );

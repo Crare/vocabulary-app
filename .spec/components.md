@@ -16,7 +16,8 @@ A quick reference to every component in the app and what it does.
 | File                    | Description                                                                                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `SettingsView.tsx`      | Word list editor — text areas for two languages, sentence training, load/save/import/export/template buttons, instructions banner, and the "Start Test" CTA. |
-| `TestConfigView.tsx`    | Test configuration — sliders and checkboxes for difficulty, test types, answer delay, etc.                                                                   |
+| `TestConfigView.tsx`    | Settings tab — grouped switches, steppers and choice buttons for question types, direction, answer delay, etc., each with a plain-words explanation. |
+| `testConfig.ts`         | Test config defaults, `readTestConfig` (validates stored values), and `loadTestConfig` / `saveTestConfig`, which merge into `SETTINGS`.                       |
 | `LoadSetModal.tsx`      | Dialog listing saved word sets with load / download / delete actions.                                                                                        |
 | `TemplateListModal.tsx` | Dialog listing built-in template word sets.                                                                                                                  |
 
@@ -53,7 +54,7 @@ A quick reference to every component in the app and what it does.
 
 | File              | Description                                                 |
 | ----------------- | ----------------------------------------------------------- |
-| `CreditsView.tsx` | Attribution for frameworks, UI libraries, sounds, and data. |
+| `CreditsView.tsx` | Attribution as grouped, full-width link rows (author, GitHub, libraries, sounds, data). |
 
 ## Shared components (`src/components/`)
 
@@ -65,6 +66,8 @@ A quick reference to every component in the app and what it does.
 | `TestSummaryChips.tsx`        | Chips summarising score, time, and word counts.   |
 | `SentenceTrainingResults.tsx` | Expandable section showing sentence test details. |
 | `TimeTaken.tsx`               | Live clock component used during testing.         |
+| `SettingControls.tsx`         | Settings-list rows: `SettingsGroup`, `SwitchRow`, `StepperRow`, `ChoiceRow`. |
+| `QrCodeModal.tsx`             | QR code of the app's address with Copy and Share; a bottom sheet on phones. |
 
 ## Contexts
 
