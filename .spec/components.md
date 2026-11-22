@@ -60,9 +60,16 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 
 ### History (`pages/History/`)
 
-| File              | Description                                                               |
-| ----------------- | ------------------------------------------------------------------------- |
-| `HistoryView.tsx` | Lists all past tests grouped by set name with search, delete, and charts. |
+| File                      | Description                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `HistoryView.tsx`         | Word lists with past tests, newest first, with search and empty state. Phone: list or detail; desktop: both side by side. Owns delete, Undo and Clear all. |
+| `HistoryListItem.tsx`     | One word list: latest score, change since the previous test, and a sparkline.                            |
+| `HistoryGroupDetail.tsx`  | One word list: Latest/Best/First tiles, `ProgressChart`, words to practise, tests, delete-all.           |
+| `HistoryTestRow.tsx`      | One past test that opens to show right / wrong / didn't-know counts per word, with hints.                |
+| `ConfirmDeleteDialog.tsx` | Confirmation before deleting several tests (bottom sheet on phones).                                     |
+| `Sparkline.tsx`           | Tiny accuracy line for a list card.                                                                       |
+| `TrendBadge.tsx`          | "+7 pts" / "−3 pts" with an arrow.                                                                        |
+| `historyStats.ts`         | Pure helpers: grouping, accuracy, summaries, weakest words, didn't-know counts, relative days.           |
 
 ### Credits (`pages/Credits/`)
 
@@ -101,6 +108,6 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 | File                | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
 | `helpers.ts`        | `shuffle`, `randomIntFromInterval`, general-purpose helpers. |
-| `historyStorage.ts` | CRUD wrappers around `localStorage` for `TEST_HISTORY`.      |
+| `historyStorage.ts` | CRUD wrappers around `localStorage` for `TEST_HISTORY` (incl. `restoreHistoryEntry` for Undo). |
 | `logger.ts`         | `createLogger(tag)` — structured console logging.            |
 | `sounds.ts`         | Web Audio API functions: `playCorrect`, `playWrong`, etc.    |

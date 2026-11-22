@@ -58,7 +58,24 @@ export const deleteHistoryEntry = (id: string): void => {
     });
 };
 
-export const deleteHistoryGroup = (languageSetName: string): void => {
+/**
+ * Put a deleted entry back (the Undo after deleting one test). It returns to
+ * its place by date; nothing happens if an entry with the same id exists.
+ */
+export const restoreHistoryEntry = (entry: HistoryEntry): void => {
+    const existing = loadHistory();
+    if (existing.some((e) => e.id === entry.id)) return;
+    const updated = [...existing, entry]
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, MAX_ENTRIES);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    log.info("entry_restored", {
+        entryId: entry.id,
+        totalEntries: updated.length,
+    });
+};
+
+export const deleteHistoryGroup =(languageSetName: string): void => {
     const updated = loadHistory().filter(
         (e) => e.languageSetName !== languageSetName,
     );
