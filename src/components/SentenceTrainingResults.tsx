@@ -230,37 +230,52 @@ export const SentenceTrainingResults = ({
                 ...accordionSx,
             }}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                    }}
-                >
-                    <ShortTextIcon
-                        fontSize={compact ? "small" : "medium"}
-                        color="primary"
-                    />
-                    <Typography
-                        variant={compact ? "body2" : "h5"}
-                        fontWeight={compact ? 600 : undefined}
+            <AccordionSummary
+                expandIcon={<ExpandMoreIcon sx={{ color: "primary.main" }} />}
+                sx={compact ? undefined : { minHeight: 52, px: "14px" }}
+            >
+                {compact ? (
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                        }}
                     >
-                        Sentence Training
+                        <ShortTextIcon fontSize="small" color="primary" />
+                        <Typography variant="body2" fontWeight={600}>
+                            Sentence Training
+                        </Typography>
+                        <Chip
+                            label={`${correctCount}/${totalCount} (${accuracy}%)`}
+                            size="small"
+                            color={
+                                accuracy >= 80
+                                    ? "success"
+                                    : accuracy >= 50
+                                      ? "warning"
+                                      : "error"
+                            }
+                        />
+                    </Box>
+                ) : (
+                    <Typography
+                        component="span"
+                        sx={{
+                            fontSize: "0.9rem",
+                            fontWeight: 600,
+                            color: "primary.main",
+                        }}
+                    >
+                        Sentences{" "}
+                        <Box
+                            component="span"
+                            sx={{ fontWeight: 500, color: "text.secondary" }}
+                        >
+                            · {correctCount} of {totalCount} right
+                        </Box>
                     </Typography>
-                    <Chip
-                        label={`${correctCount}/${totalCount}${compact ? "" : " correct"} (${accuracy}%)`}
-                        size="small"
-                        color={
-                            accuracy >= 80
-                                ? "success"
-                                : accuracy >= 50
-                                  ? "warning"
-                                  : "error"
-                        }
-                        sx={compact ? undefined : { ml: 1 }}
-                    />
-                </Box>
+                )}
             </AccordionSummary>
             <AccordionDetails>
                 <Box
