@@ -64,7 +64,7 @@ const Main = () => {
     const perfect = testResults.wordResults.filter(
       (w) =>
         w.timesFailed === 0 &&
-        w.timesSkipped === 0 &&
+        (w.timesSkipped ?? 0) === 0 &&
         w.timesCheckedAnswer === 0,
     ).length;
     log.info("test_ended", {

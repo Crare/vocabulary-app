@@ -1,132 +1,168 @@
-import { Box, Button, Card, Grid, Typography } from "@mui/material";
-import { GuessWordTitle } from "./GuessWordTitle";
+import { useMemo, useState } from "react";
+import { Box, Button } from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
+import { GuessWordTitle, QuestionCard } from "./GuessWordTitle";
+import { AnswerPanel } from "./AnswerPanel";
 import { TestOption, TestSettings, TestState, TestWord } from "./types";
 import {
-    GuessDirection,
-    getExpectedAnswer,
-    getAnswerOptionsForDirection,
+  GuessDirection,
+  getExpectedAnswer,
+  getAnswerOptionsForDirection,
 } from "./testLogic";
+import { buildFeedback } from "./feedback";
 import { shuffle } from "../../util/helpers";
-import { useEffect, useState } from "react";
-import { colors } from "../../colors";
+import { alpha, colors } from "../../colors";
 
 interface SelectAnswerCardProps {
-    testState: TestState | undefined;
-    guessWord: TestWord;
-    testOption: TestOption;
-    wordsLeft: number;
-    settings: TestSettings;
-    testWords: TestWord[] | undefined;
-    onChooseOption: (value: string) => void;
-    guessDirection?: GuessDirection;
-    targetLanguageName?: string;
+  testState: TestState | undefined;
+  guessWord: TestWord;
+  testOption: TestOption;
+  settings: TestSettings;
+  testWords: TestWord[];
+  onChooseOption: (value: string) => void;
+  onDontKnow: () => void;
+  onContinue: () => void;
+  autoAdvanceMs?: number;
+  guessDirection?: GuessDirection;
+  targetLanguageName?: string;
 }
 
-export const SelectAnswerCard = (props: SelectAnswerCardProps) => {
-    const {
-        guessWord,
-        testOption,
-        testState,
-        wordsLeft,
-        settings,
+/** Pick the right answer among shuffled options (unique, correct included). */
+const pickOptions = (
+  words: TestWord[],
+  word: TestWord,
+  direction: GuessDirection,
+  amount: number,
+) => {
+  const correct = getExpectedAnswer(word, direction);
+  const wrong = [
+    ...new Set(
+      getAnswerOptionsForDirection(words, direction).filter((a) => a !== correct),
+    ),
+  ];
+  shuffle(wrong);
+  const options = [correct, ...wrong.slice(0, Math.max(0, amount - 1))];
+  shuffle(options);
+  return options;
+};
+
+/** Multiple-choice question. */
+export const SelectAnswerCard = ({
+  guessWord,
+  testOption,
+  testState,
+  settings,
+  testWords,
+  onChooseOption,
+  onDontKnow,
+  onContinue,
+  autoAdvanceMs,
+  guessDirection = "lang1to2",
+  targetLanguageName,
+}: SelectAnswerCardProps) => {
+  const [picked, setPicked] = useState("");
+  const correct = getExpectedAnswer(guessWord, guessDirection);
+  const options = useMemo(
+    () =>
+      pickOptions(
         testWords,
-        onChooseOption,
-        guessDirection = "lang1to2",
-        targetLanguageName,
-    } = props;
+        guessWord,
+        guessDirection,
+        settings.multiSelectChoicesAmount,
+      ),
+    // Re-shuffle only for a new question, not on every answer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [guessWord, guessDirection],
+  );
+  const answered = testState !== undefined;
+  const feedback = buildFeedback(testState, correct);
+  const oneColumn = options.some((o) => o.length > 14);
 
-    const [multiSelectGuessOptions, setMultiSelectGuessOptions] = useState<
-        string[]
-    >([]);
+  const choose = (option: string) => {
+    if (answered) return;
+    setPicked(option);
+    onChooseOption(option);
+  };
 
-    const chooseMultiselectGuessOptions = () => {
-        if (wordsLeft === 0 || !testWords) {
-            return;
-        }
-
-        const correctAnswer = getExpectedAnswer(guessWord, guessDirection);
-        const allAnswers = getAnswerOptionsForDirection(
-            testWords,
-            guessDirection,
-        );
-
-        // Collect unique wrong answers, then shuffle and pick from them
-        const uniqueWrongAnswers = [
-            ...new Set(allAnswers.filter((a) => a !== correctAnswer)),
-        ];
-        shuffle(uniqueWrongAnswers);
-
-        const guessOptions: string[] = [correctAnswer];
-        const needed = settings.multiSelectChoicesAmount - 1;
-        for (let i = 0; i < needed && i < uniqueWrongAnswers.length; i++) {
-            guessOptions.push(uniqueWrongAnswers[i]);
-        }
-
-        shuffle(guessOptions);
-        setMultiSelectGuessOptions(guessOptions);
-    };
-    useEffect(() => {
-        if (testWords && testWords?.length > 0 && guessWord) {
-            chooseMultiselectGuessOptions();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [testWords, guessWord, guessDirection]);
-
-    return (
-        <Card sx={{ p: 3 }}>
-            <GuessWordTitle
-                guessWord={guessWord}
-                testOption={testOption}
-                guessDirection={guessDirection}
-                targetLanguageName={targetLanguageName}
-            />
-            <Grid container gap={1.5} justifyContent={"center"}>
-                {multiSelectGuessOptions.map((option, index) => (
-                    <Box key={index}>
-                        <Button
-                            variant="outlined"
-                            onClick={() => onChooseOption(option)}
-                            disabled={testState !== undefined}
-                            sx={{
-                                fontSize: "1.05rem",
-                                px: 3,
-                                py: 1.5,
-                                borderWidth: 1.5,
-                                fontWeight: 500,
-                                "&:hover": {
-                                    borderWidth: 1.5,
-                                    bgcolor: "primary.main",
-                                    color: colors.white,
-                                },
-                            }}
-                        >
-                            {option}
-                        </Button>
-                    </Box>
-                ))}
-            </Grid>
-
-            {(testState === TestState.Success ||
-                testState === TestState.Failed) && (
-                <Typography
-                    variant="body2"
-                    role="status"
-                    aria-live="assertive"
-                    sx={{
-                        textAlign: "center",
-                        mt: 2,
-                        fontWeight: 600,
-                        color:
-                            testState === TestState.Success
-                                ? "success.main"
-                                : "error.main",
-                    }}
-                >
-                    {testState === TestState.Success
-                        ? "\u2713 Correct!"
-                        : `\u2717 Incorrect! Correct answer: ${getExpectedAnswer(guessWord, guessDirection)}`}
-                </Typography>
-            )}
-        </Card>
-    );
+  return (
+    <>
+      <QuestionCard label="Question">
+        <GuessWordTitle
+          guessWord={guessWord}
+          testOption={testOption}
+          guessDirection={guessDirection}
+          targetLanguageName={targetLanguageName}
+        />
+      </QuestionCard>
+      <AnswerPanel
+        feedback={feedback}
+        keepControls
+        onDontKnow={onDontKnow}
+        onContinue={onContinue}
+        autoAdvanceMs={feedback?.tone === "revealed" ? undefined : autoAdvanceMs}
+      >
+        <Box
+          role="group"
+          aria-label="Answer options"
+          sx={{
+            display: "grid",
+            gridTemplateColumns: oneColumn ? "1fr" : "repeat(2, minmax(0, 1fr))",
+            gap: 1,
+          }}
+        >
+          {options.map((option) => {
+            const isRight = answered && option === correct;
+            const isWrongPick =
+              answered && option === picked && option !== correct;
+            return (
+              <Button
+                key={option}
+                variant="outlined"
+                onClick={() => choose(option)}
+                aria-disabled={answered}
+                startIcon={
+                  isRight ? <CheckIcon /> : isWrongPick ? <CloseIcon /> : undefined
+                }
+                sx={(theme) => ({
+                  minHeight: 60,
+                  fontSize: "1.0625rem",
+                  fontWeight: 600,
+                  borderWidth: isRight || isWrongPick ? 2 : 1.5,
+                  borderColor: isRight
+                    ? colors.emerald600
+                    : isWrongPick
+                      ? colors.red600
+                      : colors.indigo200,
+                  bgcolor: isRight
+                    ? theme.palette.mode === "dark"
+                      ? alpha.success10
+                      : colors.emerald50
+                    : isWrongPick
+                      ? theme.palette.mode === "dark"
+                        ? alpha.error10
+                        : colors.red50
+                      : "background.paper",
+                  color: isRight
+                    ? "success.dark"
+                    : isWrongPick
+                      ? "error.dark"
+                      : "primary.main",
+                  opacity: answered && !isRight && !isWrongPick ? 0.45 : 1,
+                  overflowWrap: "anywhere",
+                  pointerEvents: answered ? "none" : undefined,
+                  "&:hover": {
+                    borderWidth: isRight || isWrongPick ? 2 : 1.5,
+                    bgcolor: answered ? undefined : alpha.primary08,
+                  },
+                })}
+              >
+                {option}
+              </Button>
+            );
+          })}
+        </Box>
+      </AnswerPanel>
+    </>
+  );
 };
