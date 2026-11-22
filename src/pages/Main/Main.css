@@ -2,5 +2,6 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    padding-bottom: 40px;
+    /* Room for the phone tab bar (0px when it is hidden) plus breathing space. */
+    padding-bottom: calc(var(--bottom-nav-height, 0px) + 40px);
 }

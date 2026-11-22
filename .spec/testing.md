@@ -13,6 +13,7 @@ All test files live in the top-level `tests/` directory (not co-located):
 ```
 tests/
 ├── App.test.tsx         # Smoke test: renders without crashing
+├── header.test.tsx      # Header, Options panel and phone tab bar (mocks matchMedia for phone/desktop)
 ├── helpers.test.ts      # Unit tests for src/util/helpers.ts
 ├── resultUtils.test.ts  # Unit tests for src/pages/Results/resultUtils.ts
 ├── testLogic.test.ts    # Unit tests for src/pages/Testing/testLogic.ts
