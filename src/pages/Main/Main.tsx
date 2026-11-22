@@ -216,7 +216,9 @@ const Main = () => {
             }
           />
         ) : null}
-        {view === "history" ? <HistoryView /> : null}
+        {view === "history" ? (
+          <HistoryView onGoToWordLists={() => onNavigate("wordlists")} />
+        ) : null}
         {view === "credits" ? <CreditsView /> : null}
       </Grid>
     </Grid>

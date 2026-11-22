@@ -25,11 +25,13 @@ export const colors = {
     emerald400: "#34d399",
     emerald500: "#10b981",
     emerald600: "#059669",
+    emerald800: "#065f46",
 
     // Error (Red)
     red400: "#f87171",
     red500: "#ef4444",
     red600: "#dc2626",
+    red800: "#991b1b",
 
     // Neutrals (Slate)
     slate200: "#e2e8f0",
