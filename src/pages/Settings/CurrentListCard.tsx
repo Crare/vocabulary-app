@@ -55,7 +55,9 @@ export const CurrentListCard = (props: CurrentListCardProps) => {
     onClear,
     hasWords,
   } = props;
-  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"));
+  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"), {
+    noSsr: true,
+  });
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   // Under the name on desktop; under the language buttons on phones.
   const summaryText = (

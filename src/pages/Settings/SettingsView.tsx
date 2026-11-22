@@ -75,7 +75,9 @@ export const SettingsView = ({
   onStartTest,
   onOpenTestSettings,
 }: SettingsViewProps) => {
-  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"));
+  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"), {
+    noSsr: true,
+  });
   const { list, setList, patch, setRows } = useWordListEditor(_urlTemplate);
   const [showTip, setShowTip] = useState(() => !isTipHidden());
   const [savedSets, setSavedSets] = useState<LanguageSet[]>(loadLanguageSets);
@@ -215,7 +217,15 @@ export const SettingsView = ({
       .text()
       .then((text) => {
         const parsed = JSON.parse(text) as WordSet;
-        if (!parsed.name || !Array.isArray(parsed.words))
+        const isPair = (w: unknown) => !!w && typeof w === "object";
+        if (
+          !parsed.name ||
+          !Array.isArray(parsed.words) ||
+          !parsed.words.every(isPair) ||
+          (parsed.sentences !== undefined &&
+            (!Array.isArray(parsed.sentences) ||
+              !parsed.sentences.every(isPair)))
+        )
           throw new Error("not a word set");
         replaceList(listFromWordSet(parsed), `Imported “${parsed.name}”`);
         setTemplateParam(null);

@@ -18,11 +18,15 @@ export type RowValues = Omit<WordRow, "id">;
 let nextId = 0;
 export const newRowId = (): string => `row-${++nextId}`;
 
+/** Cells may come from imported or stored JSON, so anything is made text. */
+const cellText = (value: unknown): string =>
+  value === undefined || value === null ? "" : String(value);
+
 export const makeRow = (values: Partial<RowValues> = {}): WordRow => ({
   id: newRowId(),
-  lang1: values.lang1 ?? "",
-  lang2: values.lang2 ?? "",
-  hint: values.hint ?? "",
+  lang1: cellText(values.lang1),
+  lang2: cellText(values.lang2),
+  hint: cellText(values.hint),
 });
 
 const splitLines = (text: string | undefined): string[] =>

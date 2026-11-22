@@ -215,3 +215,13 @@ describe("pickRows", () => {
     });
   });
 });
+
+describe("makeRow", () => {
+  it("turns non-text cells from imported JSON into text", () => {
+    const row = makeRow({
+      lang1: 5 as unknown as string,
+      lang2: null as unknown as string,
+    });
+    expect(row).toMatchObject({ lang1: "5", lang2: "", hint: "" });
+  });
+});

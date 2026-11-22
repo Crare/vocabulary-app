@@ -66,7 +66,9 @@ export const ListPickerSheet = (props: ListPickerSheetProps) => {
   const { open, tab, onTabChange, onClose, templates, saved, currentName } =
     props;
   const { onUse, onDownload, onDeleteSaved } = props;
-  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"));
+  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"), {
+    noSsr: true,
+  });
   const [search, setSearch] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 

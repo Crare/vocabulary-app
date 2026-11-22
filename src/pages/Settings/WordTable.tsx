@@ -4,7 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
-import { RowValues, WordRow } from "./wordRows";
+import { isBlankRow, RowValues, WordRow } from "./wordRows";
 import {
   cellSx,
   columnHeadSx,
@@ -39,7 +39,9 @@ const DESKTOP_COLUMNS =
 export const WordTable = (props: WordTableProps) => {
   const { rows, lang1Label, lang2Label, onUpdate, onDelete, onAdd, onPaste } =
     props;
-  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"));
+  const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"), {
+    noSsr: true,
+  });
   const inputs = useRef(new Map<string, HTMLInputElement>());
   const [focusTarget, setFocusTarget] = useState<string | null>(null);
   // Rows whose hint field the user opened with "+ hint" (phone layout).
@@ -85,7 +87,7 @@ export const WordTable = (props: WordTableProps) => {
       setFocusTarget(key(rows[index].id, "lang2"));
     } else if (index + 1 < rows.length) {
       setFocusTarget(key(rows[index + 1].id, "lang1"));
-    } else {
+    } else if (!isBlankRow(rows[index])) {
       addRow();
     }
   };

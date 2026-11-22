@@ -1,4 +1,5 @@
 import { Box, ButtonBase } from "@mui/material";
+import { KeyboardEvent } from "react";
 import { alpha } from "../../colors";
 import { segmentTrackSx } from "./styles";
 
@@ -25,10 +26,28 @@ export const SegmentedControl = <T extends string | number>(
   props: SegmentedControlProps<T>,
 ) => {
   const { options, value, onChange, label, kind = "radio" } = props;
+
+  // Arrow keys move the choice, as in a native radio group or tab list.
+  const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[
+      e.key
+    ];
+    if (!step) return;
+    e.preventDefault();
+    const current = options.findIndex((o) => o.value === value);
+    const next = (current + step + options.length) % options.length;
+    onChange(options[next].value);
+    const buttons = e.currentTarget.querySelectorAll<HTMLElement>(
+      "[role=radio], [role=tab]",
+    );
+    buttons[next]?.focus();
+  };
+
   return (
     <Box
       role={kind === "tab" ? "tablist" : "radiogroup"}
       aria-label={label}
+      onKeyDown={onKeyDown}
       sx={segmentTrackSx}
     >
       {options.map((o) => {
@@ -41,6 +60,7 @@ export const SegmentedControl = <T extends string | number>(
             aria-checked={kind === "radio" ? on : undefined}
             aria-selected={kind === "tab" ? on : undefined}
             aria-controls={o.controls}
+            tabIndex={on ? 0 : -1}
             onClick={() => onChange(o.value)}
             sx={{
               height: 40,
