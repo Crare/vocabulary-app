@@ -19,7 +19,8 @@ All code must be optimized, readable, secure, and testable. Prefer clarity over 
 - **Two settings files** — `SettingsView.tsx` handles word list input + some persisted settings; `TestConfigView.tsx` handles test configuration. Both read/write the same `SETTINGS` localStorage key. Be careful not to overwrite each other's fields.
 - **testType changed from string to object** — `testType` was originally `"both" | "multi-select" | "writing"`. It is now an object `{ writing, multiSelect, dragDrop, sentenceFillBlank }`. Old persisted values may still be strings; the code guards against this.
 - **Sentence training is optional** — sentence arrays may be `undefined` on `LanguageSet`. Always null-check.
-- **Drag-and-drop uses both mouse and click** — `DragDropTestCard` supports HTML5 drag and a click-to-swap fallback. Keyboard support is via Enter/Space on each answer box.
+- **Drag-and-drop uses pointer events** — `DragDropTestCard` handles mouse and touch drags with pointer events (a lifted copy follows the pointer) plus tap-to-swap; each answer is a real button, so Enter/Space work from the keyboard.
+- **No more Skip** — Skip and Show answer were merged into "I don't know", counted in `timesCheckedAnswer`. `timesSkipped` exists only in old history; always read misses through `timesDidntKnow()` in `resultUtils.ts`.
 - **Built-in word sets are imported statically** — `words1.json`–`words9.json` are bundled at build time. Adding a new set requires adding the import and pushing it into the `templates` array in `SettingsView`.
 - **No backend** — everything is localStorage. There is no API layer to worry about.
 - **MUI version 7** — some APIs changed from v5/v6 (e.g., `Grid` uses `size` prop instead of `xs`/`md`). Check the MUI 7 docs.

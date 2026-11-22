@@ -1,4 +1,4 @@
-import { Grid } from "@mui/material";
+import { Box } from "@mui/material";
 import {
   TestOption,
   TestResults,
@@ -10,17 +10,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { calcTimeTakenText } from "../../hooks/useDate";
 import { WriteTestCard } from "./WriteTestCard";
 import { SelectAnswerCard } from "./SelectAnswerCard";
-import { DragDropTestCard, DRAG_DROP_BATCH_SIZE } from "./DragDropTestCard";
+import {
+  DragDropTestCard,
+  DragDropResult,
+  DRAG_DROP_BATCH_SIZE,
+} from "./DragDropTestCard";
 import { SentenceTestCard } from "./SentenceTestCard";
-import { TestingStatsCard } from "./TestingStatsCard";
-import { TestBottomButtons } from "./TestBottomButtons";
+import { TestingStatsCard, countLearned } from "./TestingStatsCard";
+import { TestTopBar } from "./TestTopBar";
 import { randomIntFromInterval, shuffle } from "../../util/helpers";
 import {
   GuessDirection,
   chooseTestOption,
   chooseGuessDirection,
   getExpectedAnswer,
-  isAnswerCorrect,
   checkAnswer,
 } from "./testLogic";
 import { createLogger } from "../../util/logger";
@@ -36,13 +39,7 @@ interface TestingViewProps {
 
 export const TestingView = (props: TestingViewProps) => {
   const { settings, onEndTesting, onBackToStart } = props;
-  const {
-    onCorrect,
-    onWrong,
-    onFinish,
-    onReveal,
-    onSkip: onSkipSound,
-  } = useSound();
+  const { onCorrect, onWrong, onFinish, onReveal } = useSound();
 
   // Keep latest prop values in refs so callbacks never go stale
   const settingsRef = useRef(settings);
@@ -65,15 +62,11 @@ export const TestingView = (props: TestingViewProps) => {
   // UI state (trigger re-renders)
   const [guessWord, setGuessWord] = useState<TestWord | undefined>(undefined);
   const [testState, setTestState] = useState<TestState | undefined>(undefined);
-  const [wordsLeft, setWordsLeft] = useState<number>(0);
   const [testOption, setTestOption] = useState<TestOption>(
     TestOption.WriteCorrectAnswer,
   );
   const [guessDirection, setGuessDirection] =
     useState<GuessDirection>("lang1to2");
-  const [correctAnswerValue, setCorrectAnswerValue] = useState<
-    string | undefined
-  >(undefined);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [dragDropBatch, setDragDropBatch] = useState<TestWord[]>([]);
 
@@ -86,8 +79,7 @@ export const TestingView = (props: TestingViewProps) => {
         word: w.lang1Word,
         correct: w.timesCorrect,
         failed: w.timesFailed,
-        skipped: w.timesSkipped,
-        checked: w.timesCheckedAnswer,
+        dontKnow: w.timesCheckedAnswer,
       })),
     });
     onFinish();
@@ -159,11 +151,9 @@ export const TestingView = (props: TestingViewProps) => {
             : "drag-drop",
       direction,
     });
-    setWordsLeft(remaining.length);
     setTestOption(option);
     setGuessDirection(direction);
     setTestState(undefined);
-    setCorrectAnswerValue(undefined);
     isAnsweringRef.current = false;
     wordStartTimeRef.current = Date.now();
   }, [finishTest]); // finishTest is stable (no deps), so advanceToNext is also stable
@@ -181,7 +171,6 @@ export const TestingView = (props: TestingViewProps) => {
         lang2Sentence: s.languageSet.language2Sentences?.[index],
         timesCorrect: 0,
         timesFailed: 0,
-        timesSkipped: 0,
         timesCheckedAnswer: 0,
         totalAnswerTimeMs: 0,
         answerAttempts: 0,
@@ -241,7 +230,6 @@ export const TestingView = (props: TestingViewProps) => {
       setGuessWord(firstCandidate);
     }
 
-    setWordsLeft(remaining.length);
     setTestOption(firstOption);
     setGuessDirection(firstDirection);
     wordStartTimeRef.current = Date.now();
@@ -307,8 +295,6 @@ export const TestingView = (props: TestingViewProps) => {
     }
   };
 
-  const next = () => advanceToNext();
-
   const sentenceAnswer = (
     correct: boolean,
     testedWord: string,
@@ -346,24 +332,9 @@ export const TestingView = (props: TestingViewProps) => {
     }
   };
 
-  const skip = () => {
-    onSkipSound();
-    setHasInteracted(true);
-    if (guessWord) {
-      const elapsed = Date.now() - wordStartTimeRef.current;
-      guessWord.totalAnswerTimeMs += elapsed;
-      guessWord.answerAttempts += 1;
-      guessWord.timesSkipped += 1;
-      log.debug("word_skipped", {
-        word: guessWord.lang1Word,
-        timesSkipped: guessWord.timesSkipped,
-      });
-    }
-    advanceToNext();
-  };
-
-  const checkCorrectAnswer = () => {
-    if (!guessWord) return;
+  /** "I don't know": show the answer; counts as a miss and the word comes back. */
+  const dontKnow = () => {
+    if (!guessWord || testState !== undefined) return;
     onReveal();
     setHasInteracted(true);
     const elapsed = Date.now() - wordStartTimeRef.current;
@@ -376,52 +347,77 @@ export const TestingView = (props: TestingViewProps) => {
       sentenceBlankWordRef.current
         ? sentenceBlankWordRef.current
         : getExpectedAnswer(guessWord, guessDirection);
-    log.debug("answer_checked", {
+    log.info("dont_know", {
       word: guessWord.lang1Word,
       correctAnswer: answer,
     });
     setTestState(TestState.CheckedAnswer);
-    setCorrectAnswerValue(answer);
   };
 
   const handleDragDropComplete = useCallback(
-    (results: { word: TestWord; correct: boolean }[]) => {
+    (results: DragDropResult[]) => {
       const elapsed = Date.now() - wordStartTimeRef.current;
       const perWordTime = Math.floor(elapsed / results.length);
 
-      let anyWrong = false;
       for (const r of results) {
         r.word.totalAnswerTimeMs += perWordTime;
         r.word.answerAttempts += 1;
-        if (r.correct) {
-          r.word.timesCorrect += 1;
-        } else {
-          r.word.timesFailed += 1;
-          anyWrong = true;
-        }
+        if (r.outcome === "correct") r.word.timesCorrect += 1;
+        else if (r.outcome === "wrong") r.word.timesFailed += 1;
+        else r.word.timesCheckedAnswer += 1;
       }
+      log.info("pairs_done", {
+        right: results.filter((r) => r.outcome === "correct").length,
+        dontKnow: results.some((r) => r.outcome === "dontKnow"),
+      });
 
       setHasInteracted(true);
-      if (anyWrong) onWrong();
-      else onCorrect();
 
       advanceToNext();
     },
-    [advanceToNext, onCorrect, onWrong],
+    [advanceToNext],
   );
 
   const targetLangName =
     guessDirection === "lang1to2"
       ? settings.languageSet.language2Name
       : settings.languageSet.language1Name;
+  const referenceLangName =
+    guessDirection === "lang1to2"
+      ? settings.languageSet.language1Name
+      : settings.languageSet.language2Name;
+
+  const autoAdvanceMs =
+    settings.answerDelayMs === -1 ? undefined : settings.answerDelayMs;
+  const panelProps = {
+    onDontKnow: dontKnow,
+    onContinue: advanceToNext,
+    autoAdvanceMs,
+  };
+  const words = testWordsRef.current;
+  const learned = countLearned(words, settings);
 
   return (
-    <Grid container className="content" gap={2} flexDirection={"column"}>
-      <TestingStatsCard
-        settings={settings}
-        testWords={testWordsRef.current}
-        wordsLeft={wordsLeft}
+    <Box
+      className="content"
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 1.5,
+        // Fill the screen on phones (minus the 80px app bar and page padding)
+        // so the answer panel sits at the bottom.
+        minHeight: { xs: "calc(100dvh - 112px)", md: "auto" },
+      }}
+    >
+      <TestTopBar
+        title={settings.languageSet.name || "Test"}
+        subtitle={`${words.length} words`}
+        learned={learned}
+        total={words.length}
+        onBackToStart={hasInteracted ? undefined : onBackToStart}
+        onEndTest={finishTest}
       />
+      <TestingStatsCard settings={settings} testWords={words} />
 
       {testOption === TestOption.DragAndDrop && dragDropBatch.length > 0 ? (
         <DragDropTestCard
@@ -430,66 +426,58 @@ export const TestingView = (props: TestingViewProps) => {
           guessDirection={guessDirection}
           targetLanguageName={targetLangName}
           onComplete={handleDragDropComplete}
+          autoAdvanceMs={autoAdvanceMs}
         />
-      ) : (
-        <>
-          {testOption === TestOption.WriteCorrectAnswer && guessWord ? (
-            <WriteTestCard
-              testState={testState}
-              guessWord={guessWord}
-              onSendAnswer={answer}
-              testOption={TestOption.WriteCorrectAnswer}
-              guessDirection={guessDirection}
-              targetLanguageName={targetLangName}
-            />
-          ) : null}
+      ) : null}
 
-          {testOption === TestOption.SelectFromMultiple && guessWord ? (
-            <SelectAnswerCard
-              testState={testState}
-              guessWord={guessWord}
-              onChooseOption={answer}
-              testOption={TestOption.SelectFromMultiple}
-              settings={settings}
-              testWords={testWordsRef.current}
-              wordsLeft={wordsLeft}
-              guessDirection={guessDirection}
-              targetLanguageName={targetLangName}
-            />
-          ) : null}
+      {testOption === TestOption.WriteCorrectAnswer && guessWord ? (
+        <WriteTestCard
+          key={`write-${questionIndexRef.current}`}
+          testState={testState}
+          guessWord={guessWord}
+          onSendAnswer={answer}
+          testOption={TestOption.WriteCorrectAnswer}
+          guessDirection={guessDirection}
+          targetLanguageName={targetLangName}
+          {...panelProps}
+        />
+      ) : null}
 
-          {testOption === TestOption.SentenceFillBlank && guessWord ? (
-            <SentenceTestCard
-              key={`sentence-${questionIndexRef.current}`}
-              testState={testState}
-              guessWord={guessWord}
-              guessDirection={guessDirection}
-              targetLanguageName={targetLangName}
-              testAllWords={settings.sentenceTestAllWords}
-              allowTypos={settings.allowTypos}
-              alreadyTestedWords={
-                guessWord.sentenceResults?.map((r) => r.testedWord) ?? []
-              }
-              onSendAnswer={sentenceAnswer}
-              onBlankWordSelected={(word) => {
-                sentenceBlankWordRef.current = word;
-              }}
-            />
-          ) : null}
+      {testOption === TestOption.SelectFromMultiple && guessWord ? (
+        <SelectAnswerCard
+          key={`select-${questionIndexRef.current}`}
+          testState={testState}
+          guessWord={guessWord}
+          onChooseOption={answer}
+          testOption={TestOption.SelectFromMultiple}
+          settings={settings}
+          testWords={words}
+          guessDirection={guessDirection}
+          targetLanguageName={targetLangName}
+          {...panelProps}
+        />
+      ) : null}
 
-          <TestBottomButtons
-            testState={testState}
-            correctAnswerValue={correctAnswerValue}
-            onCheckCorrectAnswer={checkCorrectAnswer}
-            onEndTesting={finishTest}
-            onNext={next}
-            onSkip={skip}
-            onBackToStart={onBackToStart}
-            hasInteracted={hasInteracted}
-            manualAdvance={settings.answerDelayMs === -1}
-          />
-        </>
-      )}
-    </Grid>
+      {testOption === TestOption.SentenceFillBlank && guessWord ? (
+        <SentenceTestCard
+          key={`sentence-${questionIndexRef.current}`}
+          testState={testState}
+          guessWord={guessWord}
+          guessDirection={guessDirection}
+          targetLanguageName={targetLangName}
+          referenceLanguageName={referenceLangName}
+          testAllWords={settings.sentenceTestAllWords}
+          allowTypos={settings.allowTypos}
+          alreadyTestedWords={
+            guessWord.sentenceResults?.map((r) => r.testedWord) ?? []
+          }
+          onSendAnswer={sentenceAnswer}
+          onBlankWordSelected={(word) => {
+            sentenceBlankWordRef.current = word;
+          }}
+          {...panelProps}
+        />
+      ) : null}
+    </Box>
   );
 };
