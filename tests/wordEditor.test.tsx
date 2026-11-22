@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { SettingsView } from "../src/pages/Settings/SettingsView";
+import { templates } from "../src/wordsets/templates";
 
 const store: Record<string, string> = {};
 const localStorageMock = {
@@ -115,5 +116,53 @@ describe("word list editor", () => {
       "unnamed language set",
     ]);
     expect(sets[0].hints).toEqual(["", "game", "instrument"]);
+  });
+
+  describe("compact template view", () => {
+    const storeTemplate = () => {
+      const t = templates[12];
+      store.SETTINGS = JSON.stringify({
+        language1Words: t.words.map((w) => w.lang1).join("\n"),
+        language2Words: t.words.map((w) => w.lang2).join("\n"),
+        hints: t.words.map((w) => w.hint ?? "").join("\n"),
+        lang1Name: t.language1,
+        lang2Name: t.language2,
+        langSetName: t.name,
+      });
+      return t;
+    };
+
+    it("shows only the template summary and the start button", () => {
+      const t = storeTemplate();
+      render(<SettingsView onStartTest={() => {}} />);
+      expect(screen.getByText("Template selected")).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 1, name: t.name }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          `🇬🇧 English → 🇫🇮 Finnish · ${t.words.length} words · 3 hints`,
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Start test · 29 words/ }),
+      ).toBeEnabled();
+      expect(screen.queryByRole("heading", { name: "Words" })).toBeNull();
+    });
+
+    it("opens the full editor and keeps it once a word is edited", () => {
+      storeTemplate();
+      render(<SettingsView onStartTest={() => {}} />);
+      fireEvent.click(
+        screen.getByRole("button", { name: /Show & edit words/ }),
+      );
+      fireEvent.change(screen.getByLabelText("English word 1"), {
+        target: { value: "giggle" },
+      });
+      expect(
+        screen.getByRole("heading", { name: "Words" }),
+      ).toBeInTheDocument();
+      expect(screen.queryByText("Template selected")).toBeNull();
+    });
   });
 });

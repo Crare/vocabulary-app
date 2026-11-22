@@ -15,8 +15,11 @@ interface PractisePanelProps {
   onStart: () => void;
   /** Why the test cannot start, or null when it can. */
   blockedReason: string | null;
-  /** "bar" is the sticky phone footer, "card" the desktop side panel. */
-  variant: "bar" | "card";
+  /**
+   * "bar" is the sticky phone footer, "card" the desktop side panel and
+   * "plain" the open section of the compact template view.
+   */
+  variant: "bar" | "card" | "plain";
   onOpenTestSettings?: () => void;
 }
 
@@ -61,9 +64,9 @@ export const PractisePanel = (props: PractisePanelProps) => {
         disabled={!!blockedReason}
         startIcon={<PlayArrowIcon />}
         sx={{
-          height: 52,
-          borderRadius: "14px",
-          fontSize: "1rem",
+          height: variant === "plain" ? 60 : 52,
+          borderRadius: variant === "plain" ? "16px" : "14px",
+          fontSize: variant === "plain" ? "1.1rem" : "1rem",
           fontWeight: 700,
           "&.Mui-disabled": { bgcolor: alpha.primary30, color: colors.white },
         }}
@@ -104,13 +107,19 @@ export const PractisePanel = (props: PractisePanelProps) => {
     );
   }
 
+  const plain = variant === "plain";
   return (
     <Box
       component="section"
       aria-labelledby="practise-title"
       sx={[
-        surfaceSx,
-        { p: "20px", display: "flex", flexDirection: "column", gap: 1.75 },
+        plain ? {} : surfaceSx,
+        {
+          p: plain ? 0 : "20px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.75,
+        },
       ]}
     >
       <Typography
@@ -118,7 +127,7 @@ export const PractisePanel = (props: PractisePanelProps) => {
         component="h2"
         sx={{ fontSize: "1rem", fontWeight: 700 }}
       >
-        Practise
+        {plain ? "How many words?" : "Practise"}
       </Typography>
       {content}
       {onOpenTestSettings && (

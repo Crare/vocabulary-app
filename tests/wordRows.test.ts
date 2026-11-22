@@ -18,6 +18,11 @@ import {
   toWordSet,
   updateRow,
 } from "../src/pages/Settings/wordRows";
+import {
+  findUnchangedTemplate,
+  listFromWordSet,
+} from "../src/pages/Settings/useWordListEditor";
+import { templates } from "../src/wordsets/templates";
 
 const values = (rows: { lang1: string; lang2: string; hint: string }[]) =>
   rows.map(({ lang1, lang2, hint }) => ({ lang1, lang2, hint }));
@@ -223,5 +228,20 @@ describe("makeRow", () => {
       lang2: null as unknown as string,
     });
     expect(row).toMatchObject({ lang1: "5", lang2: "", hint: "" });
+  });
+});
+
+describe("findUnchangedTemplate", () => {
+  it("matches an unedited template and stops matching after an edit", () => {
+    const list = listFromWordSet(templates[12]);
+    expect(findUnchangedTemplate(list, templates)).toBe(12);
+    const edited = {
+      ...list,
+      rows: updateRow(list.rows, list.rows[0].id, { hint: "x" }),
+    };
+    expect(findUnchangedTemplate(edited, templates)).toBe(-1);
+    expect(findUnchangedTemplate({ ...list, name: "mine" }, templates)).toBe(
+      -1,
+    );
   });
 });

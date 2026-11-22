@@ -36,6 +36,7 @@ import {
 } from "./wordRows";
 import {
   EditorList,
+  findUnchangedTemplate,
   listFromLanguageSet,
   listFromWordSet,
   NO_SENTENCES,
@@ -54,6 +55,7 @@ import {
 } from "./listSummary";
 import { PartSplit, PractisePanel } from "./PractisePanel";
 import { SentenceSection } from "./SentenceSection";
+import { TemplateSummary } from "./TemplateSummary";
 import { ListActions, Notice, NoticeSnackbar, TipBanner } from "./ListActions";
 
 const log = createLogger("settings");
@@ -86,6 +88,8 @@ export const SettingsView = ({
   const [qrOpen, setQrOpen] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [split, setSplit] = useState<PartSplit>(1);
+  // An unedited template opens compact; this shows the full editor anyway.
+  const [showEditor, setShowEditor] = useState(false);
   const [hasTestType, setHasTestType] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -106,6 +110,7 @@ export const SettingsView = ({
   );
   const lang1Label = languageName(list.lang1Name) || "Language 1";
   const lang2Label = languageName(list.lang2Name) || "Language 2";
+  const compact = !showEditor && findUnchangedTemplate(list, templates) >= 0;
 
   /** Replaces the whole list, offering undo when words would be lost. */
   const replaceList = (next: EditorList, message?: string) => {
@@ -176,6 +181,7 @@ export const SettingsView = ({
   const chooseList = (tab: ListTab, index: number) => {
     if (tab === "templates") {
       replaceList(listFromWordSet(templates[index]));
+      setShowEditor(false);
       setTemplateParam(index);
     } else {
       replaceList(listFromLanguageSet(savedSets[index]));
@@ -297,7 +303,7 @@ export const SettingsView = ({
     onImport: () => fileInputRef.current?.click(),
   };
 
-  const practise = (variant: "bar" | "card") => (
+  const practise = (variant: "bar" | "card" | "plain") => (
     <PractisePanel
       variant={variant}
       total={complete.length}
@@ -313,16 +319,16 @@ export const SettingsView = ({
     <Box
       sx={{
         width: "100%",
-        maxWidth: 1200,
+        maxWidth: compact ? 560 : 1200,
         mx: "auto",
         display: "grid",
         gridTemplateColumns: {
           xs: "minmax(0, 1fr)",
-          md: "minmax(0, 1fr) 300px",
+          md: compact ? "minmax(0, 1fr)" : "minmax(0, 1fr) 300px",
         },
         gap: { xs: "14px", md: 3 },
         alignItems: "start",
-        pb: { xs: "190px", md: 0 },
+        pb: { xs: compact ? 2 : "190px", md: 0 },
       }}
     >
       <input
@@ -333,99 +339,116 @@ export const SettingsView = ({
         onChange={handleImportFile}
         aria-label="Import word set JSON file"
       />
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: { xs: "14px", md: 2 },
-          minWidth: 0,
-        }}
-      >
-        {showTip && (
-          <TipBanner
-            onDismiss={() => {
-              setShowTip(false);
-              hideTip();
-            }}
+      {compact ? (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <TemplateSummary
+            name={list.name}
+            lang1Name={list.lang1Name}
+            lang2Name={list.lang2Name}
+            wordCount={nonBlank.length}
+            hintCount={nonBlank.filter((r) => r.hint.trim()).length}
+            onShowWords={() => setShowEditor(true)}
+            onChangeList={() => setSheetTab("templates")}
           />
-        )}
-
-        <CurrentListCard
-          name={list.name}
-          onNameChange={(name) => patch({ name })}
-          lang1Name={list.lang1Name}
-          lang2Name={list.lang2Name}
-          onLang1Change={(lang1Name) => patch({ lang1Name })}
-          onLang2Change={(lang2Name) => patch({ lang2Name })}
-          onSwap={() =>
-            setList((prev) => ({
-              ...prev,
-              lang1Name: prev.lang2Name,
-              lang2Name: prev.lang1Name,
-              rows: swapRows(prev.rows),
-              sentences: {
-                language1Sentences: prev.sentences.language2Sentences,
-                language2Sentences: prev.sentences.language1Sentences,
-              },
-            }))
-          }
-          summary={summary}
-          hasWords={nonBlank.length > 0}
-          onSave={saveList}
-          onDownload={() => downloadWordSetFile(currentWordSet())}
-          onShareQr={() => setQrOpen(true)}
-          onClear={() => {
-            replaceList(
-              { ...list, name: "", rows: [], sentences: NO_SENTENCES },
-              "List cleared",
-            );
-            setTemplateParam(null);
-          }}
-        />
-
-        {!isDesktop && <ListActions variant="tiles" {...listActions} />}
-
-        <WordTable
-          rows={list.rows}
-          lang1Label={lang1Label}
-          lang2Label={lang2Label}
-          onUpdate={(id, changes) =>
-            setRows((rows) => updateRow(rows, id, changes))
-          }
-          onDelete={deleteRow}
-          onAdd={addRow}
-          onPaste={() => setPasteOpen(true)}
-        />
-
-        <SentenceSection
-          sentences={list.sentences}
-          onChange={(sentences) => patch({ sentences })}
-          lang1Label={lang1Label}
-          lang2Label={lang2Label}
-        />
-      </Box>
-
-      {isDesktop ? (
-        <Box
-          component="aside"
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            position: "sticky",
-            top: 16,
-          }}
-        >
-          {practise("card")}
-          <ListActions
-            variant="panel"
-            {...listActions}
-            onSave={saveList}
-            canSave={nonBlank.length > 0}
-          />
+          {practise("plain")}
         </Box>
       ) : (
-        practise("bar")
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: { xs: "14px", md: 2 },
+              minWidth: 0,
+            }}
+          >
+            {showTip && (
+              <TipBanner
+                onDismiss={() => {
+                  setShowTip(false);
+                  hideTip();
+                }}
+              />
+            )}
+
+            <CurrentListCard
+              name={list.name}
+              onNameChange={(name) => patch({ name })}
+              lang1Name={list.lang1Name}
+              lang2Name={list.lang2Name}
+              onLang1Change={(lang1Name) => patch({ lang1Name })}
+              onLang2Change={(lang2Name) => patch({ lang2Name })}
+              onSwap={() =>
+                setList((prev) => ({
+                  ...prev,
+                  lang1Name: prev.lang2Name,
+                  lang2Name: prev.lang1Name,
+                  rows: swapRows(prev.rows),
+                  sentences: {
+                    language1Sentences: prev.sentences.language2Sentences,
+                    language2Sentences: prev.sentences.language1Sentences,
+                  },
+                }))
+              }
+              summary={summary}
+              hasWords={nonBlank.length > 0}
+              onSave={saveList}
+              onDownload={() => downloadWordSetFile(currentWordSet())}
+              onShareQr={() => setQrOpen(true)}
+              onClear={() => {
+                replaceList(
+                  { ...list, name: "", rows: [], sentences: NO_SENTENCES },
+                  "List cleared",
+                );
+                setTemplateParam(null);
+              }}
+            />
+
+            {!isDesktop && <ListActions variant="tiles" {...listActions} />}
+
+            <WordTable
+              rows={list.rows}
+              lang1Label={lang1Label}
+              lang2Label={lang2Label}
+              onUpdate={(id, changes) =>
+                setRows((rows) => updateRow(rows, id, changes))
+              }
+              onDelete={deleteRow}
+              onAdd={addRow}
+              onPaste={() => setPasteOpen(true)}
+            />
+
+            <SentenceSection
+              sentences={list.sentences}
+              onChange={(sentences) => patch({ sentences })}
+              lang1Label={lang1Label}
+              lang2Label={lang2Label}
+            />
+          </Box>
+
+          {isDesktop ? (
+            <Box
+              component="aside"
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                position: "sticky",
+                top: 16,
+              }}
+            >
+              {practise("card")}
+              <ListActions
+                variant="panel"
+                {...listActions}
+                onSave={saveList}
+                canSave={nonBlank.length > 0}
+              />
+            </Box>
+          ) : (
+            practise("bar")
+          )}
+        </>
       )}
 
       <ListPickerSheet
