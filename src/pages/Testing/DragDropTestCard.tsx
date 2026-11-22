@@ -44,7 +44,7 @@ export const DragDropTestCard = ({
     do {
       shuffle(shuffled);
     } while (
-      shuffled.length > 1 &&
+      new Set(shuffled).size > 1 &&
       shuffled.every((a, i) => a === expectedAnswers[i])
     );
     return shuffled;
@@ -235,6 +235,15 @@ export const DragDropTestCard = ({
               <Typography variant="body1" fontWeight={600}>
                 {display}
               </Typography>
+              {words[i].hint && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", fontStyle: "italic" }}
+                >
+                  ({words[i].hint})
+                </Typography>
+              )}
             </Box>
 
             {/* Arrow */}

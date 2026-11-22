@@ -36,7 +36,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { LoadSetModal } from "./LoadSetModal";
 import { TemplateListModal } from "./TemplateListModal";
 
-import { WordSet } from "../../wordsets/types";
+import { WordInSet, WordSet } from "../../wordsets/types";
 import { LANGUAGE_OPTIONS } from "../../wordsets/languages";
 import { createLogger } from "../../util/logger";
 import set1 from "../../wordsets/words1.json";
@@ -50,6 +50,8 @@ import set8 from "../../wordsets/words8.json";
 import set9 from "../../wordsets/words9.json";
 import set10 from "../../wordsets/words10.json";
 import set11 from "../../wordsets/words11.json";
+import set12 from "../../wordsets/words12.json";
+import set13 from "../../wordsets/words13.json";
 
 const log = createLogger("settings");
 const templates: WordSet[] = [
@@ -64,6 +66,8 @@ const templates: WordSet[] = [
   set9,
   set10,
   set11,
+  set12,
+  set13,
 ];
 
 // Resolve ?template=<index|name> once at module load time so useState
@@ -83,6 +87,12 @@ const _urlTemplate: WordSet | null = (() => {
 })();
 const _urlAutostart =
   new URLSearchParams(window.location.search).get("autostart") === "true";
+
+/** Hints as editor text (one per line), or null when the set has none. */
+const hintsToText = (words: WordInSet[]): string | null =>
+  words.some((w) => w.hint?.trim())
+    ? words.map((w) => w.hint ?? "").join("\n")
+    : null;
 
 const placeholderYourLang = set1.words.map((w) => w.lang1).join("\n");
 const placeholderOtherLang = set1.words.map((w) => w.lang2).join("\n");
@@ -113,6 +123,7 @@ interface PersistedSettings {
   testType: "both" | "multi-select" | "writing";
   language1Sentences: string;
   language2Sentences: string;
+  hints: string;
 }
 
 const loadPersistedSettings = (): Partial<PersistedSettings> => {
@@ -167,9 +178,17 @@ export const SettingsView = (props: SettingsViewProps) => {
       "",
   );
 
+  const [hints, setHints] = useState<string>(
+    () =>
+      _urlTemplate
+        ? (hintsToText(_urlTemplate.words) ?? "")
+        : (loadPersistedSettings().hints ?? ""),
+  );
+
   const clear = () => {
     setLanguage1Words("");
     setLanguage2Words("");
+    setHints("");
     setLanguage1Sentences("");
     setLanguage2Sentences("");
   };
@@ -184,6 +203,7 @@ export const SettingsView = (props: SettingsViewProps) => {
     const allLang2Sentences = language2Sentences
       ? language2Sentences.split("\n")
       : undefined;
+    const allHints = hints.trim() ? hints.split("\n") : undefined;
 
     const totalWords = allLang1.length;
     const partSize = Math.ceil(totalWords / partSplit);
@@ -197,6 +217,7 @@ export const SettingsView = (props: SettingsViewProps) => {
       language2Name: lang2Name || undefined,
       language1Sentences: allLang1Sentences,
       language2Sentences: allLang2Sentences,
+      hints: allHints,
     };
 
     const slicedLanguageSet: LanguageSet =
@@ -208,6 +229,7 @@ export const SettingsView = (props: SettingsViewProps) => {
             language2Words: allLang2.slice(0, sliceEnd),
             language1Sentences: allLang1Sentences?.slice(0, sliceEnd),
             language2Sentences: allLang2Sentences?.slice(0, sliceEnd),
+            hints: allHints?.slice(0, sliceEnd),
           };
 
     const settings: TestSettings = {
@@ -266,6 +288,7 @@ export const SettingsView = (props: SettingsViewProps) => {
     lang2: string[],
     language1?: string,
     language2?: string,
+    wordHints?: string[],
   ) => {
     const lang1Sents = language1Sentences ? language1Sentences.split("\n") : [];
     const lang2Sents = language2Sentences ? language2Sentences.split("\n") : [];
@@ -274,10 +297,10 @@ export const SettingsView = (props: SettingsViewProps) => {
       name,
       language1: language1 || undefined,
       language2: language2 || undefined,
-      words: lang1.map((l1, i) => ({
-        lang1: l1,
-        lang2: lang2[i] ?? "",
-      })),
+      words: lang1.map((l1, i) => {
+        const hint = wordHints?.[i]?.trim();
+        return { lang1: l1, lang2: lang2[i] ?? "", ...(hint ? { hint } : {}) };
+      }),
       ...(hasSentences
         ? {
             sentences: lang1Sents.map((l1, i) => ({
@@ -346,6 +369,7 @@ export const SettingsView = (props: SettingsViewProps) => {
         setLangSetName(parsed.name);
         setLanguage1Words(parsed.words.map((w) => w.lang1).join("\n"));
         setLanguage2Words(parsed.words.map((w) => w.lang2).join("\n"));
+        setHints(hintsToText(parsed.words) ?? "");
         setLang1Name(parsed.language1 ?? "");
         setLang2Name(parsed.language2 ?? "");
         setLanguage1Sentences(
@@ -385,6 +409,7 @@ export const SettingsView = (props: SettingsViewProps) => {
       language2Sentences: language2Sentences
         ? language2Sentences.split("\n")
         : undefined,
+      hints: hints.trim() ? hints.split("\n") : undefined,
     };
     var langSets = [...languageSets, languageSet];
     setLanguageSets([...languageSets, languageSet]);
@@ -442,6 +467,7 @@ export const SettingsView = (props: SettingsViewProps) => {
   const selectLanguageSet = (index: number) => {
     setLanguage1Words(languageSets[index].language1Words.join("\n"));
     setLanguage2Words(languageSets[index].language2Words.join("\n"));
+    setHints(languageSets[index].hints?.join("\n") ?? "");
     setLang1Name(languageSets[index].language1Name ?? "");
     setLang2Name(languageSets[index].language2Name ?? "");
     setLangSetName(languageSets[index].name);
@@ -458,6 +484,7 @@ export const SettingsView = (props: SettingsViewProps) => {
     const t = templates[index];
     setLanguage1Words(t.words.map((w) => w.lang1).join("\n"));
     setLanguage2Words(t.words.map((w) => w.lang2).join("\n"));
+    setHints(hintsToText(t.words) ?? "");
     setLang1Name(t.language1 ?? "");
     setLang2Name(t.language2 ?? "");
     setLangSetName(t.name);
@@ -546,6 +573,7 @@ export const SettingsView = (props: SettingsViewProps) => {
         langSetName,
         language1Sentences,
         language2Sentences,
+        hints,
       };
       localStorage.setItem(storage_keys.SETTINGS, JSON.stringify(merged));
     } catch {
@@ -559,6 +587,7 @@ export const SettingsView = (props: SettingsViewProps) => {
     langSetName,
     language1Sentences,
     language2Sentences,
+    hints,
   ]);
 
   return (
@@ -793,6 +822,78 @@ export const SettingsView = (props: SettingsViewProps) => {
               onChange={(e) => setLanguage2Words(e.target.value)}
               placeholder={placeholderOtherLang}
             />
+          </Grid>
+
+          {/* Hints Section */}
+          <Grid size={12}>
+            <Accordion
+              defaultExpanded={!!hints.trim()}
+              disableGutters
+              sx={{
+                backgroundColor: (theme) =>
+                  theme.palette.mode === "light"
+                    ? "rgba(0, 0, 0, 0.04)"
+                    : "transparent",
+                boxShadow: "none",
+                borderRadius: 1,
+                "&::before": { display: "none" },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  px: 1,
+                  minHeight: 36,
+                  "& .MuiAccordionSummary-content": {
+                    my: 0.5,
+                    justifyContent: "center",
+                  },
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  fontSize="0.85rem"
+                >
+                  <strong>Hints (optional)</strong>
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 0, pt: 0 }}>
+                <Typography
+                  variant="body2"
+                  textAlign="center"
+                  mb={1}
+                  color="text.secondary"
+                  fontSize="0.8rem"
+                >
+                  One hint per line, matching the word order above. A hint is
+                  shown with the question but is never part of the answer.
+                  Leave a line empty for no hint.
+                </Typography>
+                <TextareaAutosize
+                  aria-label="Hints, one per line matching the word order"
+                  style={{
+                    width: "100%",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: "0.9rem",
+                    padding: 12,
+                    borderRadius: 10,
+                    border: `1.5px solid ${alpha.slate30}`,
+                    backgroundColor: muiTheme.palette.background.paper,
+                    color: muiTheme.palette.text.primary,
+                    outline: "none",
+                    resize: "vertical",
+                    transition: "border-color 0.2s",
+                    lineHeight: 1.6,
+                  }}
+                  minRows={4}
+                  maxRows={15}
+                  value={hints}
+                  onChange={(e) => setHints(e.target.value)}
+                  placeholder={"e.g.\n\ngame\ninstrument"}
+                />
+              </AccordionDetails>
+            </Accordion>
           </Grid>
 
           {/* Sentence Training Section */}

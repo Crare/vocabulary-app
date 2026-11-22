@@ -53,6 +53,7 @@ interface LoadSetModalProps {
     lang2: string[],
     language1?: string,
     language2?: string,
+    hints?: string[],
   ) => void;
   onDelete: (index: number) => void;
 }
@@ -143,6 +144,7 @@ export const LoadSetModal = (props: LoadSetModalProps) => {
                         set.language2Words,
                         set.language1Name,
                         set.language2Name,
+                        set.hints,
                       )
                     }
                   >

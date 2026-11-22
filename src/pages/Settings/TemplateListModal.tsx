@@ -59,6 +59,7 @@ interface TemplateListModalProps {
     lang2: string[],
     language1?: string,
     language2?: string,
+    hints?: string[],
   ) => void;
 }
 
@@ -189,6 +190,7 @@ export const TemplateListModal = (props: TemplateListModalProps) => {
                               template.words.map((w) => w.lang2),
                               template.language1,
                               template.language2,
+                              template.words.map((w) => w.hint ?? ""),
                             )
                           }
                         >

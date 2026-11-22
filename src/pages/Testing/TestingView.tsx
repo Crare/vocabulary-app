@@ -176,6 +176,7 @@ export const TestingView = (props: TestingViewProps) => {
         id: index,
         lang1Word,
         lang2Word: s.languageSet.language2Words[index],
+        hint: s.languageSet.hints?.[index]?.trim() || undefined,
         lang1Sentence: s.languageSet.language1Sentences?.[index],
         lang2Sentence: s.languageSet.language2Sentences?.[index],
         timesCorrect: 0,

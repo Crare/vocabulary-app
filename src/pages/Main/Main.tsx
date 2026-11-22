@@ -120,6 +120,7 @@ const Main = () => {
           start,
           end,
         ),
+        hints: fullLanguageSet.hints?.slice(start, end),
       },
     };
     startTest(slicedSettings, { ...partitionCtx, partIndex: nextPartIndex });
@@ -140,6 +141,7 @@ const Main = () => {
         ...settings.languageSet,
         language1Words: words.map((w) => w.lang1Word),
         language2Words: words.map((w) => w.lang2Word),
+        hints: words.map((w) => w.hint ?? ""),
       },
     };
     setResults(undefined);
