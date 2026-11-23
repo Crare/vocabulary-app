@@ -417,7 +417,7 @@ export const TestingView = (props: TestingViewProps) => {
         gap: 1.5,
         // Fill the screen on phones (minus the 80px app bar and page padding)
         // so the answer panel sits at the bottom.
-        minHeight: { xs: "calc(100dvh - 112px)", md: "auto" },
+        minHeight: { xs: "calc(100dvh - 88px)", md: "auto" },
       }}
     >
       <TestTopBar
