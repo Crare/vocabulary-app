@@ -8,7 +8,7 @@ https://crare.github.io/vocabulary-app?ref=readme
 
 ## Features
 
-- **Custom word lists** — type words in two languages (one per line), or import/export JSON files.
+- **Custom word lists** — enter word pairs in a table, paste a whole list at once, or import/export JSON files.
 - **Built-in templates** — Finnish–Swedish and English–Finnish sets (including verbs) included; load them with one click.
 - **Hints** — an optional hint per word (shown with the question, never part of the answer) tells apart words like "play" (game) and "play" (instrument).
 - **Multiple test modes** — writing, multi-select, drag-and-drop matching, and sentence fill-in-the-blank.
