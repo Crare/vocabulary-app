@@ -8,8 +8,9 @@ https://crare.github.io/vocabulary-app?ref=readme
 
 ## Features
 
-- **Custom word lists** — type words in two languages (one per line), or import/export JSON files.
-- **Built-in templates** — Finnish–Swedish sets included; load them with one click.
+- **Custom word lists** — enter word pairs in a table, paste a whole list at once, or import/export JSON files.
+- **Built-in templates** — Finnish–Swedish and English–Finnish sets (including verbs) included; load them with one click.
+- **Hints** — an optional hint per word (shown with the question, never part of the answer) tells apart words like "play" (game) and "play" (instrument).
 - **Multiple test modes** — writing, multi-select, drag-and-drop matching, and sentence fill-in-the-blank.
 - **Sentence training** — optionally add sentences for contextual practice.
 - **Configurable difficulty** — adjust how many correct answers are needed, number of choices, answer delay, etc.
@@ -33,41 +34,30 @@ The app follows WAI-ARIA best practices:
 
 ## Screenshots
 
-**Input your own words or use existing sets. Any language possible, if you have the words for both languages.**
+The app is built phone first. These are from a phone-sized screen.
 
-<img src="./readme-img/main.png" width="1000">
-
-**Writing test, randomly switching between both languages.**
-
-<img src="./readme-img/writing.png" width="400">
-
-**Multiselection test, randomly switching between both languages.**
-
-<img src="./readme-img/multiselect.png" width="600">
-
-**Drag and drop words in order.**
-
-<img src="./readme-img/dragndrop.png" width="600">
-
-**Fill in words for sentences.**
-
-<img src="./readme-img/sentence.png" width="600">
-
-**Check results after test, see what words you have to improve more.**
-
-<img src="./readme-img/results.png" width="600">
-
-**Check graphs for progress.**
-
-<img src="./readme-img/graphs.png" width="600">
-
-**Change settings to your liking.**
-
-<img src="./readme-img/settings.png" width="600">
-
-**Try dark mode for those late night hours.**
-
-<img src="./readme-img/darkmode.png" width="600">
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="./readme-img/phone-home.jpg" width="250" alt="Word lists page with a template selected and a large Start test button"><br><sub><b>Pick a template and start</b><br>The page stays minimal until you want to edit.</sub></td>
+    <td align="center" width="33%"><img src="./readme-img/phone-editor.jpg" width="250" alt="Word table with English and Finnish columns and optional hints"><br><sub><b>Edit words in a table</b><br>Optional hints tell apart words like play (game) and play (instrument).</sub></td>
+    <td align="center" width="33%"><img src="./readme-img/phone-typo.jpg" width="250" alt="Writing question showing a typo counted as correct, with the right spelling"><br><sub><b>Type the answer</b><br>Small typos still count, with the right spelling shown.</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="./readme-img/phone-wrong.jpg" width="250" alt="Wrong answer feedback showing what you wrote and the right answer"><br><sub><b>Learn from mistakes</b><br>See what you wrote next to the right answer.</sub></td>
+    <td align="center"><img src="./readme-img/phone-choice.jpg" width="250" alt="Multiple choice question with four answers and an I don't know button"><br><sub><b>Multiple choice</b><br>Or press "I don't know" to see the answer.</sub></td>
+    <td align="center"><img src="./readme-img/phone-match.jpg" width="250" alt="Match pairs question with hints under the words"><br><sub><b>Match pairs</b><br>Drag answers onto each other or tap two to swap.</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="./readme-img/phone-match-checked.jpg" width="250" alt="Checked match pairs, with wrong pairs showing the right word"><br><sub><b>Checked pairs</b><br>Wrong pairs show the word that belongs there.</sub></td>
+    <td align="center"><img src="./readme-img/phone-results.jpg" width="250" alt="Results page with the score and the words to practise"><br><sub><b>Results</b><br>Retest only the words you missed.</sub></td>
+    <td align="center"><img src="./readme-img/phone-history.jpg" width="250" alt="History page listing word lists with their latest score and trend"><br><sub><b>History</b><br>Track progress per word list.</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="./readme-img/phone-settings.jpg" width="250" alt="Test settings with switches for each question type"><br><sub><b>Settings</b><br>Every option explained in plain words.</sub></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
 
 ## Tech stack
 

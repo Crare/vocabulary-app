@@ -49,14 +49,17 @@ export const formatOutcome = (o: WordOutcome): string =>
     .filter(Boolean)
     .join(" · ");
 
-/** Words with mistakes first (worst accuracy first), then the rest in test order. */
+/**
+ * Words with mistakes first (worst accuracy first), then the words answered
+ * right in test order. Words never asked (a test ended early) are in neither.
+ */
 export const splitByMistakes = (
   words: TestWord[],
 ): { mistakes: TestWord[]; right: TestWord[] } => {
   const mistakes = words
     .filter(hasMistake)
     .sort((a, b) => wordOutcome(a).accuracy - wordOutcome(b).accuracy);
-  const right = words.filter((w) => !hasMistake(w));
+  const right = words.filter((w) => !hasMistake(w) && w.timesCorrect > 0);
   return { mistakes, right };
 };
 

@@ -328,7 +328,7 @@ export const SettingsView = ({
         },
         gap: { xs: "14px", md: 3 },
         alignItems: "start",
-        pb: { xs: compact ? 2 : "190px", md: 0 },
+        pb: { xs: compact ? 2 : "calc(190px + var(--bottom-nav-height, 0px))", md: 0 },
       }}
     >
       <input

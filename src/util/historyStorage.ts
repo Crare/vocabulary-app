@@ -75,7 +75,7 @@ export const restoreHistoryEntry = (entry: HistoryEntry): void => {
     });
 };
 
-export const deleteHistoryGroup =(languageSetName: string): void => {
+export const deleteHistoryGroup = (languageSetName: string): void => {
     const updated = loadHistory().filter(
         (e) => e.languageSetName !== languageSetName,
     );

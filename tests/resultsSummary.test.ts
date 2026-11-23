@@ -90,6 +90,12 @@ describe("splitByMistakes", () => {
     expect(right.map((w) => w.id)).toEqual([1, 3]);
     expect(hasMistake(words[0])).toBe(false);
   });
+
+  it("leaves out words that were never asked when a test ends early", () => {
+    const { mistakes, right } = splitByMistakes([word(1, 1), word(2, 0), word(3, 0, 1)]);
+    expect(right.map((w) => w.id)).toEqual([1]);
+    expect(mistakes.map((w) => w.id)).toEqual([3]);
+  });
 });
 
 describe("testAccuracy and accuracyChange", () => {
