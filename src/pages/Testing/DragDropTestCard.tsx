@@ -7,7 +7,7 @@ import { TestWord } from "./types";
 import { GuessDirection, getDisplayWord, getExpectedAnswer } from "./testLogic";
 import { Hint, ModeLabel, QuestionCard } from "./GuessWordTitle";
 import { AnswerPanel, toneStyle } from "./AnswerPanel";
-import { Feedback, buildPairsFeedback } from "./feedback";
+import { Feedback, buildPairsFeedback, MISTAKE_EXTRA_DELAY_MS } from "./feedback";
 import { shuffle } from "../../util/helpers";
 import { useSound } from "../../SoundContext";
 import { colors } from "../../colors";
@@ -91,13 +91,18 @@ export const DragDropTestCard = ({
     }));
 
   const finish = () => onComplete(results());
+  // A round with a wrong pair keeps the right pairs on screen a bit longer.
+  const pairsDelayMs =
+    autoAdvanceMs === undefined
+      ? undefined
+      : autoAdvanceMs + (rightCount < words.length ? MISTAKE_EXTRA_DELAY_MS : 0);
 
   useEffect(() => {
-    if (phase !== "checked" || autoAdvanceMs === undefined) return;
-    const timer = setTimeout(finish, autoAdvanceMs);
+    if (phase !== "checked" || pairsDelayMs === undefined) return;
+    const timer = setTimeout(finish, pairsDelayMs);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, autoAdvanceMs]);
+  }, [phase, pairsDelayMs]);
 
   const swap = (i: number, j: number) =>
     setAnswers((prev) => {
@@ -332,7 +337,7 @@ export const DragDropTestCard = ({
         onDontKnow={() => setPhase("revealed")}
         dontKnowLabel="I don't know – show answers"
         onContinue={finish}
-        autoAdvanceMs={phase === "checked" ? autoAdvanceMs : undefined}
+        autoAdvanceMs={phase === "checked" ? pairsDelayMs : undefined}
       >
         <Button
           variant="contained"

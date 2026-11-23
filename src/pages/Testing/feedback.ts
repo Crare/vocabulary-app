@@ -69,3 +69,17 @@ export function buildPairsFeedback(right: number, total: number): Feedback {
     crossIcon: true,
   };
 }
+
+/** Extra time the right answer stays on screen after a mistake, so it can be read. */
+export const MISTAKE_EXTRA_DELAY_MS = 500;
+
+/**
+ * How long feedback stays before auto-advancing. Mistakes (wrong, typo, or a
+ * match round with a wrong pair) get extra time to read the right answer.
+ * Returns undefined in manual mode (base delay -1).
+ */
+export const feedbackDelayMs = (
+  baseMs: number,
+  hadMistake: boolean,
+): number | undefined =>
+  baseMs === -1 ? undefined : baseMs + (hadMistake ? MISTAKE_EXTRA_DELAY_MS : 0);

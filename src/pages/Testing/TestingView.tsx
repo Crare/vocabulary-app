@@ -17,6 +17,7 @@ import {
 } from "./DragDropTestCard";
 import { SentenceTestCard } from "./SentenceTestCard";
 import { TestingStatsCard, countLearned } from "./TestingStatsCard";
+import { feedbackDelayMs } from "./feedback";
 import { TestTopBar } from "./TestTopBar";
 import { randomIntFromInterval, shuffle } from "../../util/helpers";
 import {
@@ -244,8 +245,12 @@ export const TestingView = (props: TestingViewProps) => {
       testState === TestState.TypoMatch
     ) {
       // -1 means manual mode — user must press Continue
-      if (settings.answerDelayMs === -1) return;
-      const timer = setTimeout(advanceToNext, settings.answerDelayMs);
+      const delay = feedbackDelayMs(
+        settings.answerDelayMs,
+        testState !== TestState.Success,
+      );
+      if (delay === undefined) return;
+      const timer = setTimeout(advanceToNext, delay);
       return () => clearTimeout(timer);
     }
   }, [testState, advanceToNext, settings.answerDelayMs]);
@@ -387,8 +392,14 @@ export const TestingView = (props: TestingViewProps) => {
       ? settings.languageSet.language1Name
       : settings.languageSet.language2Name;
 
+  // "I don't know" waits for Continue, so it gets no countdown bar.
   const autoAdvanceMs =
-    settings.answerDelayMs === -1 ? undefined : settings.answerDelayMs;
+    testState === TestState.CheckedAnswer
+      ? undefined
+      : feedbackDelayMs(
+          settings.answerDelayMs,
+          testState !== undefined && testState !== TestState.Success,
+        );
   const panelProps = {
     onDontKnow: dontKnow,
     onContinue: advanceToNext,
