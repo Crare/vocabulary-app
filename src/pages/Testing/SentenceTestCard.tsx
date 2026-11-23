@@ -1,17 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import { Box, Button, Card, Chip, TextField, Typography } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import ShortTextIcon from "@mui/icons-material/ShortText";
+import { useEffect, useState } from "react";
+import { Box, Typography } from "@mui/material";
 import { TestState, TestWord } from "./types";
 import { GuessDirection } from "./testLogic";
+import { Hint, ModeLabel, QuestionCard } from "./GuessWordTitle";
+import { AnswerPanel, toneStyle } from "./AnswerPanel";
+import { TypedAnswerField } from "./TypedAnswerField";
+import { buildFeedback } from "./feedback";
 import { randomIntFromInterval, stringSimilarity } from "../../util/helpers";
-import { colors, alpha } from "../../colors";
+import { alpha, colors } from "../../colors";
 
 interface SentenceTestCardProps {
     testState: TestState | undefined;
     guessWord: TestWord;
     guessDirection: GuessDirection;
     targetLanguageName?: string;
+    referenceLanguageName?: string;
     /** Words already tested in sentence tests for this guessWord */
     alreadyTestedWords?: string[];
     /** When true, prefer blanking untested words first */
@@ -22,11 +25,15 @@ interface SentenceTestCardProps {
         sentence: string,
         typo?: boolean,
     ) => void;
-    /** Called when the blank word is selected, so parent can use it for "Reveal answer" */
+    /** Called when the blank word is selected, so parent can use it for "I don't know" */
     onBlankWordSelected?: (word: string) => void;
     /** When true, close-but-not-exact answers count as correct (but show a typo warning) */
     allowTypos?: boolean;
+    onDontKnow: () => void;
+    onContinue: () => void;
+    autoAdvanceMs?: number;
 }
+
 
 /**
  * Pick a word from the sentence to blank out.
@@ -85,33 +92,35 @@ function blankOutWord(
     return { blankedSentence: blanked.join(" "), missingWord: cleaned };
 }
 
+/** Fill-in-the-blank question: type the word missing from the sentence. */
 export const SentenceTestCard = ({
     testState,
     guessWord,
     guessDirection,
     targetLanguageName,
+    referenceLanguageName,
     alreadyTestedWords,
     testAllWords,
     onSendAnswer,
     onBlankWordSelected,
     allowTypos,
+    onDontKnow,
+    onContinue,
+    autoAdvanceMs,
 }: SentenceTestCardProps) => {
     const [guess, setGuess] = useState("");
-    const inputRef = useRef<HTMLInputElement>(null);
 
-    // The sentence to test: the TARGET language sentence (the one with the blank)
+    // The sentence with the blank is in the language being answered.
     const targetSentence =
         guessDirection === "lang1to2"
             ? guessWord.lang2Sentence
             : guessWord.lang1Sentence;
-
-    // The reference sentence: shown in full in the other language
+    // The same sentence in full, in the other language.
     const referenceSentence =
         guessDirection === "lang1to2"
             ? guessWord.lang1Sentence
             : guessWord.lang2Sentence;
 
-    // Compute blank once per guessWord change
     const [blankData, setBlankData] = useState(() => {
         if (!targetSentence) return null;
         const data = blankOutWord(
@@ -119,15 +128,14 @@ export const SentenceTestCard = ({
             testAllWords,
             alreadyTestedWords,
         );
-        // Notify parent of initial blank word (setTimeout to avoid setState-during-render)
+        // Notify parent of the first blank word (setTimeout avoids setState during render)
         setTimeout(() => onBlankWordSelected?.(data.missingWord), 0);
         return data;
     });
 
     useEffect(() => {
-        // Don't recalculate the blanked word after an answer has been submitted,
-        // otherwise the randomly-chosen blank word changes and the "correct answer"
-        // feedback shows the wrong word.
+        // Don't pick a new blank after answering, or the feedback would show
+        // a different word than the one that was asked.
         if (testState !== undefined) return;
         if (targetSentence) {
             const data = blankOutWord(
@@ -140,217 +148,117 @@ export const SentenceTestCard = ({
         } else {
             setBlankData(null);
         }
-    }, [
-        targetSentence,
-        guessWord.id,
-        testAllWords,
-        alreadyTestedWords,
-        testState,
-    ]);
-
-    useEffect(() => {
-        if (
-            testState === TestState.Success ||
-            testState === TestState.Failed ||
-            testState === TestState.TypoMatch
-        ) {
-            setGuess("");
-        }
-        if (testState === undefined) {
-            const timer = setTimeout(() => inputRef.current?.focus(), 50);
-            return () => clearTimeout(timer);
-        }
-    }, [testState]);
-
-    const handleKeyUp = (e: React.KeyboardEvent) => {
-        if (e.code === "Enter" && guess && blankData && targetSentence) {
-            const guessNorm = guess.trim().toLowerCase();
-            const expectedNorm = blankData.missingWord.toLowerCase();
-            const exact = guessNorm === expectedNorm;
-            const isTypo =
-                !exact &&
-                allowTypos === true &&
-                stringSimilarity(guessNorm, expectedNorm) >= 0.8;
-            onSendAnswer(
-                exact || isTypo,
-                blankData.missingWord,
-                targetSentence,
-                isTypo,
-            );
-        }
-    };
-
-    const handleSend = () => {
-        if (guess && blankData && targetSentence) {
-            const guessNorm = guess.trim().toLowerCase();
-            const expectedNorm = blankData.missingWord.toLowerCase();
-            const exact = guessNorm === expectedNorm;
-            const isTypo =
-                !exact &&
-                allowTypos === true &&
-                stringSimilarity(guessNorm, expectedNorm) >= 0.8;
-            onSendAnswer(
-                exact || isTypo,
-                blankData.missingWord,
-                targetSentence,
-                isTypo,
-            );
-        }
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [targetSentence, guessWord.id, testAllWords, alreadyTestedWords]);
 
     if (!blankData || !targetSentence) {
         return null; // no sentence data for this word
     }
 
-    const referenceLangName =
-        guessDirection === "lang1to2" ? "source" : "source";
+    const send = () => {
+        const guessNorm = guess.trim().toLowerCase();
+        const expectedNorm = blankData.missingWord.toLowerCase();
+        if (!guessNorm) return;
+        const exact = guessNorm === expectedNorm;
+        const isTypo =
+            !exact &&
+            allowTypos === true &&
+            stringSimilarity(guessNorm, expectedNorm) >= 0.8;
+        onSendAnswer(
+            exact || isTypo,
+            blankData.missingWord,
+            targetSentence,
+            isTypo,
+        );
+    };
+
+    const revealed = testState === TestState.CheckedAnswer;
+    const feedback = buildFeedback(
+        testState,
+        blankData.missingWord,
+        revealed ? "" : guess,
+    );
+    // Keep the learner's own writing in the gap; the right word is in the panel.
+    const gapText = revealed ? blankData.missingWord : guess;
+    const [before, after] = blankData.blankedSentence.split("_____");
 
     return (
-        <Card sx={{ p: 3 }}>
-            <Box sx={{ textAlign: "center", mb: 3 }}>
-                <Chip
-                    icon={<ShortTextIcon />}
-                    label="Fill in the missing word"
-                    variant="outlined"
-                    size="small"
-                    sx={{ mb: 1, color: "text.secondary" }}
-                />
-                {targetLanguageName && (
-                    <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: "block", mb: 1.5, fontSize: "0.8rem" }}
+        <>
+            <QuestionCard label="Sentence">
+                <ModeLabel>
+                    Fill the gap{targetLanguageName ? ` in ${targetLanguageName}` : ""}
+                </ModeLabel>
+                {referenceSentence && (
+                    <Box
+                        sx={(theme) => ({
+                            width: "100%",
+                            px: 1.75,
+                            py: 1.5,
+                            borderRadius: 3,
+                            bgcolor:
+                                theme.palette.mode === "dark"
+                                    ? alpha.slate10
+                                    : colors.slate50,
+                        })}
                     >
-                        Answer in:{" "}
-                        <strong style={{ fontWeight: 600 }}>
-                            {targetLanguageName}
-                        </strong>
-                    </Typography>
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                                display: "block",
+                                fontWeight: 600,
+                                letterSpacing: "0.04em",
+                                textTransform: "uppercase",
+                            }}
+                        >
+                            {referenceLanguageName || "Reference"}
+                        </Typography>
+                        <Typography sx={{ fontWeight: 500 }}>
+                            {referenceSentence}
+                        </Typography>
+                    </Box>
                 )}
-            </Box>
-
-            {/* Reference sentence (full, other language) */}
-            {referenceSentence && (
-                <Box
-                    sx={{
-                        textAlign: "center",
-                        mb: 2,
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: alpha.primary04,
-                        border: "1.5px solid",
-                        borderColor: "divider",
-                    }}
+                <Typography
+                    component="p"
+                    sx={{ m: 0, fontSize: "1.375rem", lineHeight: 1.6, fontWeight: 600 }}
                 >
-                    <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: "block", mb: 0.5 }}
+                    {before}
+                    <Box
+                        component="span"
+                        aria-label={gapText ? `gap: ${gapText}` : "gap"}
+                        sx={(theme) => {
+                            const tone = feedback
+                                ? toneStyle(feedback.tone, theme)
+                                : undefined;
+                            return {
+                                display: "inline-block",
+                                minWidth: 76,
+                                px: 0.75,
+                                borderBottom: `2.5px dashed ${tone ? tone.line : theme.palette.primary.main}`,
+                                color: tone ? tone.ink : "primary.main",
+                            };
+                        }}
                     >
-                        Reference
-                    </Typography>
-                    <Typography variant="body1" fontWeight={600}>
-                        {referenceSentence}
-                    </Typography>
-                </Box>
-            )}
-
-            {/* Target sentence with blank */}
-            <Box sx={{ textAlign: "center", mb: 3 }}>
-                <Typography
-                    variant="h5"
-                    sx={{
-                        fontWeight: 600,
-                        letterSpacing: "0.01em",
-                        "& span": {
-                            color: colors.indigo400,
-                            borderBottom: `2px dashed ${colors.indigo400}`,
-                            px: 1,
-                        },
-                    }}
-                    dangerouslySetInnerHTML={{
-                        __html: blankData.blankedSentence.replace(
-                            "_____",
-                            "<span>_____</span>",
-                        ),
-                    }}
-                />
-            </Box>
-
-            {/* Answer input */}
-            <Box
-                sx={{
-                    display: "flex",
-                    gap: 1.5,
-                    justifyContent: "center",
-                    alignItems: "flex-start",
-                    maxWidth: 420,
-                    mx: "auto",
-                }}
+                        {gapText || "\u00a0"}
+                    </Box>
+                    {after}
+                </Typography>
+                <Hint hint={guessWord.hint} />
+            </QuestionCard>
+            <AnswerPanel
+                feedback={feedback}
+                onDontKnow={onDontKnow}
+                onContinue={onContinue}
+                autoAdvanceMs={revealed ? undefined : autoAdvanceMs}
             >
-                <TextField
-                    inputRef={inputRef}
+                <TypedAnswerField
+                    id="sentence-answer"
+                    label={`Missing word${targetLanguageName ? ` (${targetLanguageName})` : ""}`}
                     value={guess}
-                    onChange={(e) => setGuess(e.target.value)}
-                    placeholder="Type the missing word..."
-                    disabled={testState !== undefined}
-                    onKeyUp={handleKeyUp}
-                    size="small"
-                    fullWidth
-                    autoFocus
-                    aria-label="Type the missing word from the sentence"
-                    sx={{
-                        "& .MuiOutlinedInput-root": { borderRadius: 2.5 },
-                    }}
+                    onChange={setGuess}
+                    onSubmit={send}
                 />
-                <Button
-                    variant="contained"
-                    onClick={handleSend}
-                    disabled={testState !== undefined}
-                    endIcon={<SendIcon />}
-                    sx={{ whiteSpace: "nowrap", px: 3 }}
-                >
-                    Send
-                </Button>
-            </Box>
-
-            {/* Show result feedback */}
-            {testState === TestState.Success && (
-                <Typography
-                    variant="body2"
-                    color="success.main"
-                    fontWeight={600}
-                    role="status"
-                    aria-live="assertive"
-                    sx={{ textAlign: "center", mt: 2 }}
-                >
-                    ✓ Correct! The word was: {blankData.missingWord}
-                </Typography>
-            )}
-            {testState === TestState.TypoMatch && (
-                <Typography
-                    variant="body2"
-                    color="warning.main"
-                    fontWeight={600}
-                    role="status"
-                    aria-live="assertive"
-                    sx={{ textAlign: "center", mt: 2 }}
-                >
-                    ✓ Almost! Correct spelling: {blankData.missingWord}
-                </Typography>
-            )}
-            {testState === TestState.Failed && (
-                <Typography
-                    variant="body2"
-                    color="error.main"
-                    fontWeight={600}
-                    role="status"
-                    aria-live="assertive"
-                    sx={{ textAlign: "center", mt: 2 }}
-                >
-                    ✗ Incorrect! Correct answer: {blankData.missingWord}
-                </Typography>
-            )}
-        </Card>
+            </AnswerPanel>
+        </>
     );
 };

@@ -43,14 +43,16 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 | File                    | Description                                                                                            |
 | ----------------------- | ------------------------------------------------------------------------------------------------------ |
 | `TestingView.tsx`       | Orchestrates the test loop: picks next word, chooses test type, handles answers, calls `onEndTesting`. |
-| `WriteTestCard.tsx`     | Card where the user types the translation.                                                             |
-| `SelectAnswerCard.tsx`  | Card with multiple-choice buttons.                                                                     |
-| `DragDropTestCard.tsx`  | Card where users drag/drop (or click-swap) words to match pairs.                                       |
-| `SentenceTestCard.tsx`  | Card showing a sentence with a blank; user types the missing word.                                     |
-| `GuessWordTitle.tsx`    | Shared heading showing the word to translate and the target language.                                  |
-| `GuessResult.tsx`       | Visual feedback (correct / incorrect) after answering.                                                 |
-| `TestingStatsCard.tsx`  | Progress bar, time elapsed, and words remaining.                                                       |
-| `TestBottomButtons.tsx` | Action buttons: Reveal answer, Skip, End test, Continue, Back to start.                                |
+| `WriteTestCard.tsx`    | Writing question: question card plus a typed answer in the answer panel.                                                   |
+| `SelectAnswerCard.tsx` | Multiple choice: option tiles in the answer panel; the right and picked tiles are coloured after answering.                |
+| `DragDropTestCard.tsx` | Match pairs: tap two answers to swap, or drag one (a lifted copy follows the pointer/finger); Check pairs or show answers. |
+| `SentenceTestCard.tsx` | Fill the gap: reference sentence, sentence with a blank, typed answer; the gap keeps what was typed.                       |
+| `GuessWordTitle.tsx`   | Question card pieces: `QuestionCard`, `ModeLabel`, the word and its italic `Hint`.                                         |
+| `AnswerPanel.tsx`      | Bottom panel of every question (sticky on phones): answer controls, divider, "I don't know"; then feedback + Continue.     |
+| `TypedAnswerField.tsx` | Answer text field with the Check button beside it.                                                                         |
+| `feedback.ts`          | Pure helpers building the feedback copy for each answer state.                                                             |
+| `TestTopBar.tsx`       | List name, back-to-word-list (before the first answer) and the ⋯ button whose confirm sheet ends the test.                 |
+| `TestingStatsCard.tsx` | Slim progress: words learned, words left, elapsed time.                                                                    |
 | `testLogic.ts`          | Pure functions: `chooseTestOption`, `chooseGuessDirection`, `isAnswerCorrect`, etc.                    |
 | `types.ts`              | All test-related TypeScript interfaces and enums.                                                      |
 

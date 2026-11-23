@@ -10,6 +10,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { TestWord } from "../pages/Testing/types";
+import { timesDidntKnow } from "../pages/Results/resultUtils";
 
 interface WordScoreChartProps {
     wordResults: TestWord[];
@@ -27,7 +28,7 @@ export const WordScoreChart = ({ wordResults }: WordScoreChartProps) => {
                 ? w.lang1Word.slice(0, 10) + "…"
                 : w.lang1Word,
         Correct: w.timesCorrect,
-        Wrong: w.timesFailed + w.timesSkipped + w.timesCheckedAnswer,
+        Wrong: w.timesFailed + timesDidntKnow(w),
     }));
 
     return (

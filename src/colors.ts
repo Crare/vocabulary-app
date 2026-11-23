@@ -2,6 +2,7 @@
 export const colors = {
     // Primary (Indigo)
     indigo50: "#f0f4ff",
+    indigo75: "#eef2ff",
     indigo100: "#e0e7ff",
     indigo200: "#c7d2fe",
     indigo300: "#a5b4fc",
@@ -17,21 +18,27 @@ export const colors = {
     deepPurple: "#3b1870",
 
     // Secondary (Amber)
+    amber50: "#fffbeb",
     amber400: "#fbbf24",
     amber500: "#f59e0b",
     amber600: "#d97706",
+    amber800: "#92400e",
 
     // Success (Emerald)
+    emerald50: "#ecfdf5",
     emerald400: "#34d399",
     emerald500: "#10b981",
     emerald600: "#059669",
+    emerald700: "#047857",
     emerald800: "#065f46",
 
     // Error (Red)
+    red50: "#fef2f2",
     red400: "#f87171",
     red500: "#ef4444",
     red600: "#dc2626",
     red200: "#fecaca",
+    red700: "#b91c1c",
     red800: "#991b1b",
 
     // Neutrals (Slate)

@@ -53,7 +53,9 @@ interface TestWord {
     hint?: string; // shown with the question, not part of the answer
     timesCorrect: number;
     timesFailed: number;
-    timesSkipped: number;
+    /** @deprecated Old history only; skip was merged into "I don't know". */
+    timesSkipped?: number;
+    /** "I don't know" presses. Read via timesDidntKnow() in resultUtils. */
     timesCheckedAnswer: number;
     totalAnswerTimeMs: number;
     answerAttempts: number;
