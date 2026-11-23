@@ -34,10 +34,10 @@ export const colors = {
 
     // Error (Red)
     red50: "#fef2f2",
+    red200: "#fecaca",
     red400: "#f87171",
     red500: "#ef4444",
     red600: "#dc2626",
-    red200: "#fecaca",
     red700: "#b91c1c",
     red800: "#991b1b",
 

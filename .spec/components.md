@@ -35,8 +35,8 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 | `SentenceSection.tsx`  | Collapsed sentence training section.                                                                             |
 | `SegmentedControl.tsx` | Pill-style radio group or tab list.                                                                              |
 | `styles.ts`            | Shared `sx` styles for the page.                                                                                 |
-| `TestConfigView.tsx`    | Settings tab — grouped switches, steppers and choice buttons for question types, direction, answer delay, etc., each with a plain-words explanation. |
-| `testConfig.ts`         | Test config defaults, `readTestConfig` (validates stored values), and `loadTestConfig` / `saveTestConfig`, which merge into `SETTINGS`.                       |
+| `TestConfigView.tsx`   | Settings tab — grouped switches, steppers and choice buttons for question types, direction, answer delay, etc.  |
+| `testConfig.ts`        | Test config defaults, validation, and load/save helpers that merge into `SETTINGS`.                             |
 
 ### Testing (`pages/Testing/`)
 
