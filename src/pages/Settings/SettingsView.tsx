@@ -1,9 +1,9 @@
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { LanguageSet, PartitionContext, TestSettings } from "../Testing/types";
-import { WordSet } from "../../wordsets/types";
+import { PartitionContext, TestSettings } from "../Testing/types";
 import {
-  findTemplate,
+  markTemplateRequestUsed,
+  pendingTemplateRequest,
   setTemplateParam,
   templates,
 } from "../../wordsets/templates";
@@ -13,9 +13,7 @@ import { downloadWordSetFile } from "../../util/download";
 import {
   hideTip,
   isTipHidden,
-  loadLanguageSets,
   loadPersistedSettings,
-  saveLanguageSets,
 } from "../../util/wordListStorage";
 import { QrCodeModal } from "../../components/QrCodeModal";
 import {
@@ -24,25 +22,23 @@ import {
   isBlankRow,
   isCompleteRow,
   makeRow,
-  pickRows,
-  removeRow,
   RowValues,
-  WordRow,
-  rowsToColumns,
-  sentenceColumns,
-  swapRows,
   toWordSet,
   updateRow,
 } from "./wordRows";
 import {
   EditorList,
   findUnchangedTemplate,
+  listToLanguageSet,
+  listToWordSet,
   listFromLanguageSet,
   listFromWordSet,
   NO_SENTENCES,
   useWordListEditor,
 } from "./useWordListEditor";
 import { buildTestStart, hasAnyTestType } from "./startTest";
+import { useSavedLists } from "./useSavedLists";
+import { parseWordSetFile } from "./wordSetFile";
 import { CurrentListCard } from "./CurrentListCard";
 import { WordTable } from "./WordTable";
 import { PasteListDialog } from "./PasteListDialog";
@@ -56,17 +52,11 @@ import {
 import { PartSplit, PractisePanel } from "./PractisePanel";
 import { SentenceSection } from "./SentenceSection";
 import { TemplateSummary } from "./TemplateSummary";
-import { ListActions, Notice, NoticeSnackbar, TipBanner } from "./ListActions";
+import { ListActions } from "./ListActions";
+import { Notice, NoticeSnackbar } from "./NoticeSnackbar";
+import { TipBanner } from "./TipBanner";
 
 const log = createLogger("settings");
-
-// Resolve ?template=<index|name> once at module load so the first render can
-// use it synchronously.
-const _params = new URLSearchParams(window.location.search);
-const _urlTemplateIndex = findTemplate(_params.get("template"));
-const _urlTemplate =
-  _urlTemplateIndex >= 0 ? templates[_urlTemplateIndex] : null;
-const _urlAutostart = _params.get("autostart") === "true";
 
 interface SettingsViewProps {
   onStartTest: (settings: TestSettings, partition?: PartitionContext) => void;
@@ -80,9 +70,13 @@ export const SettingsView = ({
   const isDesktop = useMediaQuery(useTheme().breakpoints.up("md"), {
     noSsr: true,
   });
-  const { list, setList, patch, setRows } = useWordListEditor(_urlTemplate);
+  // A ?template= link applies to the first visit of this page load only.
+  const [urlRequest] = useState(pendingTemplateRequest);
+  const { list, setList, patch, setRows, addRow, deleteRow, swap } = useWordListEditor(
+    urlRequest?.template ?? null,
+  );
   const [showTip, setShowTip] = useState(() => !isTipHidden());
-  const [savedSets, setSavedSets] = useState<LanguageSet[]>(loadLanguageSets);
+  const { savedSets, save, remove } = useSavedLists();
   const [sheetTab, setSheetTab] = useState<ListTab | null>(null);
   const [pasteOpen, setPasteOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
@@ -90,7 +84,11 @@ export const SettingsView = ({
   const [split, setSplit] = useState<PartSplit>(1);
   // An unedited template opens compact; this shows the full editor anyway.
   const [showEditor, setShowEditor] = useState(false);
-  const [hasTestType, setHasTestType] = useState(true);
+  // Test types are edited on the Settings page, which unmounts this view,
+  // so reading them when this view mounts is always current.
+  const [hasTestType] = useState(() =>
+    hasAnyTestType(loadPersistedSettings().testType),
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { complete, incomplete } = checkRows(list.rows);
@@ -119,62 +117,25 @@ export const SettingsView = ({
     if (message) setNotice({ message, undo: () => setList(previous) });
   };
 
-  /** The list as a `LanguageSet`, keeping only rows that pass `keep`. */
-  const languageSet = (keep: (row: WordRow) => boolean): LanguageSet => {
-    const picked = pickRows(list.rows, list.sentences, keep);
-    return {
-      name: list.name.trim() || "unnamed language set",
-      ...rowsToColumns(picked.rows),
-      language1Name: list.lang1Name || undefined,
-      language2Name: list.lang2Name || undefined,
-      ...sentenceColumns(picked.sentences),
-    };
-  };
-
   const startTest = () => {
     if (blockedReason) return;
     const { settings, partition } = buildTestStart(
-      languageSet(isCompleteRow),
+      listToLanguageSet(list, isCompleteRow),
       split,
       loadPersistedSettings(),
     );
     onStartTest(settings, partition);
   };
 
-  const currentWordSet = (): WordSet => {
-    const picked = pickRows(list.rows, list.sentences, (r) => !isBlankRow(r));
-    return toWordSet(
-      list.name || "word-set",
-      list.lang1Name,
-      list.lang2Name,
-      picked.rows,
-      picked.sentences,
-    );
-  };
-
   const saveList = () => {
     // Half-filled rows are kept so nothing typed is lost.
-    const set = languageSet((r) => !isBlankRow(r));
+    const set = listToLanguageSet(list, (r) => !isBlankRow(r));
     // Saving a named list again updates it; unnamed lists are always added.
-    const existing = list.name.trim()
-      ? savedSets.findIndex((s) => s.name === set.name)
-      : -1;
-    const next =
-      existing >= 0
-        ? savedSets.map((s, i) => (i === existing ? set : s))
-        : [...savedSets, set];
-    setSavedSets(next);
-    saveLanguageSets(next);
-    log.info("set_saved", {
-      name: set.name,
-      wordCount: set.language1Words.length,
-      replaced: existing >= 0,
-    });
+    const replaced = save(set, !!list.name.trim());
     setNotice({
-      message:
-        existing >= 0
-          ? `Updated “${set.name}” in My lists`
-          : `Saved “${set.name}” to My lists`,
+      message: replaced
+        ? `Updated “${set.name}” in My lists`
+        : `Saved “${set.name}” to My lists`,
     });
   };
 
@@ -201,16 +162,6 @@ export const SettingsView = ({
     log.info("set_downloaded", { source: tab, name: set.name });
   };
 
-  const deleteSaved = (index: number) => {
-    const next = savedSets.filter((_, i) => i !== index);
-    setSavedSets(next);
-    saveLanguageSets(next);
-    log.info("set_deleted", {
-      name: savedSets[index]?.name,
-      remainingSets: next.length,
-    });
-  };
-
   const handleImportFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = ""; // so the same file can be imported again
@@ -222,17 +173,8 @@ export const SettingsView = ({
     file
       .text()
       .then((text) => {
-        const parsed = JSON.parse(text) as WordSet;
-        const isPair = (w: unknown) => !!w && typeof w === "object";
-        if (
-          !parsed.name ||
-          !Array.isArray(parsed.words) ||
-          !parsed.words.every(isPair) ||
-          (parsed.sentences !== undefined &&
-            (!Array.isArray(parsed.sentences) ||
-              !parsed.sentences.every(isPair)))
-        )
-          throw new Error("not a word set");
+        const parsed = parseWordSetFile(text);
+        if (!parsed) throw new Error("not a word set");
         replaceList(listFromWordSet(parsed), `Imported “${parsed.name}”`);
         setTemplateParam(null);
       })
@@ -261,40 +203,22 @@ export const SettingsView = ({
     setPasteOpen(false);
   };
 
-  const deleteRow = (id: string) => {
+  const deleteRowWithUndo = (id: string) => {
     const previous = list.rows;
-    setRows((rows) => removeRow(rows, id));
+    deleteRow(id);
     setNotice({ message: "Word deleted", undo: () => setRows(() => previous) });
   };
 
-  const addRow = () => {
-    const row = makeRow();
-    setRows((rows) => [...rows, row]);
-    return row.id;
-  };
-
-  // Clean ?autostart from the URL and start right away when it was set.
+  // Use a ?template= link once: drop ?autostart and start right away if set.
   useEffect(() => {
-    if (!_urlTemplate) return;
+    if (!urlRequest) return;
+    markTemplateRequestUsed();
     const url = new URL(window.location.href);
     url.searchParams.delete("autostart");
     window.history.replaceState({}, "", url.toString());
-    if (_urlAutostart) startTest();
+    if (urlRequest.autostart) startTest();
     // Runs once after mount so the test starts only once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Test types are edited on the Settings page; re-check when coming back.
-  useEffect(() => {
-    const check = () =>
-      setHasTestType(hasAnyTestType(loadPersistedSettings().testType));
-    check();
-    window.addEventListener("focus", check);
-    const interval = setInterval(check, 1000);
-    return () => {
-      window.removeEventListener("focus", check);
-      clearInterval(interval);
-    };
   }, []);
 
   const listActions = {
@@ -378,22 +302,11 @@ export const SettingsView = ({
               lang2Name={list.lang2Name}
               onLang1Change={(lang1Name) => patch({ lang1Name })}
               onLang2Change={(lang2Name) => patch({ lang2Name })}
-              onSwap={() =>
-                setList((prev) => ({
-                  ...prev,
-                  lang1Name: prev.lang2Name,
-                  lang2Name: prev.lang1Name,
-                  rows: swapRows(prev.rows),
-                  sentences: {
-                    language1Sentences: prev.sentences.language2Sentences,
-                    language2Sentences: prev.sentences.language1Sentences,
-                  },
-                }))
-              }
+              onSwap={swap}
               summary={summary}
               hasWords={nonBlank.length > 0}
               onSave={saveList}
-              onDownload={() => downloadWordSetFile(currentWordSet())}
+              onDownload={() => downloadWordSetFile(listToWordSet(list))}
               onShareQr={() => setQrOpen(true)}
               onClear={() => {
                 replaceList(
@@ -413,7 +326,7 @@ export const SettingsView = ({
               onUpdate={(id, changes) =>
                 setRows((rows) => updateRow(rows, id, changes))
               }
-              onDelete={deleteRow}
+              onDelete={deleteRowWithUndo}
               onAdd={addRow}
               onPaste={() => setPasteOpen(true)}
             />
@@ -461,7 +374,7 @@ export const SettingsView = ({
         currentName={list.name}
         onUse={chooseList}
         onDownload={downloadList}
-        onDeleteSaved={deleteSaved}
+        onDeleteSaved={remove}
       />
       <PasteListDialog
         open={pasteOpen}

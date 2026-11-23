@@ -1,5 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { HistoryEntry } from "../Testing/types";
@@ -9,6 +9,8 @@ import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { TrendBadge } from "./TrendBadge";
 import { alpha } from "../../colors";
 import { relativeDay, summariseGroup, weakestWords } from "./historyStats";
+
+import { StatTile, cardSx } from "./StatTile";
 
 interface HistoryGroupDetailProps {
   setName: string;
@@ -20,45 +22,6 @@ interface HistoryGroupDetailProps {
   onDeleteGroup: (setName: string) => void;
 }
 
-const cardSx = {
-  p: 1.75,
-  borderRadius: "16px",
-  bgcolor: "background.paper",
-  border: 1,
-  borderColor: "divider",
-} as const;
-
-const StatTile = ({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value: number;
-  note: ReactNode;
-}) => (
-  <Box
-    sx={{
-      ...cardSx,
-      p: 1.5,
-      display: "flex",
-      flexDirection: "column",
-      gap: 0.25,
-    }}
-  >
-    <Typography variant="caption" color="text.secondary" fontSize={13}>
-      {label}
-    </Typography>
-    <Typography
-      fontSize={26}
-      fontWeight={700}
-      sx={{ fontVariantNumeric: "tabular-nums" }}
-    >
-      {value}%
-    </Typography>
-    <Box sx={{ fontSize: 13, color: "text.secondary" }}>{note}</Box>
-  </Box>
-);
 
 export const HistoryGroupDetail = ({
   setName,

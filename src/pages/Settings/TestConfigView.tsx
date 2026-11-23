@@ -12,7 +12,10 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { useState } from "react";
 import { colors } from "../../colors";
 import { createLogger } from "../../util/logger";
-import { ChoiceRow, SettingsGroup, StepperRow, SwitchRow } from "../../components/SettingControls";
+import { SettingsGroup } from "../../components/settings/SettingsGroup";
+import { SwitchRow } from "../../components/settings/SwitchRow";
+import { StepperRow } from "../../components/settings/StepperRow";
+import { ChoiceRow } from "../../components/settings/ChoiceRow";
 import {
   ANSWER_DELAY_OPTIONS,
   CHOICES_RANGE,

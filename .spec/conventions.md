@@ -3,7 +3,9 @@
 ## Language & tooling
 
 - **TypeScript** with `strict: true`. Never use `any` unless unavoidable (and add a comment explaining why).
-- **React 19** — function components only, no class components.
+- **React 19** — function components only, no class components (sole exception: `components/ViewErrorBoundary.tsx`).
+- **One component per file** — small private helpers may stay, but every component gets its own file.
+- **`tsconfig` rejects unused code** — `noUnusedLocals` and `noUnusedParameters` are on.
 - **Vite 5** — HMR in dev, tree-shaking in prod.
 - **MUI 7** — use the `sx` prop for styling; avoid separate CSS files (except `index.css` for global rules).
 

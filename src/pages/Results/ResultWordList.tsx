@@ -3,6 +3,8 @@ import { TestWord } from "../Testing/types";
 import { formatOutcome, wordOutcome } from "./resultsSummary";
 import { hairline } from "./styles";
 
+import { OutcomeBar } from "./OutcomeBar";
+
 interface ResultWordListProps {
   words: TestWord[];
   selected: ReadonlySet<number>;
@@ -10,18 +12,6 @@ interface ResultWordListProps {
   /** "detailed" shows the answer breakdown and bar (mistakes); "compact" one line. */
   density: "detailed" | "compact";
 }
-
-/** Right vs not-right answers as a two-part bar; the numbers sit beside it in text. */
-const OutcomeBar = ({ right, notRight }: { right: number; notRight: number }) => (
-  <Box aria-hidden sx={{ display: "flex", gap: "2px", width: 72, height: 6 }}>
-    {right > 0 && (
-      <Box sx={{ flex: right, borderRadius: "3px", bgcolor: "success.main" }} />
-    )}
-    {notRight > 0 && (
-      <Box sx={{ flex: notRight, borderRadius: "3px", bgcolor: "error.main" }} />
-    )}
-  </Box>
-);
 
 /** Tickable word rows; ticked words are the ones a retest will use. */
 export const ResultWordList = ({
@@ -40,7 +30,7 @@ export const ResultWordList = ({
           component="li"
           key={w.id}
           sx={(theme) => ({
-            "&:not(:last-of-type)": { borderBottom: `1px solid ${hairline(theme)}` },
+            "&:not(:last-of-type)": { borderBottom: hairline(theme) },
           })}
         >
           <Box

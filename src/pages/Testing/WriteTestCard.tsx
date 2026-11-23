@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { GuessWordTitle, QuestionCard } from "./GuessWordTitle";
+import { GuessWordTitle } from "./GuessWordTitle";
+import { QuestionCard } from "./QuestionCard";
 import { AnswerPanel } from "./AnswerPanel";
 import { TypedAnswerField } from "./TypedAnswerField";
 import { TestOption, TestState, TestWord } from "./types";

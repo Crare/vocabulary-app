@@ -42,18 +42,23 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 
 | File                    | Description                                                                                            |
 | ----------------------- | ------------------------------------------------------------------------------------------------------ |
-| `TestingView.tsx`       | Orchestrates the test loop: picks next word, chooses test type, handles answers, calls `onEndTesting`. |
+| `TestingView.tsx`       | Renders the running test: top bar, progress and the card for the current question.                     |
+| `useTestSession.ts`     | The test loop hook: picks questions, records answers, auto-advance, "I don't know", finishing once.     |
 | `WriteTestCard.tsx`    | Writing question: question card plus a typed answer in the answer panel.                                                   |
 | `SelectAnswerCard.tsx` | Multiple choice: option tiles in the answer panel; the right and picked tiles are coloured after answering.                |
 | `DragDropTestCard.tsx` | Match pairs: tap two answers to swap, or drag one (a lifted copy follows the pointer/finger); Check pairs or show answers. |
 | `SentenceTestCard.tsx` | Fill the gap: reference sentence, sentence with a blank, typed answer; the gap keeps what was typed.                       |
-| `GuessWordTitle.tsx`   | Question card pieces: `QuestionCard`, `ModeLabel`, the word and its italic `Hint`.                                         |
+| `GuessWordTitle.tsx`   | Instruction line, the word to translate and its hint.                                                                      |
+| `QuestionCard.tsx` / `ModeLabel.tsx` / `Hint.tsx` | The question card, its grey instruction line, and the italic hint.                                     |
+| `PairAnswerButton.tsx` / `DragGhost.tsx` | One answer tile in match-the-pairs, and the copy that follows the pointer while dragging.                       |
+| `toneStyle.ts` / `ToneIcon.tsx` | Colours and icon for each feedback tone.                                                                          |
+| `sentenceLogic.ts`     | `blankOutWord`: picks the word to blank out of a sentence (prefers untested words).                                        |
 | `AnswerPanel.tsx`      | Bottom panel of every question (sticky on phones): answer controls, divider, "I don't know"; then feedback + Continue.     |
 | `TypedAnswerField.tsx` | Answer text field with the Check button beside it.                                                                         |
 | `feedback.ts`          | Pure helpers building the feedback copy for each answer state.                                                             |
 | `TestTopBar.tsx`       | List name, back-to-word-list (before the first answer) and the ⋯ button whose confirm sheet ends the test.                 |
 | `TestingStatsCard.tsx` | Slim progress: words learned, words left, elapsed time.                                                                    |
-| `testLogic.ts`          | Pure functions: `chooseTestOption`, `chooseGuessDirection`, `isAnswerCorrect`, etc.                    |
+| `testLogic.ts`          | Pure functions: `pickQuestion`, `matchAnswer`, `recordAttempt`, `createTestWords`, `getRemainingWords`, etc. |
 | `types.ts`              | All test-related TypeScript interfaces and enums.                                                      |
 
 ### Results (`pages/Results/`)
@@ -92,7 +97,9 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 | `TestSummaryChips.tsx`        | Chips summarising score, time, and word counts.   |
 | `SentenceTrainingResults.tsx` | Expandable section showing sentence test details. |
 | `TimeTaken.tsx`               | Live clock component used during testing.         |
-| `SettingControls.tsx`         | Settings-list rows: `SettingsGroup`, `SwitchRow`, `StepperRow`, `ChoiceRow`. |
+| `settings/`                   | Settings-list rows, one per file: `SettingsGroup`, `SettingText`, `SwitchRow`, `StepperRow`, `ChoiceRow`. |
+| `sentenceResults/`            | `sentenceData.ts` (rows + per-word stats) and `SentenceGroup.tsx` used by `SentenceTrainingResults`. |
+| `ViewErrorBoundary.tsx`       | Shows "could not be loaded" + Reload instead of a blank page when a (lazy) view fails. |
 | `QrCodeModal.tsx`             | QR code of the app's address with Copy and Share; a bottom sheet on phones. |
 
 ## Contexts
@@ -107,6 +114,11 @@ The Word lists page is phone first: on phones it is one column with a sticky Sta
 | File               | Description                                             |
 | ------------------ | ------------------------------------------------------- |
 | `hooks/useDate.ts` | `calcTimeTakenText(start, end)` — formats elapsed time. |
+| `hooks/useLatest.ts` | Ref that always holds the latest value, for stable callbacks/timers. |
+| `hooks/useSwapDrag.ts` | Tap-to-swap and pointer drag-to-swap for a list of items (match the pairs). |
+| `pages/Settings/useWordListEditor.ts` | The list being edited (rows, sentences, names), saved to `SETTINGS`; add/delete rows, swap languages. |
+| `pages/Settings/useSavedLists.ts` | "My lists": save (update by name) and delete, always starting from storage. |
+| `pages/Testing/useTestSession.ts` | The test loop (see Testing). |
 
 ## Utilities (`src/util/`)
 

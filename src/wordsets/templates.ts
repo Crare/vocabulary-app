@@ -50,3 +50,41 @@ export const setTemplateParam = (index: number | null) => {
   else url.searchParams.set("template", String(index + 1));
   window.history.replaceState({}, "", url.toString());
 };
+
+/** A `?template=<n|name>[&autostart=true]` link the page was opened with. */
+export interface TemplateRequest {
+  index: number;
+  template: WordSet;
+  autostart: boolean;
+}
+
+/** Parse a template request from a query string. */
+export const parseTemplateRequest = (search: string): TemplateRequest | null => {
+  const params = new URLSearchParams(search);
+  const index = findTemplate(params.get("template"));
+  if (index < 0) return null;
+  return {
+    index,
+    template: templates[index],
+    autostart: params.get("autostart") === "true",
+  };
+};
+
+let pageRequest: TemplateRequest | null | undefined;
+
+/**
+ * The template link this page load started with, until it has been used.
+ * Read once per page load — navigating back to Word lists must not reload
+ * the template over the learner's edits, or autostart a test again.
+ */
+export const pendingTemplateRequest = (): TemplateRequest | null => {
+  if (pageRequest === undefined) {
+    pageRequest = parseTemplateRequest(window.location.search);
+  }
+  return pageRequest;
+};
+
+/** Mark the page's template link as used. */
+export const markTemplateRequestUsed = (): void => {
+  pageRequest = null;
+};

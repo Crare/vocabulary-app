@@ -6,14 +6,31 @@
 
 let audioCtx: AudioContext | null = null;
 
-const getCtx = (): AudioContext => {
-  if (!audioCtx) audioCtx = new AudioContext();
+/**
+ * The shared AudioContext, created on first use. Returns null where Web Audio
+ * is unavailable (old browsers, tests), so sounds fall back to silence.
+ */
+const getCtx = (): AudioContext | null => {
+  if (audioCtx) return audioCtx;
+  const Ctor =
+    typeof window === "undefined"
+      ? undefined
+      : (window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext);
+  if (!Ctor) return null;
+  try {
+    audioCtx = new Ctor();
+  } catch {
+    return null;
+  }
   return audioCtx;
 };
 
 /** Short rising chime — correct answer */
 export const playCorrect = (volume = 1) => {
   const ctx = getCtx();
+  if (!ctx) return;
   const now = ctx.currentTime;
   const v = 0.18 * volume;
 
@@ -33,6 +50,7 @@ export const playCorrect = (volume = 1) => {
 /** Short descending buzz — wrong answer */
 export const playWrong = (volume = 1) => {
   const ctx = getCtx();
+  if (!ctx) return;
   const now = ctx.currentTime;
   const v = 0.1 * volume;
 
@@ -51,6 +69,7 @@ export const playWrong = (volume = 1) => {
 /** Upbeat fanfare — test finished */
 export const playFinish = (volume = 1) => {
   const ctx = getCtx();
+  if (!ctx) return;
   const now = ctx.currentTime;
   const v = 0.15 * volume;
 
@@ -72,6 +91,7 @@ export const playFinish = (volume = 1) => {
 /** Soft descending tone — reveal answer */
 export const playReveal = (volume = 1) => {
   const ctx = getCtx();
+  if (!ctx) return;
   const now = ctx.currentTime;
   const v = 0.12 * volume;
 
@@ -90,6 +110,7 @@ export const playReveal = (volume = 1) => {
 /** Quick whoosh — skip word */
 export const playSkip = (volume = 1) => {
   const ctx = getCtx();
+  if (!ctx) return;
   const now = ctx.currentTime;
   const v = 0.1 * volume;
 
@@ -108,6 +129,7 @@ export const playSkip = (volume = 1) => {
 /** Quick "ready" beep — test started */
 export const playStart = (volume = 1) => {
   const ctx = getCtx();
+  if (!ctx) return;
   const now = ctx.currentTime;
   const v = 0.12 * volume;
 

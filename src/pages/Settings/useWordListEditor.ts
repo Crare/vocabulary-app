@@ -8,10 +8,18 @@ import {
 import {
   SentenceText,
   WordRow,
+  isBlankRow,
+  makeRow,
+  pickRows,
+  removeRow,
   rowsFromLanguageSet,
   rowsFromText,
   rowsFromWordSet,
+  rowsToColumns,
   rowsToText,
+  sentenceColumns,
+  swapRows,
+  toWordSet,
 } from "./wordRows";
 
 /** Everything that makes up the list being edited. */
@@ -47,6 +55,47 @@ export const listFromLanguageSet = (set: LanguageSet): EditorList => ({
   sentences: {
     language1Sentences: set.language1Sentences?.join("\n") ?? "",
     language2Sentences: set.language2Sentences?.join("\n") ?? "",
+  },
+});
+
+export const DEFAULT_LIST_NAME = "unnamed language set";
+
+/** The list as a `LanguageSet`, keeping only the rows that pass `keep`. */
+export const listToLanguageSet = (
+  list: EditorList,
+  keep: (row: WordRow) => boolean,
+): LanguageSet => {
+  const picked = pickRows(list.rows, list.sentences, keep);
+  return {
+    name: list.name.trim() || DEFAULT_LIST_NAME,
+    ...rowsToColumns(picked.rows),
+    language1Name: list.lang1Name || undefined,
+    language2Name: list.lang2Name || undefined,
+    ...sentenceColumns(picked.sentences),
+  };
+};
+
+/** The list as a downloadable word set file, without blank rows. */
+export const listToWordSet = (list: EditorList): WordSet => {
+  const picked = pickRows(list.rows, list.sentences, (r) => !isBlankRow(r));
+  return toWordSet(
+    list.name || "word-set",
+    list.lang1Name,
+    list.lang2Name,
+    picked.rows,
+    picked.sentences,
+  );
+};
+
+/** Swap the two languages: names, words and sentences. */
+export const swapLanguages = (list: EditorList): EditorList => ({
+  ...list,
+  lang1Name: list.lang2Name,
+  lang2Name: list.lang1Name,
+  rows: swapRows(list.rows),
+  sentences: {
+    language1Sentences: list.sentences.language2Sentences,
+    language2Sentences: list.sentences.language1Sentences,
   },
 });
 
@@ -89,7 +138,16 @@ export const useWordListEditor = (initialTemplate: WordSet | null) => {
   const setRows = (update: (rows: WordRow[]) => WordRow[]) =>
     setList((prev) => ({ ...prev, rows: update(prev.rows) }));
 
-  return { list, setList, patch, setRows };
+  /** Add an empty row at the end and return its id. */
+  const addRow = () => {
+    const row = makeRow();
+    setRows((rows) => [...rows, row]);
+    return row.id;
+  };
+  const deleteRow = (id: string) => setRows((rows) => removeRow(rows, id));
+  const swap = () => setList(swapLanguages);
+
+  return { list, setList, patch, setRows, addRow, deleteRow, swap };
 };
 
 const sameList = (a: EditorList, b: EditorList): boolean =>

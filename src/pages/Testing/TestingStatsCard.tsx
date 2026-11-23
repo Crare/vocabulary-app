@@ -1,6 +1,7 @@
 import { Box, LinearProgress, Typography } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { TestSettings, TestWord } from "./types";
+import { getRemainingWords, wordProgress } from "./testLogic";
 import { TimeTaken } from "../../components/TimeTaken";
 import { alpha } from "../../colors";
 
@@ -9,15 +10,9 @@ interface TestingStatsCardProps {
   testWords: TestWord[];
 }
 
-/** Progress counted the way the test decides a word is done. */
-const wordProgress = (w: TestWord, settings: TestSettings) =>
-  settings.progressOnMistakes ? w.timesCorrect + w.timesFailed : w.timesCorrect;
-
 /** How many words are fully learned in this test. */
 export const countLearned = (testWords: TestWord[], settings: TestSettings) =>
-  testWords.filter(
-    (w) => wordProgress(w, settings) >= settings.wordNeedsToGetCorrectTimes,
-  ).length;
+  testWords.length - getRemainingWords(testWords, settings).length;
 
 /** Slim progress line: words learned, words left, elapsed time. */
 export const TestingStatsCard = ({

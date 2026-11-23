@@ -1,22 +1,18 @@
 import "./Main.css";
-import { Grid, useMediaQuery } from "@mui/material";
+import { Box, CircularProgress, Grid, useMediaQuery } from "@mui/material";
 import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
 import { BOTTOM_NAV_HEIGHT, NavView, PHONE_NAV_QUERY } from "./navConfig";
 
 import { SettingsView } from "../Settings/SettingsView";
-import { TestConfigView } from "../Settings/TestConfigView";
-import { useState } from "react";
-import { TestingView } from "../Testing/TestingView";
-import { ResultsView } from "../Results/ResultsView";
-import { HistoryView } from "../History/HistoryView";
-import { CreditsView } from "../Credits/CreditsView";
+import { lazy, Suspense, useState } from "react";
 import {
   TestResults,
   TestSettings,
   TestWord,
   PartitionContext,
 } from "../Testing/types";
+import { ViewErrorBoundary } from "../../components/ViewErrorBoundary";
 import { saveTestResult } from "../../util/historyStorage";
 import { createLogger } from "../../util/logger";
 import { useSound } from "../../SoundContext";
@@ -24,6 +20,30 @@ import { trackEvent, trackPageView } from "../../util/analytics";
 import { useEffect } from "react";
 
 const log = createLogger("main");
+
+// Only the landing view (Word lists) is in the first download. The others
+// load on first use — charts (recharts) are only needed on Results/History.
+const TestConfigView = lazy(() =>
+  import("../Settings/TestConfigView").then((m) => ({ default: m.TestConfigView })),
+);
+const TestingView = lazy(() =>
+  import("../Testing/TestingView").then((m) => ({ default: m.TestingView })),
+);
+const ResultsView = lazy(() =>
+  import("../Results/ResultsView").then((m) => ({ default: m.ResultsView })),
+);
+const HistoryView = lazy(() =>
+  import("../History/HistoryView").then((m) => ({ default: m.HistoryView })),
+);
+const CreditsView = lazy(() =>
+  import("../Credits/CreditsView").then((m) => ({ default: m.CreditsView })),
+);
+
+const ViewFallback = () => (
+  <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+    <CircularProgress aria-label="Loading" />
+  </Box>
+);
 
 const Main = () => {
   const { onStart } = useSound();
@@ -202,6 +222,8 @@ const Main = () => {
         justifyContent={"center"}
         height={"100%"}
       >
+        <ViewErrorBoundary key={view}>
+        <Suspense fallback={<ViewFallback />}>
         {view === "wordlists" ? (
           <SettingsView
             onStartTest={startTest}
@@ -243,6 +265,8 @@ const Main = () => {
           <HistoryView onGoToWordLists={() => onNavigate("wordlists")} />
         ) : null}
         {view === "credits" ? <CreditsView /> : null}
+        </Suspense>
+        </ViewErrorBoundary>
       </Grid>
       {showBottomNav && (
         <BottomNav activeTab={activeTab} onNavigate={onNavigate} />
