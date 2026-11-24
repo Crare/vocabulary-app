@@ -1,21 +1,8 @@
-import { Theme } from "@mui/material/styles";
-import { SystemStyleObject } from "@mui/system";
 import { alpha, colors } from "../../colors";
 
-const isDark = (theme: Theme) => theme.palette.mode === "dark";
+import { ThemedStyle, isDark } from "../../styles/surface";
 
-type ThemedStyle = (theme: Theme) => SystemStyleObject<Theme>;
-
-/** Hairline used for card borders and dividers. */
-export const hairline = (theme: Theme) =>
-  isDark(theme) ? alpha.slate15 : colors.slate200;
-
-/** White (paper) card with a hairline border. */
-export const surfaceSx: ThemedStyle = (theme) => ({
-  bgcolor: "background.paper",
-  border: `1px solid ${hairline(theme)}`,
-  borderRadius: "16px",
-});
+export { hairline, surfaceSx } from "../../styles/surface";
 
 /** Outlined indigo button: secondary actions. */
 export const outlinedActionSx: ThemedStyle = (theme) => ({

@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { Box, Button } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
-import { GuessWordTitle, QuestionCard } from "./GuessWordTitle";
+import { GuessWordTitle } from "./GuessWordTitle";
+import { QuestionCard } from "./QuestionCard";
 import { AnswerPanel } from "./AnswerPanel";
 import { TestOption, TestSettings, TestState, TestWord } from "./types";
 import {

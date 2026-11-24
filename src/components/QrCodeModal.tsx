@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { alpha, colors } from "../colors";
 import { createLogger } from "../util/logger";
+import { srOnly } from "../styles/srOnly";
 
 const log = createLogger("qr-share");
 
@@ -27,14 +28,6 @@ interface QrCodeModalProps {
 export const displayUrl = (url: string) => url.replace(/^https?:\/\//, "");
 
 /** Visually hidden but read by screen readers ("1px": in `sx`, 1 means 100%). */
-const srOnly = {
-  position: "absolute",
-  width: "1px",
-  height: "1px",
-  overflow: "hidden",
-  clip: "rect(0 0 0 0)",
-  whiteSpace: "nowrap",
-} as const;
 
 const canShare = () =>
   typeof navigator !== "undefined" && typeof navigator.share === "function";

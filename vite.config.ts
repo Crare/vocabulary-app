@@ -16,5 +16,7 @@ export default defineConfig({
         globals: true,
         environment: "node",
         setupFiles: "./src/setupTests.ts",
+        // Only this repo's tests — not copies inside .claude/worktrees.
+        include: ["tests/**/*.test.{ts,tsx}"],
     },
 });

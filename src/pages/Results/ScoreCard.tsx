@@ -1,8 +1,9 @@
 import { Box, Typography } from "@mui/material";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { surfaceSx, statTileSx } from "./styles";
+import { surfaceSx } from "./styles";
 import { scoreHeadline } from "./resultsSummary";
+
+import { Stat } from "./ScoreStat";
+import { ChangeLine } from "./ScoreChange";
 
 interface ScoreCardProps {
   /** Accuracy of this test, 0–100. */
@@ -20,49 +21,6 @@ interface ScoreCardProps {
   eyebrow: string;
 }
 
-const Stat = ({ value, label }: { value: string; label: string }) => (
-  <Box sx={statTileSx}>
-    <Typography sx={{ fontSize: "1.05rem", fontWeight: 700, lineHeight: 1.3 }}>
-      {value}
-    </Typography>
-    <Typography variant="caption" sx={{ color: "text.secondary" }}>
-      {label}
-    </Typography>
-  </Box>
-);
-
-const ChangeLine = ({ change }: { change: number | null }) => {
-  if (change === null) {
-    return (
-      <Typography variant="body2" sx={{ color: "text.secondary" }}>
-        First test of these words
-      </Typography>
-    );
-  }
-  if (change === 0) {
-    return (
-      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-        Same as last time
-      </Typography>
-    );
-  }
-  const up = change > 0;
-  const Icon = up ? ArrowUpwardIcon : ArrowDownwardIcon;
-  const points = Math.abs(change);
-  return (
-    <Typography
-      variant="body2"
-      sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontWeight: 600 }}
-    >
-      <Icon
-        aria-hidden
-        sx={{ fontSize: 16, color: up ? "success.dark" : "error.main" }}
-      />
-      {points} {points === 1 ? "point" : "points"} {up ? "up" : "down"} from
-      last time
-    </Typography>
-  );
-};
 
 /** The score first: accuracy, change from last time and three supporting numbers. */
 export const ScoreCard = (props: ScoreCardProps) => {

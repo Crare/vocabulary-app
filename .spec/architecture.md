@@ -24,7 +24,8 @@ src/
 │   ├── History/          # Historical test entries
 │   └── Credits/          # Attribution page
 ├── components/           # Shared presentational components
-├── hooks/                # Custom hooks (useDate, etc.)
+├── hooks/                # Shared hooks (useDate, useLatest, useSwapDrag); page hooks live next to their page
+├── styles/               # Shared sx helpers (surface.ts, srOnly.ts)
 ├── util/                 # Pure helpers, localStorage wrappers, logger, sounds
 └── wordsets/             # Built-in word set JSON + TypeScript types
 tests/                    # Vitest unit tests (mirrors src structure)
@@ -55,7 +56,8 @@ There is no client-side router. `Main.tsx` holds a `view` state that toggles bet
 
 ## Key conventions
 
-- **No class components** — everything is a function component with hooks.
+- **No class components** — everything is a function component with hooks, except `ViewErrorBoundary` (React error boundaries must be classes).
+- **Lazy views** — `Main.tsx` lazy-loads every view except Word lists, so charts and the test UI are not in the first download.
 - **MUI `sx` prop** — all styling is inline via MUI's `sx` or `style` (for `<textarea>`). No CSS modules.
 - **Flat component hierarchy** — pages import their own sub-components; shared components live in `src/components/`.
 - **Structured logging** — `createLogger(tag)` from `src/util/logger.ts` gives `log.info(event, data)` etc.

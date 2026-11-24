@@ -114,7 +114,7 @@ export const ResultsActions = (props: ResultsActionsProps) => {
           bottom: "var(--bottom-nav-height, 0px)",
           zIndex: theme.zIndex.appBar,
           bgcolor: "background.paper",
-          borderTop: `1px solid ${hairline(theme)}`,
+          borderTop: hairline(theme),
           boxShadow: "0 -8px 24px rgba(15, 23, 42, 0.08)",
           p: "12px 16px calc(16px + env(safe-area-inset-bottom))",
           display: "flex",

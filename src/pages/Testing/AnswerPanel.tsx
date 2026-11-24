@@ -1,49 +1,14 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Box, Button, Divider, Typography } from "@mui/material";
-import { Theme } from "@mui/material/styles";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { alpha, colors } from "../../colors";
-import { DONT_KNOW_LABEL, Feedback, FeedbackTone } from "./feedback";
+import { DONT_KNOW_LABEL, Feedback } from "./feedback";
 
-interface ToneStyle {
-  bg: string;
-  line: string;
-  ink: string;
-}
+import { toneStyle } from "./toneStyle";
+import { ToneIcon } from "./ToneIcon";
 
-/** Background, accent line and text colour for each feedback tone. */
-export const toneStyle = (tone: FeedbackTone, theme: Theme): ToneStyle => {
-  const dark = theme.palette.mode === "dark";
-  switch (tone) {
-    case "correct":
-      return dark
-        ? { bg: alpha.success10, line: colors.emerald500, ink: colors.emerald400 }
-        : { bg: colors.emerald50, line: colors.emerald600, ink: colors.emerald700 };
-    case "typo":
-      return dark
-        ? { bg: alpha.warning10, line: colors.amber500, ink: colors.amber400 }
-        : { bg: colors.amber50, line: colors.amber600, ink: colors.amber800 };
-    case "wrong":
-      return dark
-        ? { bg: alpha.error10, line: colors.red500, ink: colors.red400 }
-        : { bg: colors.red50, line: colors.red600, ink: colors.red700 };
-    default:
-      return dark
-        ? { bg: alpha.primary15, line: colors.indigo400, ink: colors.indigo300 }
-        : { bg: colors.indigo75, line: colors.indigo600, ink: colors.indigo800 };
-  }
-};
-
-const ToneIcon = ({ feedback }: { feedback: Feedback }) => {
-  if (feedback.tone === "revealed")
-    return <VisibilityOutlinedIcon fontSize="small" />;
-  if (feedback.tone === "wrong" || feedback.crossIcon)
-    return <CloseIcon fontSize="small" />;
-  return <CheckIcon fontSize="small" />;
-};
+export { toneStyle } from "./toneStyle";
 
 /** How long fresh answer controls ignore taps after Continue. */
 const ARM_DELAY_MS = 350;
